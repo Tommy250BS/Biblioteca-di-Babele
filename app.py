@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""
-Backend Flask per RBBC Rezzato PWA.
-Espone /api/search?q=titolo e restituisce JSON con i risultati.
-"""
+"""Backend Flask per RBBC PWA — ricerca per qualsiasi biblioteca della rete."""
 
 import subprocess, re, time, os
 from urllib.parse import quote_plus
@@ -12,8 +9,7 @@ from flask_cors import CORS
 app = Flask(__name__, static_folder="static", static_url_path="")
 CORS(app)
 
-BASE_URL   = "https://opac.provincia.brescia.it"
-BIBLIOTECA = "REZZATO"
+BASE_URL    = "https://opac.provincia.brescia.it"
 COOKIE_FILE = "/tmp/rbbc_session.txt"
 
 HEADERS = [
@@ -23,8 +19,6 @@ HEADERS = [
     "-H", "Accept-Language: it-IT,it;q=0.9",
     "-H", "Accept-Encoding: gzip, deflate, br",
 ]
-
-# ── curl ──────────────────────────────────────────────────────────────────────
 
 def curl_get(url):
     cmd = (["curl", "-s", "-L", "--compressed", "--max-time", "25",
@@ -41,17 +35,14 @@ def strip_tags(h):
         t = t.replace(a, b)
     return re.sub(r'\s+', ' ', t).strip()
 
-# ── Logica ricerca (identica allo script Python) ──────────────────────────────
-
 def cerca_titolo(titolo):
     url  = f"{BASE_URL}/opac/search?q={quote_plus(titolo)}"
     html = curl_get(url)
     if not html:
         return []
     pattern = r'href="opac/detail/view/test:catalog:(\d+)"[\s\S]{0,200}?title="([^"]{5,200})"'
-    matches = re.findall(pattern, html)
     visti = {}
-    for num, titolo_raw in matches:
+    for num, titolo_raw in re.findall(pattern, html):
         if num not in visti:
             t = strip_tags(titolo_raw)
             if t and not t.lower().startswith("vai a"):
@@ -61,19 +52,17 @@ def cerca_titolo(titolo):
         for num, tit in list(visti.items())[:10]
     ]
 
-def verifica_disponibilita(url):
+def verifica_disponibilita(url, biblioteca):
     html = curl_get(url)
     if not html:
         return {"titolo": "—", "autore": "—", "copie": []}
-
     m = re.search(r'<h3[^>]*>\s*([\s\S]*?)\s*</h3>', html)
     titolo = strip_tags(m.group(1)) if m else "—"
     m = re.search(r'<h4[^>]*>\s*([\s\S]*?)\s*</h4>', html)
     autore = strip_tags(m.group(1)) if m else "—"
-
     copie = []
     for riga in re.findall(r'<tr[\s\S]*?</tr>', html, re.IGNORECASE):
-        if not re.search(r'\bREZZATO\b', strip_tags(riga), re.IGNORECASE):
+        if not re.search(re.escape(biblioteca), strip_tags(riga), re.IGNORECASE):
             continue
         celle = [strip_tags(c)
                  for c in re.findall(r'<td[\s\S]*?</td>', riga, re.IGNORECASE)
@@ -86,29 +75,28 @@ def verifica_disponibilita(url):
         })
     return {"titolo": titolo, "autore": autore, "copie": copie}
 
-# ── Route API ─────────────────────────────────────────────────────────────────
-
 @app.route("/api/search")
 def api_search():
-    q = request.args.get("q", "").strip()
+    q         = request.args.get("q", "").strip()
+    biblioteca = request.args.get("biblioteca", "").strip().upper()
     if not q:
         return jsonify({"error": "Parametro q mancante"}), 400
+    if not biblioteca:
+        return jsonify({"error": "Parametro biblioteca mancante"}), 400
 
     risultati_base = cerca_titolo(q)
     if not risultati_base:
-        return jsonify({"query": q, "risultati": []})
+        return jsonify({"query": q, "biblioteca": biblioteca, "risultati": []})
 
     output = []
     for libro in risultati_base:
         time.sleep(0.5)
-        det = verifica_disponibilita(libro["url"])
-        titolo_r = det["titolo"] if det["titolo"] not in ("—", "") else libro["titolo"]
-        # Separa titolo e autore se nel formato "Titolo - Autore"
+        det = verifica_disponibilita(libro["url"], biblioteca)
+        titolo_r = det["titolo"] if det["titolo"] not in ("—","") else libro["titolo"]
         autore_r = det["autore"]
-        if autore_r in ("—", "") and " - " in titolo_r:
+        if autore_r in ("—","") and " - " in titolo_r:
             parti = titolo_r.rsplit(" - ", 1)
-            titolo_r = parti[0].strip()
-            autore_r = parti[1].strip()
+            titolo_r, autore_r = parti[0].strip(), parti[1].strip()
         output.append({
             "titolo":        titolo_r,
             "autore":        autore_r,
@@ -119,8 +107,7 @@ def api_search():
                 for c in det["copie"]
             ),
         })
-
-    return jsonify({"query": q, "risultati": output})
+    return jsonify({"query": q, "biblioteca": biblioteca, "risultati": output})
 
 @app.route("/")
 def index():
