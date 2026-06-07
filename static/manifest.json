@@ -1,7 +1,7 @@
 {
-  "name": "Biblioteca di Rezzato",
-  "short_name": "RBBC Rezzato",
-  "description": "Cerca libri disponibili alla Biblioteca di Rezzato",
+  "name": "Cerca nella tua biblioteca",
+  "short_name": "RBBC semplificata",
+  "description": "Cerca libri disponibili nella tua biblioteca",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f5f0e8",
