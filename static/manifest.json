@@ -1,6 +1,6 @@
 {
-  "name": "Cerca nella tua biblioteca",
-  "short_name": "RBBC Rezzato",
+  "name": "RBBC Catalogo",
+  "short_name": "RBBC Catalogo",
   "description": "Cerca libri disponibili nella tua biblioteca",
   "start_url": "/",
   "display": "standalone",
