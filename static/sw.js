@@ -1,51 +1,53 @@
-const CACHE = "rbbc-v4";
-const ASSETS = ["/", "/index.html"];
+const CACHE_NAME = "rbbc-runtime-cache";
 
-// INSTALL: salva asset iniziali
+// INSTALL
 self.addEventListener("install", (event) => {
-  self.skipWaiting(); // forza attivazione immediata
-
-  event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(ASSETS))
-  );
+  self.skipWaiting();
 });
 
-// ACTIVATE: elimina vecchie cache
+// ACTIVATE → pulisce TUTTE le cache vecchie
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
-        keys
-          .filter((key) => key !== CACHE)
-          .map((key) => caches.delete(key))
+        keys.map((key) => caches.delete(key))
       )
     )
   );
 
-  self.clients.claim(); // prende subito controllo delle pagine aperte
+  self.clients.claim();
 });
 
-// FETCH: Network First per HTML, Cache First per il resto
+// FETCH
 self.addEventListener("fetch", (event) => {
-  if (event.request.url.includes("/api/")) return;
+  const request = event.request;
 
-  // HTML → sempre aggiornato
-  if (event.request.mode === "navigate") {
+  // API sempre live
+  if (request.url.includes("/api/")) {
+    return;
+  }
+
+  // HTML → sempre dal network (mai cache bloccante)
+  if (request.mode === "navigate") {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match("/index.html"))
+      fetch(request).catch(() => caches.match("/index.html"))
     );
     return;
   }
 
-  // Static assets → cache-first
+  // STATIC → stale-while-revalidate (strategia migliore)
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      return cached || fetch(event.request).then((response) => {
-        return caches.open(CACHE).then((cache) => {
-          cache.put(event.request, response.clone());
-          return response;
-        });
-      });
+    caches.open(CACHE_NAME).then(async (cache) => {
+      const cached = await cache.match(request);
+
+      const fetchPromise = fetch(request)
+        .then((networkResponse) => {
+          cache.put(request, networkResponse.clone());
+          return networkResponse;
+        })
+        .catch(() => cached);
+
+      return cached || fetchPromise;
     })
   );
 });
