@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
 RBBC PWA — backend Flask con account utente, sessioni e storico ricerche.
-DB: SQLite (file rbbc.db nella stessa cartella)
+DB: PostgreSQL
 Auth: bcrypt + flask-login, cookie di sessione firmato
 """
 
-import subprocess, re, time, os, hashlib
+import subprocess, re, time, os
 from datetime import datetime
 from urllib.parse import quote_plus
 from flask import (Flask, request, jsonify, g,
@@ -82,7 +82,7 @@ def init_db():
                     autore TEXT NOT NULL DEFAULT '',
                     url_opac TEXT NOT NULL,
                     biblioteca TEXT NOT NULL,
-                    disponibile INTEGER NOT NULL DEFAULT 0,
+                    disponibile BOOLEAN NOT NULL DEFAULT FALSE,
                     salvato_il TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE (utente_id, url_opac)
                 );
@@ -210,9 +210,13 @@ def registra():
             "biblioteca": biblioteca
         })
 
-    except errors.UniqueViolation:
-        db.rollback()
+    except Exception as e:
+    db.rollback()
+
+    if "duplicate key" in str(e).lower():
         return jsonify({"error": "Email già registrata"}), 409
+
+     return jsonify({"error": str(e)}), 500
 
     except Exception as e:
         db.rollback()
@@ -348,7 +352,7 @@ def aggiungi_salvato():
                 d.get("autore", ""),
                 d.get("url_opac", ""),
                 d.get("biblioteca", ""),
-                int(bool(d.get("disponibile", False))),
+                bool(d.get("disponibile")))),
             )
         )
 
