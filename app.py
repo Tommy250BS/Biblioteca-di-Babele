@@ -217,9 +217,6 @@ def registra():
             return jsonify({"error": "Email già registrata"}), 409
         return jsonify({"error": str(e)}), 500
 
-    except Exception as e:
-        db.rollback()
-        return jsonify({"error": str(e)}), 500
 
 @app.route("/api/auth/login", methods=["POST"])
 def login():
@@ -385,7 +382,7 @@ def get_storico():
         (u["id"],)).fetchall()
     # Query più frequenti (top 10)
     top_query = db.execute(
-        """SELECT query, COUNT(*) as n FROM ricerche
+        """SELECT lower(query) as query, COUNT(*) as n FROM ricerche
            WHERE utente_id=%s GROUP BY lower(query) ORDER BY n DESC LIMIT 10""",
         (u["id"],)).fetchall()
     # Totali
