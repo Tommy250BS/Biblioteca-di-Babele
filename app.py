@@ -31,7 +31,7 @@ HEADERS = [
     "-H", "Accept-Encoding: gzip, deflate, br",
 ]
 
-# ── Database ──────────────────────────────────────────────────────────────────
+# Database
 
 def get_db():
     if "db" not in g:
@@ -90,7 +90,7 @@ def init_db():
 
 init_db()
 
-# ── Helpers auth ──────────────────────────────────────────────────────────────
+#  Helpers auth 
 
 def utente_corrente():
     uid = session.get("uid")
@@ -107,7 +107,7 @@ def login_richiesto(fn):
         return fn(*a, **kw)
     return wrapper
 
-# ── curl + OPAC ───────────────────────────────────────────────────────────────
+#  curl + OPAC 
 
 def curl_get(url):
     cmd = (["curl", "-s", "-L", "--compressed", "--max-time", "25",
@@ -161,7 +161,7 @@ def verifica_disponibilita(url, biblioteca):
         })
     return {"titolo": titolo, "autore": autore, "copie": copie}
 
-# ── API Auth ──────────────────────────────────────────────────────────────────
+#  API Auth 
 
 @app.route("/api/auth/registra", methods=["POST"])
 def registra():
@@ -234,7 +234,7 @@ def aggiorna_profilo():
     get_db().commit()
     return jsonify({"ok": True, "nome": nome, "biblioteca": biblioteca})
 
-# ── API Ricerca ───────────────────────────────────────────────────────────────
+#  API Ricerca 
 
 @app.route("/api/search")
 def api_search():
@@ -275,7 +275,7 @@ def api_search():
 
     return jsonify({"query": q, "biblioteca": biblioteca, "risultati": output})
 
-# ── API Salvati ───────────────────────────────────────────────────────────────
+#  API Salvati 
 
 @app.route("/api/salvati", methods=["GET"])
 @login_richiesto
@@ -313,7 +313,7 @@ def rimuovi_salvato(sid):
     get_db().commit()
     return jsonify({"ok": True})
 
-# ── API Storico e statistiche personali ──────────────────────────────────────
+#  API Storico e statistiche personali 
 
 @app.route("/api/storico")
 @login_richiesto
