@@ -1,6 +1,6 @@
 {
-  "name": "Catalogo RBBC",
-  "short_name": "RBBC",
+  "name": "BookFinder RBBC",
+  "short_name": "BookFinder",
   "description": "Cerca libri nelle biblioteche della Rete Bibliotecaria Bresciana e Cremonese",
   "start_url": "/",
   "display": "standalone",
