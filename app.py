@@ -351,7 +351,7 @@ def aggiungi_salvato():
                 d.get("autore", ""),
                 d.get("url_opac", ""),
                 d.get("biblioteca", ""),
-                bool(d.get("disponibile")))),
+                bool(d.get("disponibile")),
             )
         )
 
