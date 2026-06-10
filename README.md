@@ -25,7 +25,7 @@ Can be used as a Progressive Web-App on smartphones.
 ## File structure
 ```
 rbbc-pwa/
-├── app.py              # Backend Flask (curl + API)
+├── app.py              # Flask backend (curl + API)
 ├── requirements.txt    # Python requirements
 ├── render.yaml         # Render deploy configurations
 └── static/
