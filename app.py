@@ -166,29 +166,57 @@ def verifica_disponibilita(url, biblioteca):
 @app.route("/api/auth/registra", methods=["POST"])
 def registra():
     d = request.get_json() or {}
-    email      = (d.get("email") or "").strip().lower()
-    nome       = (d.get("nome") or "").strip()
-    password   = (d.get("password") or "")
+
+    email = (d.get("email") or "").strip().lower()
+    nome = (d.get("nome") or "").strip()
+    password = d.get("password") or ""
     biblioteca = (d.get("biblioteca") or "").strip()
 
     if not email or not nome or not password or not biblioteca:
         return jsonify({"error": "Tutti i campi sono obbligatori"}), 400
+
     if len(password) < 6:
         return jsonify({"error": "La password deve avere almeno 6 caratteri"}), 400
 
-    pw_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    pw_hash = bcrypt.hashpw(
+        password.encode(),
+        bcrypt.gensalt()
+    ).decode()
+
+    db = get_db()
+
     try:
-        db = get_db()
         cur = db.execute(
-            "INSERT INTO utenti (email, nome, password, biblioteca) VALUES (%s, %s, %s, %s)",
-            (email, nome, pw_hash, biblioteca))
-        db.commit()
+            """
+            INSERT INTO utenti
+                (email, nome, password, biblioteca)
+            VALUES
+                (%s, %s, %s, %s)
+            RETURNING id
+            """,
+            (email, nome, pw_hash, biblioteca)
+        )
+
         uid = cur.fetchone()["id"]
+
+        db.commit()
+
         session["uid"] = uid
         session.permanent = True
-        return jsonify({"ok": True, "nome": nome, "biblioteca": biblioteca})
+
+        return jsonify({
+            "ok": True,
+            "nome": nome,
+            "biblioteca": biblioteca
+        })
+
     except errors.UniqueViolation:
+        db.rollback()
         return jsonify({"error": "Email già registrata"}), 409
+
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/api/auth/login", methods=["POST"])
 def login():
@@ -291,17 +319,45 @@ def get_salvati():
 def aggiungi_salvato():
     u = utente_corrente()
     d = request.get_json() or {}
+
     try:
         get_db().execute(
-            """INSERT INTO salvati
-               (utente_id,titolo,autore,url_opac,biblioteca,disponibile)
-               VALUES (%s,%s,%s,%s,%s,%s)""",
-            (u["id"], d.get("titolo",""), d.get("autore",""),
-             d.get("url_opac",""), d.get("biblioteca",""),
-             1 if d.get("disponibile") else 0))
+            """
+            INSERT INTO salvati
+                (
+                    utente_id,
+                    titolo,
+                    autore,
+                    url_opac,
+                    biblioteca,
+                    disponibile
+                )
+            VALUES
+                (%s, %s, %s, %s, %s, %s)
+
+            ON CONFLICT (utente_id, url_opac)
+            DO UPDATE SET
+                titolo = EXCLUDED.titolo,
+                autore = EXCLUDED.autore,
+                biblioteca = EXCLUDED.biblioteca,
+                disponibile = EXCLUDED.disponibile
+            """,
+            (
+                u["id"],
+                d.get("titolo", ""),
+                d.get("autore", ""),
+                d.get("url_opac", ""),
+                d.get("biblioteca", ""),
+                int(bool(d.get("disponibile", False))),
+            )
+        )
+
         get_db().commit()
+
         return jsonify({"ok": True})
+
     except Exception as e:
+        get_db().rollback()
         return jsonify({"error": str(e)}), 400
 
 @app.route("/api/salvati/<int:sid>", methods=["DELETE"])
