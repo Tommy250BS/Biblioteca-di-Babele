@@ -27,6 +27,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Risorse esterne (CDN, font, ecc.) → passano dirette alla rete
+  if (new URL(request.url).origin !== self.location.origin) {
+    return;
+  }
+
   // HTML → sempre dal network (mai cache bloccante)
   if (request.mode === "navigate") {
     event.respondWith(
