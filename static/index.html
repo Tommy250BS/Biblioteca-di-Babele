@@ -993,11 +993,31 @@ function chiudiSh(id,e){if(!e||e.target===document.getElementById(id))document.g
 const main=document.getElementById('main');
 function stC(c){if(!c?.length)return'';const ss=c.map(x=>x.stato.toLowerCase());if(ss.some(s=>s.includes('scaffale')||s.includes('disponib')))return'disp';if(ss.some(s=>s.includes('prestito')))return'prest';return'';}
 function dC(s){s=s.toLowerCase();if(s.includes('scaffale')||s.includes('disponib'))return'dv';if(s.includes('prestito'))return'dr';return'do';}
-async function caricaSalv(){if(!G.u)return;try{const r=await fetch('/api/salvati');if(r.ok){const d=await r.json();G.salv=new Set(d.map(s=>s.url_opac));G.letti=new Set(d.filter(s=>s.letto).map(s=>s.url_opac));}}catch{}}
+async function caricaSalv(){
+  if(!G.u)return;
+  try{
+    const[rs,rl]=await Promise.all([fetch('/api/salvati'),fetch('/api/letti')]);
+    if(rs.ok){const d=await rs.json();G.salv=new Set(d.map(s=>s.url_opac));}
+    if(rl.ok){const d=await rl.json();G.letti=new Set(d.map(s=>s.url_opac));}
+  }catch(e){console.error('caricaSalv',e);}
+}
 async function togSalv(btn,libro){
   if(!G.u)return;tap('medium');const url=libro.url;
-  if(G.salv.has(url)){try{const r=await fetch('/api/salvati');const d=await r.json();const it=d.find(s=>s.url_opac===url);if(it){await fetch(`/api/salvati/${it.id}`,{method:'DELETE'});G.salv.delete(url);G.letti.delete(url);btn.textContent='♡ Salva';btn.classList.remove('on');const lb=btn.parentElement?.querySelector('.bletto');if(lb){lb.textContent='✓ Letto';lb.classList.remove('on');}}}catch{}}
-  else{try{await fetch('/api/salvati',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({titolo:libro.titolo,autore:libro.autore||'',url_opac:url,biblioteca:G.bib,disponibile:libro.disponibile?1:0})});G.salv.add(url);btn.textContent='♥ Salvato';btn.classList.add('on');}catch{}}
+  if(G.salv.has(url)){
+    try{
+      const r=await fetch('/api/salvati');const d=await r.json();
+      const it=d.find(s=>s.url_opac===url);
+      if(it){await fetch(`/api/salvati/${it.id}`,{method:'DELETE'});}
+      G.salv.delete(url);btn.textContent='♡ Salva';btn.classList.remove('on');
+    }catch(e){console.error('togSalv del',e);}
+  }else{
+    try{
+      const r=await fetch('/api/salvati',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({titolo:libro.titolo,autore:libro.autore||'',url_opac:url,biblioteca:G.bib,disponibile:libro.disponibile?1:0})});
+      if(!r.ok){const e=await r.json();throw new Error(e.error);}
+      G.salv.add(url);btn.textContent='♥ Salvato';btn.classList.add('on');
+    }catch(e){console.error('togSalv add',e);}
+  }
 }
 async function togLetto(btn,libro){
   if(!G.u)return;tap('medium');const url=libro.url;
