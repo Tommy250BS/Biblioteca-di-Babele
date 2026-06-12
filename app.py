@@ -347,8 +347,7 @@ def aggiungi_salvato():
                 titolo = EXCLUDED.titolo,
                 autore = EXCLUDED.autore,
                 biblioteca = EXCLUDED.biblioteca,
-                disponibile = EXCLUDED.disponibile,
-                letto = EXCLUDED.letto
+                disponibile = EXCLUDED.disponibile
             """,
             (
                 u["id"],
