@@ -1004,11 +1004,12 @@ async function togLetto(btn,libro){
   const nuovo=!G.letti.has(url);
   try{
     if(!G.salv.has(url)){
-      return;
-    }else{
-      const r=await fetch('/api/salvati');const d=await r.json();const it=d.find(s=>s.url_opac===url);
-      if(it)await fetch(`/api/salvati/${it.id}/letto`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({letto:nuovo})});
+      return; // deve prima essere salvato
     }
+    const r=await fetch('/api/salvati');const d=await r.json();
+    const it=d.find(s=>s.url_opac===url);
+    if(!it)return;
+    await fetch(`/api/salvati/${it.id}/letto`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({letto:nuovo})});
     if(nuovo){G.letti.add(url);btn.textContent='✓ Letto';btn.classList.add('on');}
     else{G.letti.delete(url);btn.textContent='○ Segna come letto';btn.classList.remove('on');}
   }catch{}
