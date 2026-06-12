@@ -996,7 +996,7 @@ function dC(s){s=s.toLowerCase();if(s.includes('scaffale')||s.includes('disponib
 async function caricaSalv(){if(!G.u)return;try{const r=await fetch('/api/salvati');if(r.ok){const d=await r.json();G.salv=new Set(d.map(s=>s.url_opac));G.letti=new Set(d.filter(s=>s.letto).map(s=>s.url_opac));}}catch{}}
 async function togSalv(btn,libro){
   if(!G.u)return;tap('medium');const url=libro.url;
-  if(G.salv.has(url)){try{const r=await fetch('/api/salvati');const d=await r.json();const it=d.find(s=>s.url_opac===url);if(it){await fetch(`/api/salvati/${it.id}`,{method:'DELETE'});G.salv.delete(url);G.letti.delete(url);btn.textContent='♡ Salva';btn.classList.remove('on');const lb=btn.parentElement?.querySelector('.bletto');if(lb){lb.textContent='✓ Letto';lb.classList.remove('on');}}}catch{}}
+  if(G.salv.has(url)){try{const r=await fetch('/api/salvati');const d=await r.json();const it=d.find(s=>s.url_opac===url);if(it){await fetch(`/api/salvati/${it.id}`,{method:'DELETE'});G.salv.delete(url);G.letti.delete(url);btn.textContent='♡ Salva';btn.classList.remove('on');const lb=btn.parentElement?.querySelector('.bletto');if(lb){lb.textContent='○ Segna come letto';lb.classList.remove('on');}}}catch{}}
   else{try{await fetch('/api/salvati',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({titolo:libro.titolo,autore:libro.autore||'',url_opac:url,biblioteca:G.bib,disponibile:libro.disponibile?1:0})});G.salv.add(url);btn.textContent='♥ Salvato';btn.classList.add('on');}catch{}}
 }
 async function togLetto(btn,libro){
@@ -1026,7 +1026,7 @@ function renderRis(data){
     let ch='';
     if(!lib.copie_rezzato?.length)ch=`<div class="ctcop"><span class="assl">Non presente a ${biblioteca}</span></div>`;
     else{const rr=lib.copie_rezzato.map(c=>`<div class="copr"><div class="cdot ${dC(c.stato)}"></div><div class="cb"><div><span class="cc">${c.collocazione}</span><span class="ci">${c.inventario}</span></div><div class="cs">${c.stato}</div>${c.rientra?`<div class="cri">Rientra: ${c.rientra}</div>`:''}</div></div>`).join('');ch=`<div class="ctcop">${rr}</div>`;}
-    h+=`<div class="card ${cl}" style="animation-delay:${i*.04}s" data-i="${i}"><div class="cth"><div class="ctt">${lib.titolo}</div>${au?`<div class="cta">${au}</div>`:''}</div>${sb||lt?`<div class="ctact">${sb}${lt}</div>`:''}${ch}<a class="cln" href="${lib.url}" target="_blank" rel="noopener">Apri nel catalogo →</a></div>`;
+    h+=`<div class="card ${cl}" style="animation-delay:${i*.04}s" data-i="${i}"><div class="cth"><div class="ctt">${lib.titolo}</div>${au?`<div class="cta">${au}</div>`:''}</div>${G.u?`<div class="ctact">${sb}${lt}</div>`:''}${ch}<a class="cln" href="${lib.url}" target="_blank" rel="noopener">Apri nel catalogo →</a></div>`;
   });
   main.innerHTML=h;
   if(G.u){
