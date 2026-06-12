@@ -323,33 +323,36 @@ body{font-family:'Inter',sans-serif;background:var(--av);color:var(--ink);min-he
 .cost-label{font-size:.63rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--oro);margin-bottom:4px}
 .cost-nome{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;color:var(--bosco);margin-bottom:2px;line-height:1.2}
 .cost-badge-hint{font-size:.68rem;color:#bbb;margin-bottom:10px;font-style:italic}
-.cost-wrap{background:#05080f;border-radius:var(--r);overflow:hidden;position:relative;border:1px solid rgba(201,168,76,.1)}
+.cost-wrap{background:#05070d;border-radius:var(--r);overflow:hidden;position:relative;border:1px solid rgba(201,168,76,.1);background-image:radial-gradient(ellipse at 50% 0%,rgba(40,55,90,.35) 0%,transparent 60%)}
 .cost-wrap svg{width:100%;display:block}
 /* collegamenti tra stelle */
-.cost-link{stroke:rgba(201,168,76,.15);stroke-width:1;stroke-dasharray:4 3;transition:stroke .6s,stroke-width .6s,filter .6s}
-.cost-link.lit{stroke:rgba(201,168,76,.7);stroke-width:1.8;stroke-dasharray:none;filter:drop-shadow(0 0 3px rgba(201,168,76,.6))}
+.cost-link{stroke:rgba(201,168,76,.15);stroke-width:1;stroke-dasharray:4 3;transition:stroke .8s,stroke-width .8s,filter .8s}
+.cost-link.lit{stroke:rgba(255,224,102,.75);stroke-width:1.8;stroke-dasharray:none;filter:drop-shadow(0 0 4px rgba(255,224,102,.65))}
 /* stelline a 5 punte */
 .cost-star{cursor:pointer}
 .cost-star .spt{
-  fill:rgba(255,255,255,.22);
-  transition:fill .45s,filter .45s,transform .3s;
+  fill:rgba(255,255,255,.28);
+  stroke:rgba(255,255,255,.4);
+  stroke-width:.5;
+  transition:fill .6s,stroke .6s,filter .6s;
   transform-origin:center;
   transform-box:fill-box;
 }
 .cost-star.lit .spt{
   fill:#ffe066;
+  stroke:#fff6cf;
   filter:drop-shadow(0 0 5px #ffe066) drop-shadow(0 0 12px rgba(255,200,50,.5));
-  animation:twinkle 2.2s ease-in-out infinite;
+  animation:twinkle 2.4s ease-in-out infinite;
 }
 .cost-star .hit{fill:transparent;cursor:pointer}
 @keyframes twinkle{
-  0%,100%{opacity:1;filter:drop-shadow(0 0 5px #ffe066) drop-shadow(0 0 12px rgba(255,200,50,.5))}
-  40%{opacity:.65;filter:drop-shadow(0 0 2px #ffe066) drop-shadow(0 0 4px rgba(255,200,50,.3))}
-  70%{opacity:.9;filter:drop-shadow(0 0 8px #ffe066) drop-shadow(0 0 18px rgba(255,200,50,.6))}
+  0%,100%{opacity:1;filter:drop-shadow(0 0 5px #ffe066) drop-shadow(0 0 12px rgba(255,200,50,.5));transform:scale(1)}
+  40%{opacity:.7;filter:drop-shadow(0 0 2px #ffe066) drop-shadow(0 0 4px rgba(255,200,50,.3));transform:scale(.94)}
+  70%{opacity:.95;filter:drop-shadow(0 0 8px #ffe066) drop-shadow(0 0 18px rgba(255,200,50,.6));transform:scale(1.04)}
 }
 /* micro stelle di sfondo */
-.cost-bg-star{fill:rgba(255,255,255,.28);animation:bgTwinkle var(--dur,3s) ease-in-out infinite var(--del,0s)}
-@keyframes bgTwinkle{0%,100%{opacity:.28}50%{opacity:.08}}
+.cost-bg-star{fill:rgba(255,255,255,.55);animation:bgTwinkle var(--dur,3s) ease-in-out infinite var(--del,0s)}
+@keyframes bgTwinkle{0%,100%{opacity:.55}50%{opacity:.1}}
 /* info card */
 .cost-info{background:#fff;border-radius:0 0 var(--r) var(--r);padding:13px 16px;border-top:1px solid var(--av2);display:none}
 .cost-info.on{display:block;animation:up .2s ease both}
@@ -808,7 +811,7 @@ body{font-family:'Inter',sans-serif;background:var(--av);color:var(--ink);min-he
 <script>
 if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
 
-let G={u:null,bib:'',salv:new Set(),letti:new Set()};
+let G={u:null,bib:'',salv:new Set(),letti:new Set(),lettiData:[]};
 
 const BIBS=["Acquafredda","Adro","Agnadello","Agnosine","Anfo","Angolo Terme","Annicco","Artogne","Azzano Mella","Bagnolo Cremasco","Bagnolo Mella","Bagolino","Barbariga","Barghe","Bassano Bresciano","Bedizzole","Berlingo","Berzo Demo","Berzo Inferiore","Bienno","Bione","Bonemerse","Borgo San Giacomo","Borgosatollo","Borno","Botticino","Bovegno","Bovezzo","Brandico","Braone","Breno","Brescia - Abba-Ballini","Brescia - Archivio Storico","Brescia - Arnaldo","Brescia - Bibliobus","Brescia - Buffalora","Brescia - Canton Mombello","Brescia - Casazza","Brescia - Centro Casa Severino","Brescia - Emeroteca Queriniana","Brescia - Fondazione Trebeschi","Brescia - Gambara","Brescia - Ghetti","Brescia - Golgi","Brescia - La Vetrina","Brescia - Largo Torrelunga","Brescia - Mediateca Queriniana","Brescia - Museo Scienze Naturali","Brescia - Parco Gallo","Brescia - Prealpino","Brescia - Queriniana","Brescia - San Polo","Brescia - SBU","Brescia - Sereno","Brescia - UAU","Brione","Caino","Calcinato","Calvagese D-R","Calvatone","Calvisano","Camisano","Capergnanica","Capo Di Ponte","Capovalle","Capralba","Capriano Del Colle","Capriolo","Carpenedolo","Casalbuttano","Casale Cremasco Vidolasco","Casaletto Ceredano","Casaletto Vaprio","Casalmaggiore","Casalpusterlengo","Castegnato","Castel Mella","Castelcovati","Castelleone","Castello Di Padernello","Castelverde","Castenedolo","Casto","Castrezzato","Cazzago SM","Cedegolo","Cellatica","Centro Fumetto A. Pazienza","Centro Studi RSI Salò","Cerveno","Ceto","Cevo","Chiari","Chieve","Cigole","Cimbergo","Cingia De' Botti","Cividate Camuno","Clusane","Coccaglio","Collebeato","Collio","Cologne","Comezzano - Cizzago","Concesio","Corte De' Frati","Corte Franca","Corteno Golgi","Corzano","Credera Rubbiano","Crema","Crema - Museo","Cremona - Anguissola","Cremona - CDA","Cremona - Manin","Darfo Boario Terme","Dello","Desenzano","Dovera","Edolo","Elnos","Erbusco","Esine","Fiesco","Fiesse","Flero","Gadesco Pieve Delmona","Gambara","Gardone Riviera","Gardone Val Trompia","Gargnano","Gavardo","Genivolta","Ghedi","Gianico","Gottolengo","Grontardo","Grumello Cremonese","Gussago","Gussola","Idro","Incudine","Irma","Iseo","Isola Dovarese","Isorella","Izano","Lavenone","Leno","Limone Sul Garda","Lodrino","Lograto","Lonato Del Garda","Longhena","Losine","Lozio","Lumezzane","Maclodio","Madignano","Magasa","Mairano","Malegno","Malonno","Manerba Del Garda","Manerbio","Marcheno","Marmentino","Marone","Martignana Di Po","Mazzano","Milzano","Moniga Del Garda","Monno","Monte Cremasco","Monte Isola","Monticelli Brusati","Montichiari","Montirone","Montodine","Mura","Muscoline","Nave","Niardo","Nuvolento","Nuvolera","Odolo","Offanengo","Offlaga","Ome","Ono San Pietro","Orzinuovi","Orzivecchi","Ospitaletto","Ostiano","Padenghe Sul Garda","Paderno FC","Paderno Ponchielli","Paitone","Palazzo Pignano","Palazzolo Sull'Oglio","Pandino","Paratico","Passirano","Pavone Del Mella","Persico Dosimo","Pertica Alta","Pertica Bassa","Pescarolo Ed Uniti","Pezzaze","Piadena Drizzona","Pian Camuno","Piancogno","Pianengo","Pisogne","Pizzighettone","Polaveno","Polpenazze Del Garda","Pompiano","Poncarale","Ponte Di Legno","Pontevico","Pontoglio","Pozzolengo","Pralboino","Preseglie","Prestine","Prevalle","Provaglio D'Iseo","Provaglio VS","Puegnago Del Garda","Quinzano D'Oglio","Remedello","Rezzato","Ricengo","Ripalta Cremasca","Rivarolo Del Re","Rivolta D'Adda","Roccafranca","Rodengo Saiano","Roè Volciano","Romanengo","Roncadelle","Rovato","Rudiano","Sabbio Chiese","Sale Marasino","Salò","San Bassano","San Daniele Po","San Felice Del Benaco","San Gervasio Bresciano","San Giovanni In Croce","San Paolo","San Zeno Naviglio","Sarezzo","Saviore Dell'Adamello","Sellero","Seniga","Sergnano","Serle","Sesto Ed Uniti","Sirmione","Soiano Del Lago","Solarolo Rainerio","Soncino","Sonico","Soresina","Sospiro","Spino D'Adda","Sulzano","Tavernole Sul Mella","Temù","Tignale","Torbole Casaglia","Tornata","Torre De' Picenardi","Torricella Del Pizzo","Toscolano Maderno","Travagliato","Tremosine","Trenzano","Trescore Balneario","Trescore Cremasco","Treviso Bresciano","Urago D'Oglio","Vallio Terme","Valvestino","Verolanuova","Verolavecchia","Vestone","Vezza D'Oglio","Villa Carcina","Villanuova Sul Clisi","Visano","Vobarno","Zone"];
 
@@ -1062,7 +1065,7 @@ async function caricaSalv(){
   try{
     const[rs,rl]=await Promise.all([fetch('/api/salvati'),fetch('/api/letti')]);
     if(rs.ok){const d=await rs.json();G.salv=new Set(d.map(s=>s.url_opac));}
-    if(rl.ok){const d=await rl.json();G.letti=new Set(d.map(s=>s.url_opac));}
+    if(rl.ok){const d=await rl.json();G.letti=new Set(d.map(s=>s.url_opac));G.lettiData=d;}
   }catch(e){console.error('caricaSalv',e);}
 }
 async function togSalv(btn,libro){
@@ -1091,12 +1094,15 @@ async function togLetto(btn,libro){
       const r=await fetch('/api/letti',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({titolo:libro.titolo,autore:libro.autore||'',url_opac:url,biblioteca:G.bib})});
       if(!r.ok){const e=await r.json();throw new Error(e.error);}
-      G.letti.add(url);btn.textContent='✓ Letto';btn.classList.add('on');
+      G.letti.add(url);G.lettiData.push({titolo:libro.titolo,autore:libro.autore||'',url_opac:url,biblioteca:G.bib});
+      btn.textContent='✓ Letto';btn.classList.add('on');
     }else{
       const r=await fetch(`/api/letti/${encodeURIComponent(url)}`,{method:'DELETE'});
       if(!r.ok)throw new Error('delete failed');
-      G.letti.delete(url);btn.textContent='○ Segna come letto';btn.classList.remove('on');
+      G.letti.delete(url);G.lettiData=G.lettiData.filter(l=>l.url_opac!==url);
+      btn.textContent='○ Segna come letto';btn.classList.remove('on');
     }
+    if(document.getElementById('slap')?.classList.contains('on')){renderCostellazioni();renderPantheon();}
   }catch(e){console.error('togLetto',e);}
 }
 function renderRis(data){
@@ -1354,10 +1360,51 @@ function setLitStar(starId){
   const s=getLitStars();s.add(starId);
   localStorage.setItem('rbbc_lit_stars',JSON.stringify([...s]));
 }
+function unsetLitStar(starId){
+  const s=getLitStars();s.delete(starId);
+  localStorage.setItem('rbbc_lit_stars',JSON.stringify([...s]));
+}
+
+/* Normalizza titolo/autore per confronto */
+function normLib(s){return norm((s||'').replace(/['']/g,"'")).trim();}
+
+/* Stelle accese automaticamente perché il libro corrispondente è tra i "letti" dell'utente */
+function getAutoLitStars(){
+  const set=new Set();
+  if(!G.lettiData?.length)return set;
+  COSTELLAZIONI.forEach(ep=>{
+    ep.stars.forEach(star=>{
+      const st=normLib(star.t),sa=normLib(star.a);
+      const match=G.lettiData.some(l=>{
+        const lt=normLib(l.titolo),la=normLib(l.autore);
+        if(!lt)return false;
+        const titMatch=lt===st||lt.includes(st)||st.includes(lt);
+        const autMatch=!sa||sa==='anonimo'||la.includes(sa)||sa.includes(la);
+        return titMatch&&autMatch;
+      });
+      if(match)set.add(star.id);
+    });
+  });
+  return set;
+}
+
+/* Crea il path di una stella a 5 punte centrata in (cx,cy) con raggio esterno r */
+function stellaPath(cx,cy,r){
+  const ri=r*0.42;
+  let pts=[];
+  for(let i=0;i<10;i++){
+    const ang=-Math.PI/2+i*Math.PI/5;
+    const rad=i%2===0?r:ri;
+    pts.push(`${(cx+rad*Math.cos(ang)).toFixed(2)},${(cy+rad*Math.sin(ang)).toFixed(2)}`);
+  }
+  return `M${pts.join('L')}Z`;
+}
 
 function renderCostellazioni(){
   const cont=document.getElementById('cost-container');if(!cont)return;
-  const lit=getLitStars();
+  const litManuale=getLitStars();
+  const litAuto=getAutoLitStars();
+  const lit=new Set([...litManuale,...litAuto]);
   cont.innerHTML='';
   COSTELLAZIONI.forEach(ep=>{
     const litCount=ep.stars.filter(s=>lit.has(s.id)).length;
@@ -1385,6 +1432,22 @@ function renderCostellazioni(){
 
     const svg=wrap.querySelector(`#svg-${ep.id}`);
 
+    // Micro-stelle di sfondo (decorative)
+    const bgSeed=ep.id.length;
+    for(let i=0;i<22;i++){
+      const bx=((i*37+bgSeed*13)%440);
+      const by=((i*23+bgSeed*7)%90);
+      const r=(i%3===0)?1.3:0.7;
+      const dur=2+((i*7)%4);
+      const del=((i*3)%5)*0.4;
+      const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+      c.setAttribute('cx',bx);c.setAttribute('cy',by);c.setAttribute('r',r);
+      c.setAttribute('class','cost-bg-star');
+      c.style.setProperty('--dur',`${dur}s`);
+      c.style.setProperty('--del',`${del}s`);
+      svg.appendChild(c);
+    }
+
     // Disegna link
     ep.links.forEach(([ai,bi])=>{
       const a=ep.stars[ai],b=ep.stars[bi];
@@ -1397,30 +1460,25 @@ function renderCostellazioni(){
       svg.appendChild(line);
     });
 
-    // Disegna stelle
+    // Disegna stelle (forma a 5 punte)
     ep.stars.forEach(star=>{
       const isLit=lit.has(star.id);
+      const isAuto=litAuto.has(star.id);
       const g=document.createElementNS('http://www.w3.org/2000/svg','g');
       g.className.baseVal=`cost-star${isLit?' lit':''}`;
       g.dataset.id=star.id;
+      if(isAuto)g.dataset.auto='1';
 
-      const circ=document.createElementNS('http://www.w3.org/2000/svg','circle');
-      circ.setAttribute('cx',star.x);circ.setAttribute('cy',star.y);
-      circ.setAttribute('r', isLit?7:5.5);
-      g.appendChild(circ);
+      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d',stellaPath(star.x,star.y,isLit?8:6));
+      path.setAttribute('class','spt');
+      g.appendChild(path);
 
       // Punto touch più grande (invisibile)
       const hit=document.createElementNS('http://www.w3.org/2000/svg','circle');
       hit.setAttribute('cx',star.x);hit.setAttribute('cy',star.y);
-      hit.setAttribute('r',18);hit.setAttribute('fill','transparent');
+      hit.setAttribute('r',18);hit.setAttribute('class','hit');
       g.appendChild(hit);
-
-      // Numero stelle come aiuto visivo
-      const num=document.createElementNS('http://www.w3.org/2000/svg','text');
-      num.setAttribute('x',star.x);num.setAttribute('y',star.y-10);
-      num.setAttribute('text-anchor','middle');
-      num.textContent=isLit?'★':'';
-      g.appendChild(num);
 
       g.addEventListener('click',()=>clickStar(ep,star,svg,wrap));
       svg.appendChild(g);
@@ -1433,33 +1491,26 @@ function renderCostellazioni(){
 
 function clickStar(ep,star,svg,wrap){
   tap('medium');
-  const lit=getLitStars();
-  const infoBox=wrap.querySelector(`.cost-info`);
+  const litAuto=getAutoLitStars();
+  if(litAuto.has(star.id)){
+    // Stella accesa automaticamente perché il libro è già nei "letti": mostra solo info
+    mostraInfoStella(ep,star,wrap,true);
+    return;
+  }
 
-  // Toggle
+  const lit=getLitStars();
   const wasLit=lit.has(star.id);
-  if(wasLit){lit.delete(star.id);localStorage.setItem('rbbc_lit_stars',JSON.stringify([...lit]));}
+  if(wasLit){unsetLitStar(star.id);}
   else{setLitStar(star.id);}
 
   // Ricarica
   renderCostellazioni();
   renderPantheon();
 
-  // Mostra info nel box dell'opera cliccata
-  const newLit=getLitStars();
-  const newInfoBox=document.querySelector(`#ci-${ep.id}`);
-  if(newInfoBox){
-    newInfoBox.className='cost-info on';
-    newInfoBox.innerHTML=`
-      <div class="cost-info-t">${star.t}</div>
-      <div class="cost-info-a">${star.a}</div>
-      <a class="cost-info-url" href="${star.url}" target="_blank" rel="noopener">🔍 Cerca nel catalogo RBBC →</a>
-      ${newLit.has(star.id)?'<div style="font-size:.7rem;color:var(--bosco);margin-top:5px;font-weight:600">✓ Segnato come letto</div>':'<div style="font-size:.7rem;color:#bbb;margin-top:5px">Clicca di nuovo per rimuovere</div>'}
-    `;
-  }
+  mostraInfoStella(ep,star,wrap,false);
 
   // Badge popup se appena completata
-  const litNow=getLitStars();
+  const litNow=new Set([...getLitStars(),...getAutoLitStars()]);
   const allLit=ep.stars.every(s=>litNow.has(s.id));
   if(allLit&&!wasLit){
     const didUnlock=unlockBadge(ep.badge);
@@ -1468,6 +1519,27 @@ function clickStar(ep,star,svg,wrap){
       showBadgeToast(b);
     }
   }
+}
+
+function mostraInfoStella(ep,star,wrap,isAuto){
+  const newLit=new Set([...getLitStars(),...getAutoLitStars()]);
+  const infoBox=document.querySelector(`#ci-${ep.id}`);
+  if(!infoBox)return;
+  infoBox.className='cost-info on';
+  let statoMsg;
+  if(newLit.has(star.id)){
+    statoMsg=isAuto
+      ?'<div style="font-size:.7rem;color:var(--bosco);margin-top:5px;font-weight:600">✓ Letto (segnato nel tuo profilo)</div>'
+      :'<div style="font-size:.7rem;color:var(--bosco);margin-top:5px;font-weight:600">✓ Segnato come letto</div><div style="font-size:.7rem;color:#bbb;margin-top:2px">Clicca di nuovo per rimuovere</div>';
+  }else{
+    statoMsg='<div style="font-size:.7rem;color:#bbb;margin-top:5px">Clicca la stella se hai letto quest\'opera</div>';
+  }
+  infoBox.innerHTML=`
+    <div class="cost-info-t">${star.t}</div>
+    <div class="cost-info-a">${star.a}</div>
+    <a class="cost-info-url" href="${star.url}" target="_blank" rel="noopener">🔍 Cerca nel catalogo RBBC →</a>
+    ${statoMsg}
+  `;
 }
 
 function showBadgeToast(badge){
@@ -1512,6 +1584,7 @@ async function caricaProf(){
     const sav=await rs.json(),lett=await rl.json();
     G.salv=new Set(sav.map(s=>s.url_opac));
     G.letti=new Set(lett.map(s=>s.url_opac));
+    G.lettiData=lett;
     const ml=document.getElementById('p-mialib');
     ml.innerHTML=lett.length?lett.map(s=>`<div class="wi"><div class="wdot dv"></div><div class="wbod"><div class="wtt">${s.titolo}</div>${s.autore?`<div class="wat">${s.autore}</div>`:''}<div class="wmt">${s.biblioteca}</div></div><button class="bdel" title="Rimuovi dai letti" onclick="toglLettoProf('${encodeURIComponent(s.url_opac)}',this)">↺</button></div>`).join(''):'<div class="vp">Nessun libro segnato come letto.</div>';
     const mi=document.getElementById('p-imper');
@@ -1520,6 +1593,8 @@ async function caricaProf(){
 }
 async function toglLettoProf(urlEnc,btn){
   await fetch(`/api/letti/${urlEnc}`,{method:'DELETE'});
+  const url=decodeURIComponent(urlEnc);
+  G.letti.delete(url);G.lettiData=G.lettiData.filter(l=>l.url_opac!==url);
   btn.closest('.wi').remove();
   await caricaSalv();
 }
