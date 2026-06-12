@@ -89,6 +89,19 @@ def init_db():
                 );
             """)
 
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS letti (
+                    id SERIAL PRIMARY KEY,
+                    utente_id INTEGER NOT NULL REFERENCES utenti(id),
+                    titolo TEXT NOT NULL,
+                    autore TEXT NOT NULL DEFAULT '',
+                    url_opac TEXT NOT NULL,
+                    biblioteca TEXT NOT NULL,
+                    letto_il TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE (utente_id, url_opac)
+                );
+            """)
+
             # Migrazione: aggiunge la colonna 'letto' se il DB esisteva già
             cur.execute("""
                 ALTER TABLE salvati ADD COLUMN IF NOT EXISTS letto BOOLEAN NOT NULL DEFAULT FALSE;
@@ -309,36 +322,32 @@ def api_search():
 
     return jsonify({"query": q, "biblioteca": biblioteca, "risultati": output})
 
-#  API Salvati 
+#  API Salvati
 
 @app.route("/api/salvati", methods=["GET"])
 @login_richiesto
 def get_salvati():
     u = utente_corrente()
-    rows = get_db().execute(
+    db = get_db()
+    rows = db.execute(
         "SELECT * FROM salvati WHERE utente_id=%s ORDER BY salvato_il DESC",
         (u["id"],)).fetchall()
     return jsonify([dict(r) for r in rows])
 
 @app.route("/api/salvati", methods=["POST"])
-@login_richiesto  
+@login_richiesto
 def aggiungi_salvato():
     u = utente_corrente()
     d = request.get_json() or {}
-    app.logger.warning(f"[SALVATI POST] utente={u['id'] if u else None} data={d}")
-
     url_opac = (d.get("url_opac") or "").strip()
     if not url_opac:
-        app.logger.warning("[SALVATI POST] url_opac mancante")
         return jsonify({"error": "url_opac mancante"}), 400
-
     db = get_db()
     try:
         db.execute(
             """
-            INSERT INTO salvati
-                (utente_id, titolo, autore, url_opac, biblioteca, disponibile, letto)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO salvati (utente_id, titolo, autore, url_opac, biblioteca, disponibile)
+            VALUES (%s, %s, %s, %s, %s, %s)
             ON CONFLICT (utente_id, url_opac) DO UPDATE SET
                 titolo      = EXCLUDED.titolo,
                 autore      = EXCLUDED.autore,
@@ -346,39 +355,67 @@ def aggiungi_salvato():
                 disponibile = EXCLUDED.disponibile
             """,
             (u["id"], d.get("titolo",""), d.get("autore",""),
-             url_opac, d.get("biblioteca",""), 1 if d.get("disponibile") else 0, False)
+             url_opac, d.get("biblioteca",""), bool(d.get("disponibile")))
         )
         db.commit()
-        app.logger.warning(f"[SALVATI POST] commit OK utente={u['id']}")
         return jsonify({"ok": True})
-
     except Exception as e:
         db.rollback()
-        app.logger.error(f"[SALVATI POST] ERRORE: {e}")
         return jsonify({"error": str(e)}), 400
-
-@app.route("/api/salvati/<int:sid>/letto", methods=["POST"])
-@login_richiesto
-def segna_letto(sid):
-    u = utente_corrente()
-    d = request.get_json() or {}
-    letto = 1 if d.get("letto") else 0
-    db = get_db()
-    app.logger.warning(f"[LETTO] sid={sid} utente={u['id']} letto={letto}")
-    rows = db.execute(
-        "UPDATE salvati SET letto=%s WHERE id=%s AND utente_id=%s RETURNING id",
-        (letto, sid, u["id"])).fetchall()
-    db.commit()
-    app.logger.warning(f"[LETTO] righe aggiornate={len(rows)}")
-    return jsonify({"ok": True, "letto": letto})
 
 @app.route("/api/salvati/<int:sid>", methods=["DELETE"])
 @login_richiesto
 def rimuovi_salvato(sid):
     u = utente_corrente()
-    get_db().execute(
-        "DELETE FROM salvati WHERE id=%s AND utente_id=%s", (sid, u["id"]))
-    get_db().commit()
+    db = get_db()
+    db.execute("DELETE FROM salvati WHERE id=%s AND utente_id=%s", (sid, u["id"]))
+    db.commit()
+    return jsonify({"ok": True})
+
+#  API Letti
+
+@app.route("/api/letti", methods=["GET"])
+@login_richiesto
+def get_letti():
+    u = utente_corrente()
+    db = get_db()
+    rows = db.execute(
+        "SELECT * FROM letti WHERE utente_id=%s ORDER BY letto_il DESC",
+        (u["id"],)).fetchall()
+    return jsonify([dict(r) for r in rows])
+
+@app.route("/api/letti", methods=["POST"])
+@login_richiesto
+def aggiungi_letto():
+    u = utente_corrente()
+    d = request.get_json() or {}
+    url_opac = (d.get("url_opac") or "").strip()
+    if not url_opac:
+        return jsonify({"error": "url_opac mancante"}), 400
+    db = get_db()
+    try:
+        db.execute(
+            """
+            INSERT INTO letti (utente_id, titolo, autore, url_opac, biblioteca)
+            VALUES (%s, %s, %s, %s, %s)
+            ON CONFLICT (utente_id, url_opac) DO NOTHING
+            """,
+            (u["id"], d.get("titolo",""), d.get("autore",""),
+             url_opac, d.get("biblioteca",""))
+        )
+        db.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": str(e)}), 400
+
+@app.route("/api/letti/<path:url_opac>", methods=["DELETE"])
+@login_richiesto
+def rimuovi_letto(url_opac):
+    u = utente_corrente()
+    db = get_db()
+    db.execute("DELETE FROM letti WHERE url_opac=%s AND utente_id=%s", (url_opac, u["id"]))
+    db.commit()
     return jsonify({"ok": True})
 
 #  API Storico e statistiche personali 
