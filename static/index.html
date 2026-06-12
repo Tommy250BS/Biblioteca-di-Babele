@@ -1131,13 +1131,20 @@ const NAZIONI={
   'Colombia':{autori:[{a:'Gabriel García Márquez',o:'Cent\u2019anni di solitudine'}]},
 };
 
+function retryMappa(){
+  _mapInit=false;
+  const wrap=document.querySelector('.mapwrap');
+  if(wrap)wrap.innerHTML='<svg id="mapsvg" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>';
+  initMappa();
+}
 let _mapInit=false;
 function initMappa(){
   if(_mapInit)return;_mapInit=true;
   const wrap=document.querySelector('.mapwrap');
   const svg=document.getElementById('mapsvg');
   if(!svg||typeof d3==='undefined'||typeof topojson==='undefined'){
-    if(wrap)wrap.innerHTML='<p class="maphint">Mappa non disponibile: connessione assente.</p>';
+    if(wrap)wrap.innerHTML='<p class="maphint">Libreria mappa non caricata (D3/TopoJSON).</p><button class="bric" style="display:block;margin:8px auto 0" onclick="retryMappa()">↻ Riprova</button>';
+    _mapInit=false;
     return;
   }
   const W=1000,H=500;
@@ -1164,8 +1171,10 @@ function initMappa(){
         .attr('d',path)
         .on('click',()=>selNazione(f.properties.name,info,p.node()));
     });
-  }).catch(()=>{
-    if(wrap)wrap.innerHTML='<p class="maphint">Impossibile caricare i dati geografici. Verifica la connessione.</p>';
+  }).catch(e=>{
+    console.error('Mappa: errore caricamento dati geografici',e);
+    _mapInit=false;
+    if(wrap)wrap.innerHTML='<p class="maphint">Impossibile caricare i dati geografici.</p><button class="bric" style="display:block;margin:8px auto 0" onclick="retryMappa()">↻ Riprova</button>';
   });
 }
 function selNazione(name,info,el){
