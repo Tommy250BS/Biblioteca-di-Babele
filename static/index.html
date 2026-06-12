@@ -319,32 +319,54 @@ body{font-family:'Inter',sans-serif;background:var(--av);color:var(--ink);min-he
 .bbd{font-size:.62rem;color:#bbb;margin-top:2px;line-height:1.4}
 
 /* COSTELLAZIONI */
-.cost-epoca{margin-bottom:32px}
-.cost-label{font-size:.63rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--oro);margin-bottom:6px}
+.cost-epoca{margin-bottom:36px}
+.cost-label{font-size:.63rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--oro);margin-bottom:4px}
 .cost-nome{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;color:var(--bosco);margin-bottom:2px;line-height:1.2}
-.cost-badge-hint{font-size:.68rem;color:#bbb;margin-bottom:12px;font-style:italic}
-.cost-wrap{background:var(--bosco-3);border-radius:var(--r);overflow:hidden;position:relative;padding:8px}
+.cost-badge-hint{font-size:.68rem;color:#bbb;margin-bottom:10px;font-style:italic}
+.cost-wrap{background:#05080f;border-radius:var(--r);overflow:hidden;position:relative;border:1px solid rgba(201,168,76,.1)}
 .cost-wrap svg{width:100%;display:block}
-.cost-link{stroke:rgba(201,168,76,.2);stroke-width:1.5;transition:stroke .5s,stroke-width .5s}
-.cost-link.lit{stroke:var(--oro);stroke-width:2.5;filter:drop-shadow(0 0 4px rgba(201,168,76,.5))}
-.cost-star{cursor:pointer;transition:all .3s}
-.cost-star circle{fill:rgba(255,255,255,.18);stroke:rgba(201,168,76,.35);stroke-width:1.5;transition:fill .4s,stroke .4s,r .3s}
-.cost-star.lit circle{fill:var(--oro);stroke:var(--oro-2);filter:drop-shadow(0 0 6px rgba(201,168,76,.8))}
-.cost-star.lit circle{animation:starPulse 2.5s ease-in-out infinite}
-@keyframes starPulse{0%,100%{opacity:1}50%{opacity:.7}}
-.cost-star text{fill:rgba(255,255,255,.0);font-size:7px;font-family:'Inter',sans-serif;pointer-events:none;transition:fill .3s}
-.cost-star.lit text{fill:rgba(255,255,255,.6)}
-.cost-info{background:#fff;border-radius:0 0 var(--r) var(--r);padding:12px 16px;min-height:48px;border-top:1px solid var(--av2);display:none}
-.cost-info.on{display:block}
+/* collegamenti tra stelle */
+.cost-link{stroke:rgba(201,168,76,.15);stroke-width:1;stroke-dasharray:4 3;transition:stroke .6s,stroke-width .6s,filter .6s}
+.cost-link.lit{stroke:rgba(201,168,76,.7);stroke-width:1.8;stroke-dasharray:none;filter:drop-shadow(0 0 3px rgba(201,168,76,.6))}
+/* stelline a 5 punte */
+.cost-star{cursor:pointer}
+.cost-star .spt{
+  fill:rgba(255,255,255,.22);
+  transition:fill .45s,filter .45s,transform .3s;
+  transform-origin:center;
+  transform-box:fill-box;
+}
+.cost-star.lit .spt{
+  fill:#ffe066;
+  filter:drop-shadow(0 0 5px #ffe066) drop-shadow(0 0 12px rgba(255,200,50,.5));
+  animation:twinkle 2.2s ease-in-out infinite;
+}
+.cost-star .hit{fill:transparent;cursor:pointer}
+@keyframes twinkle{
+  0%,100%{opacity:1;filter:drop-shadow(0 0 5px #ffe066) drop-shadow(0 0 12px rgba(255,200,50,.5))}
+  40%{opacity:.65;filter:drop-shadow(0 0 2px #ffe066) drop-shadow(0 0 4px rgba(255,200,50,.3))}
+  70%{opacity:.9;filter:drop-shadow(0 0 8px #ffe066) drop-shadow(0 0 18px rgba(255,200,50,.6))}
+}
+/* micro stelle di sfondo */
+.cost-bg-star{fill:rgba(255,255,255,.28);animation:bgTwinkle var(--dur,3s) ease-in-out infinite var(--del,0s)}
+@keyframes bgTwinkle{0%,100%{opacity:.28}50%{opacity:.08}}
+/* info card */
+.cost-info{background:#fff;border-radius:0 0 var(--r) var(--r);padding:13px 16px;border-top:1px solid var(--av2);display:none}
+.cost-info.on{display:block;animation:up .2s ease both}
 .cost-info-t{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--ink);line-height:1.3}
 .cost-info-a{font-size:.78rem;color:#888;font-style:italic;font-family:'Cormorant Garamond',serif}
-.cost-info-url{font-size:.7rem;color:var(--bosco-2);text-decoration:none;letter-spacing:.03em;margin-top:4px;display:inline-block}
+.cost-info-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px;flex-wrap:wrap}
+.cost-info-url{font-size:.7rem;color:var(--bosco-2);text-decoration:none;letter-spacing:.03em}
 .cost-info-url:hover{text-decoration:underline}
-.cost-stato{display:flex;align-items:center;gap:8px;margin-top:8px}
-.cost-prog{flex:1;height:4px;background:var(--av3);border-radius:2px;overflow:hidden}
-.cost-prog-inner{height:100%;background:var(--oro);border-radius:2px;transition:width .5s ease}
+.cost-info-letto{font-size:.69rem;font-weight:600;padding:4px 10px;border-radius:20px;border:none;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s}
+.cost-info-letto.off{background:var(--av2);color:var(--ink3)}
+.cost-info-letto.on{background:var(--bosco);color:var(--oro)}
+/* barra progresso */
+.cost-stato{display:flex;align-items:center;gap:8px;margin-top:9px}
+.cost-prog{flex:1;height:3px;background:rgba(201,168,76,.15);border-radius:2px;overflow:hidden}
+.cost-prog-inner{height:100%;background:var(--oro);border-radius:2px;transition:width .6s ease}
 .cost-prog-txt{font-size:.67rem;color:#aaa;white-space:nowrap}
-.cost-badge-earned{display:inline-flex;align-items:center;gap:7px;background:var(--bosco);border-radius:20px;padding:5px 12px 5px 8px;font-size:.72rem;color:var(--oro);font-weight:600;margin-top:8px;animation:badgePop .5s cubic-bezier(.18,.89,.32,1.28) both}
+.cost-badge-earned{display:inline-flex;align-items:center;gap:7px;background:var(--bosco);border-radius:20px;padding:5px 12px 5px 8px;font-size:.72rem;color:var(--oro);font-weight:600;margin-top:9px;animation:badgePop .5s cubic-bezier(.18,.89,.32,1.28) both}
 @keyframes badgePop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
 
 /* PANTHEON schermata */
