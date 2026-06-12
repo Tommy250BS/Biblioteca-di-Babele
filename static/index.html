@@ -273,6 +273,17 @@ body{font-family:'Inter',sans-serif;background:var(--av);color:var(--ink);min-he
 .mapinfo{margin-top:14px}
 .maphint{font-size:.8rem;color:#aaa;font-style:italic;text-align:center;padding:8px 0}
 
+/* MAPPA LETTURE */
+.mn-naz{fill:var(--av3);stroke:#fff;stroke-width:1;transition:fill .3s,stroke-width .2s}
+.mn-naz.visitato{fill:var(--bosco-2);cursor:pointer}
+.mn-naz.visitato:hover{fill:var(--bosco)}
+.mn-naz.visitato.sel{fill:var(--oro);stroke:var(--bosco);stroke-width:1.6}
+.passgr{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.passc{background:#fff;border-radius:var(--r);box-shadow:var(--sh-s);padding:14px;border-left:3px solid var(--oro);position:relative;overflow:hidden}
+.passorn{position:absolute;right:-6px;bottom:-10px;font-family:'Cormorant Garamond',serif;font-size:3.2rem;color:var(--oro);opacity:.12;line-height:1}
+.passn{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--bosco);line-height:1.2;margin-bottom:2px}
+.passd{font-size:.68rem;color:#aaa}
+
 /* LAPIDES */
 .lapi{display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid var(--av2)}
 .lapi:last-child{border-bottom:none}
@@ -707,6 +718,22 @@ body{font-family:'Inter',sans-serif;background:var(--av);color:var(--ink);min-he
       <div class="psez">
         <div class="sh3">Ultime ricerche</div>
         <div id="mnst"><div class="vp">Nessuna ricerca ancora.</div></div>
+      </div>  
+        <div class="psez">
+        <div class="sh3">🗺️ Mappa delle letture</div>
+        <p style="font-size:.74rem;color:#aaa;margin-bottom:10px;font-style:italic">I paesi diventano verdi quando leggi un autore che vi appartiene. Toccali per scoprire quali libri hai letto.</p>
+        <div class="mapwrap">
+          <svg id="mnmapsvg" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+        <div id="mnmapinfo" class="mapinfo">
+          <p class="maphint">Tocca un paese verde per scoprire i libri letti.</p>
+        </div>
+      </div>
+      <div class="psez">
+        <div class="sh3">📔 Passaporto letterario</div>
+        <p style="font-size:.74rem;color:#aaa;margin-bottom:10px;font-style:italic">I timbri dei paesi che hai visitato attraverso le tue letture.</p>
+        <div id="mnpass"><div class="vp">Nessun timbro ancora: leggi un libro per iniziare il tuo viaggio.</div></div>
+      </div>
       </div>
     </div>
     <div id="mn-noauth" style="display:none">
@@ -1560,6 +1587,102 @@ async function caricaMnem(){
     document.getElementById('mntq').innerHTML=st.top_query?.length?st.top_query.map((q,i)=>`<div class="tqi"><span class="tqr">${i+1}</span><span class="tqq">${q.query}</span><span class="tqn">${q.n}×</span></div>`).join(''):'<div class="vp">Nessuna ricerca ancora.</div>';
     document.getElementById('mnst').innerHTML=st.ricerche?.length?st.ricerche.map(r=>`<div class="rci"><div><div class="riq">${r.query}</div><div class="rib">${r.biblioteca}</div></div><div class="rim">${r.a_bib}/${r.trovati}<br>${r.cercato_il.slice(0,10)}</div></div>`).join(''):'<div class="vp">Nessuna ricerca ancora.</div>';
   }catch(e){console.error(e);}
+  renderMnemoMappa();
+  renderPassaporto();
+}
+
+/* Restituisce {nazione:[libri letti che corrispondono]} usando NAZIONI come fonte autori */
+function getLettiPerNazione(){
+  const out={};
+  if(!G.lettiData?.length)return out;
+  Object.entries(NAZIONI).forEach(([key,info])=>{
+    const trovati=[];
+    G.lettiData.forEach(l=>{
+      const la=normLib(l.autore);
+      if(!la)return;
+      const match=info.autori.some(a=>{
+        const na=normLib(a.a);
+        return na&&(la.includes(na)||na.includes(la));
+      });
+      if(match)trovati.push(l);
+    });
+    if(trovati.length)out[key]=trovati;
+  });
+  return out;
+}
+
+let _mnMapInit=false;
+function renderMnemoMappa(){
+  const svg=document.getElementById('mnmapsvg');
+  if(!svg||typeof d3==='undefined'||typeof topojson==='undefined'){
+    const wrap=svg?.closest('.mapwrap');
+    if(wrap)wrap.innerHTML='<p class="maphint">Libreria mappa non caricata (D3/TopoJSON).</p><button class="bric" style="display:block;margin:8px auto 0" onclick="_mnMapInit=false;renderMnemoMappa()">↻ Riprova</button>';
+    return;
+  }
+  const letti=getLettiPerNazione();
+  if(_mnMapInit){
+    // mappa già disegnata: aggiorna solo i colori
+    d3.select(svg).selectAll('path.mn-naz').each(function(d){
+      const visitato=!!letti[d.properties.name];
+      d3.select(this).classed('visitato',visitato);
+      if(!visitato)d3.select(this).classed('sel',false);
+    });
+    return;
+  }
+  _mnMapInit=true;
+  const W=1000,H=500;
+  const projection=d3.geoNaturalEarth1().scale(165).translate([W/2,H/2-10]);
+  const path=d3.geoPath(projection);
+  const s=d3.select(svg).attr('viewBox',`0 0 ${W} ${H}`);
+  s.append('rect').attr('width',W).attr('height',H).attr('fill','#eef3f6');
+  const g=s.append('g');
+
+  d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world=>{
+    const countries=topojson.feature(world,world.objects.countries).features;
+    g.selectAll('path.mapcont')
+      .data(countries)
+      .join('path')
+      .attr('class','mapcont')
+      .attr('d',path);
+
+    countries.forEach(f=>{
+      const info=NAZIONI[f.properties.name];
+      if(!info)return;
+      const visitato=!!letti[f.properties.name];
+      const p=g.append('path')
+        .datum(f)
+        .attr('class',`mn-naz${visitato?' visitato':''}`)
+        .attr('d',path)
+        .on('click',()=>{
+          if(!letti[f.properties.name])return;
+          selNazioneMnemo(f.properties.name,info,letti[f.properties.name],p.node());
+        });
+    });
+  }).catch(e=>{
+    console.error('Mappa Mnemosine: errore caricamento dati geografici',e);
+    _mnMapInit=false;
+    const wrap=svg.closest('.mapwrap');
+    if(wrap)wrap.innerHTML='<p class="maphint">Impossibile caricare i dati geografici.</p><button class="bric" style="display:block;margin:8px auto 0" onclick="renderMnemoMappa()">↻ Riprova</button>';
+  });
+}
+function selNazioneMnemo(name,info,libri,el){
+  document.querySelectorAll('#mnmapsvg .mn-naz').forEach(p=>p.classList.remove('sel'));
+  if(el)el.classList.add('sel');
+  const box=document.getElementById('mnmapinfo');
+  const nome=info.nome||name;
+  const ops=libri.map(l=>`<div class="opi"><div class="opb"><div class="opt">${l.titolo}</div><div style="font-size:.78rem;color:#999;font-style:italic;font-family:'Cormorant Garamond',serif">${l.autore||''}</div></div></div>`).join('');
+  box.innerHTML=`<div class="ec"><div class="ech"><div class="ecl">📍 ${nome}</div><div class="autn" style="font-size:1.1rem">Libri letti da qui</div></div><div class="oplist">${ops}</div></div>`;
+}
+
+function renderPassaporto(){
+  const cont=document.getElementById('mnpass');if(!cont)return;
+  const letti=getLettiPerNazione();
+  const entries=Object.entries(letti);
+  if(!entries.length){cont.innerHTML='<div class="vp">Nessun timbro ancora: leggi un libro per iniziare il tuo viaggio.</div>';return;}
+  cont.innerHTML=`<div class="passgr">${entries.map(([key,libri])=>{
+    const nome=NAZIONI[key]?.nome||key;
+    return`<div class="passc"><div class="passorn">✦</div><div class="passn">${nome}</div><div class="passd">${libri.length} libro${libri.length>1?'i':''} letto${libri.length>1?'i':''}</div></div>`;
+  }).join('')}</div>`;
 }
 
 /* PROFILO */
