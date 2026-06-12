@@ -326,46 +326,40 @@ def aggiungi_salvato():
     u = utente_corrente()
     d = request.get_json() or {}
 
+    url_opac = d.get("url_opac", "").strip()
+    if not url_opac:
+        return jsonify({"error": "url_opac mancante"}), 400
+
+    db = get_db()
     try:
-        get_db().execute(
+        db.execute(
             """
             INSERT INTO salvati
-                (
-                    utente_id,
-                    titolo,
-                    autore,
-                    url_opac,
-                    biblioteca,
-                    disponibile,
-                    letto
-                )
+                (utente_id, titolo, autore, url_opac, biblioteca, disponibile, letto)
             VALUES
                 (%s, %s, %s, %s, %s, %s, %s)
-
             ON CONFLICT (utente_id, url_opac)
             DO UPDATE SET
-                titolo = EXCLUDED.titolo,
-                autore = EXCLUDED.autore,
-                biblioteca = EXCLUDED.biblioteca,
+                titolo      = EXCLUDED.titolo,
+                autore      = EXCLUDED.autore,
+                biblioteca  = EXCLUDED.biblioteca,
                 disponibile = EXCLUDED.disponibile
             """,
             (
                 u["id"],
                 d.get("titolo", ""),
                 d.get("autore", ""),
-                d.get("url_opac", ""),
+                url_opac,
                 d.get("biblioteca", ""),
                 bool(d.get("disponibile")),
-                bool(d.get("letto")),
+                False,
             )
         )
-
-        get_db().commit()
-
+        db.commit()
         return jsonify({"ok": True})
 
     except Exception as e:
-        get_db().rollback()
+        db.rollback()
         return jsonify({"error": str(e)}), 400
 
 @app.route("/api/salvati/<int:sid>/letto", methods=["POST"])
@@ -374,19 +368,21 @@ def segna_letto(sid):
     u = utente_corrente()
     d = request.get_json() or {}
     letto = bool(d.get("letto"))
-    get_db().execute(
+    db = get_db()
+    db.execute(
         "UPDATE salvati SET letto=%s WHERE id=%s AND utente_id=%s",
         (letto, sid, u["id"]))
-    get_db().commit()
+    db.commit()
     return jsonify({"ok": True, "letto": letto})
 
 @app.route("/api/salvati/<int:sid>", methods=["DELETE"])
 @login_richiesto
 def rimuovi_salvato(sid):
     u = utente_corrente()
-    get_db().execute(
+    db = get_db()
+    db.execute(
         "DELETE FROM salvati WHERE id=%s AND utente_id=%s", (sid, u["id"]))
-    get_db().commit()
+    db.commit()
     return jsonify({"ok": True})
 
 #  API Storico e statistiche personali 
