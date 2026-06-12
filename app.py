@@ -346,7 +346,7 @@ def aggiungi_salvato():
                 disponibile = EXCLUDED.disponibile
             """,
             (u["id"], d.get("titolo",""), d.get("autore",""),
-             url_opac, d.get("biblioteca",""), bool(d.get("disponibile")), False)
+             url_opac, d.get("biblioteca",""), 1 if d.get("disponibile") else 0, False)
         )
         db.commit()
         app.logger.warning(f"[SALVATI POST] commit OK utente={u['id']}")
@@ -362,7 +362,7 @@ def aggiungi_salvato():
 def segna_letto(sid):
     u = utente_corrente()
     d = request.get_json() or {}
-    letto = bool(d.get("letto"))
+    letto = 1 if d.get("letto") else 0
     db = get_db()
     app.logger.warning(f"[LETTO] sid={sid} utente={u['id']} letto={letto}")
     rows = db.execute(
