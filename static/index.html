@@ -1351,19 +1351,7 @@ const COSTELLAZIONI=[
   },
 ];
 
-/* Stato letti costellazioni (locale, basato su G.letti se loggato) */
-function getLitStars(){
-  const raw=localStorage.getItem('rbbc_lit_stars');
-  try{return new Set(JSON.parse(raw)||[]);}catch{return new Set();}
-}
-function setLitStar(starId){
-  const s=getLitStars();s.add(starId);
-  localStorage.setItem('rbbc_lit_stars',JSON.stringify([...s]));
-}
-function unsetLitStar(starId){
-  const s=getLitStars();s.delete(starId);
-  localStorage.setItem('rbbc_lit_stars',JSON.stringify([...s]));
-}
+/* Stato letti costellazioni: ora solo automatico, basato su G.lettiData */
 
 /* Normalizza titolo/autore per confronto */
 function normLib(s){return norm((s||'').replace(/['']/g,"'")).trim();}
@@ -1402,9 +1390,8 @@ function stellaPath(cx,cy,r){
 
 function renderCostellazioni(){
   const cont=document.getElementById('cost-container');if(!cont)return;
-  const litManuale=getLitStars();
   const litAuto=getAutoLitStars();
-  const lit=new Set([...litManuale,...litAuto]);
+  const lit=litAuto;
   cont.innerHTML='';
   COSTELLAZIONI.forEach(ep=>{
     const litCount=ep.stars.filter(s=>lit.has(s.id)).length;
@@ -1490,49 +1477,20 @@ function renderCostellazioni(){
 }
 
 function clickStar(ep,star,svg,wrap){
-  tap('medium');
+  tap('light');
   const litAuto=getAutoLitStars();
-  if(litAuto.has(star.id)){
-    // Stella accesa automaticamente perché il libro è già nei "letti": mostra solo info
-    mostraInfoStella(ep,star,wrap,true);
-    return;
-  }
-
-  const lit=getLitStars();
-  const wasLit=lit.has(star.id);
-  if(wasLit){unsetLitStar(star.id);}
-  else{setLitStar(star.id);}
-
-  // Ricarica
-  renderCostellazioni();
-  renderPantheon();
-
-  mostraInfoStella(ep,star,wrap,false);
-
-  // Badge popup se appena completata
-  const litNow=new Set([...getLitStars(),...getAutoLitStars()]);
-  const allLit=ep.stars.every(s=>litNow.has(s.id));
-  if(allLit&&!wasLit){
-    const didUnlock=unlockBadge(ep.badge);
-    if(didUnlock){
-      const b=TUTTI_BADGE.find(b=>b.id===ep.badge);
-      showBadgeToast(b);
-    }
-  }
+  mostraInfoStella(ep,star,wrap,litAuto.has(star.id));
 }
 
 function mostraInfoStella(ep,star,wrap,isAuto){
-  const newLit=new Set([...getLitStars(),...getAutoLitStars()]);
   const infoBox=document.querySelector(`#ci-${ep.id}`);
   if(!infoBox)return;
   infoBox.className='cost-info on';
   let statoMsg;
-  if(newLit.has(star.id)){
-    statoMsg=isAuto
-      ?'<div style="font-size:.7rem;color:var(--bosco);margin-top:5px;font-weight:600">✓ Letto (segnato nel tuo profilo)</div>'
-      :'<div style="font-size:.7rem;color:var(--bosco);margin-top:5px;font-weight:600">✓ Segnato come letto</div><div style="font-size:.7rem;color:#bbb;margin-top:2px">Clicca di nuovo per rimuovere</div>';
+  if(isAuto){
+    statoMsg='<div style="font-size:.7rem;color:var(--bosco);margin-top:5px;font-weight:600">✓ Letto (segnato nel tuo profilo)</div>';
   }else{
-    statoMsg='<div style="font-size:.7rem;color:#bbb;margin-top:5px">Clicca la stella se hai letto quest\'opera</div>';
+    statoMsg='<div style="font-size:.7rem;color:#bbb;margin-top:5px">Non ancora letto</div>';
   }
   infoBox.innerHTML=`
     <div class="cost-info-t">${star.t}</div>
