@@ -852,7 +852,7 @@ function vai(id,sub){
   if(id==='smnem')caricaMnem();
   if(id==='slap')renderCostellazioni();
   if(id==='spant'){renderPantheon();}
-  if(id==='satlante'&&!_atlAvv){_atlAvv=true;caricaCas();caricaAut();initMappa();}
+  if(id==='satlante'){incAtlanteVisits();if(!_atlAvv){_atlAvv=true;caricaCas();caricaAut();initMappa();}}
   window.scrollTo(0,0);
 }
 function switchTab(id){document.querySelectorAll('.ntab').forEach(t=>t.classList.toggle('on',t.dataset.s===id));tap('light');vai(id);}
@@ -863,7 +863,8 @@ async function avvia(){
   vai('sw');
   try{const r=await fetch('/api/auth/me');const d=await r.json();
     if(d.autenticato){
-      G.u=d;G.bib=d.biblioteca;await caricaSalv();
+      G.u=d;G.bib=d.biblioteca;await caricaSalv(true);
+      verificaBadgeRicerche(true);
       document.getElementById('wbtns').style.display='none';
       document.getElementById('wret').style.display='flex';
       document.getElementById('wrett').textContent=`Bentornato, ${d.nome.split(' ')[0]}`;
@@ -985,7 +986,9 @@ async function doLogin(){
   if(!email||!pw)return errA('Inserisci email e password.');
   const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
   const d=await r.json();if(!r.ok)return errA(d.error||'Errore login.');
-  G.u=d;G.bib=d.biblioteca;await caricaSalv();attivaApp(d.biblioteca);
+  G.u=d;G.bib=d.biblioteca;await caricaSalv(true);
+  verificaBadgeRicerche(true);
+  attivaApp(d.biblioteca);
 }
 async function doReg(){
   tap('medium');
@@ -995,7 +998,7 @@ async function doReg(){
   if(!BIBS.some(b=>b.toLowerCase()===bib.toLowerCase()))return errA("Seleziona una biblioteca dall'elenco.");
   const r=await fetch('/api/auth/registra',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome,email,password:pw,biblioteca:bib})});
   const d=await r.json();if(!r.ok)return errA(d.error||'Errore.');
-  G.u=d;G.bib=d.biblioteca;await caricaSalv();attivaApp(d.biblioteca);
+  G.u=d;G.bib=d.biblioteca;await caricaSalv(true);attivaApp(d.biblioteca);
 }
 async function doLogout(){tap('heavy');await fetch('/api/auth/logout',{method:'POST'});G.u=null;G.bib='';vai('sw');}
 function usaSenza(){G.u=null;vai('sbib');}
@@ -1054,12 +1057,26 @@ function chiudiSh(id,e){if(!e||e.target===document.getElementById(id))document.g
 const main=document.getElementById('main');
 function stC(c){if(!c?.length)return'';const ss=c.map(x=>x.stato.toLowerCase());if(ss.some(s=>s.includes('scaffale')||s.includes('disponib')))return'disp';if(ss.some(s=>s.includes('prestito')))return'prest';return'';}
 function dC(s){s=s.toLowerCase();if(s.includes('scaffale')||s.includes('disponib'))return'dv';if(s.includes('prestito'))return'dr';return'do';}
-async function caricaSalv(){
+async function caricaSalv(rivalutaBadge=false){
   if(!G.u)return;
   try{
     const rl=await fetch('/api/letti');
-    if(rl.ok){const d=await rl.json();G.letti=new Set(d.map(s=>s.url_opac));G.lettiData=d;}
+    if(rl.ok){
+      const d=await rl.json();
+      G.letti=new Set(d.map(s=>s.url_opac));
+      G.lettiData=d;
+      if(rivalutaBadge)rivalutaBadgeCostellazioni();
+    }
   }catch(e){console.error('caricaSalv',e);}
+}
+
+/* Rivaluta tutti i badge costellazione in base ai libri letti attuali (senza toast) */
+function rivalutaBadgeCostellazioni(){
+  if(!G.lettiData?.length)return;
+  const lit=getAutoLitStars();
+  COSTELLAZIONI.forEach(ep=>{
+    if(ep.stars.every(s=>lit.has(s.id)))unlockBadge(ep.badge);
+  });
 }
 async function togLetto(btn,libro){
   if(!G.u)return;tap('medium');const url=libro.url;
@@ -1109,12 +1126,7 @@ async function cerca(){
     if(!r.ok)throw new Error(`Errore ${r.status}`);
     const data=await r.json();
     renderRis(data);
-    // Badge: prima ricerca
-    if(G.u&&data.risultati?.length){
-      const nu=unlockBadge('prima_ricerca');
-      if(nu)showBadgeToast(TUTTI_BADGE.find(b=>b.id==='prima_ricerca'));
-    }
-    // Badge: alexandrino (50 ricerche) — controlla storico
+    // Verifica badge ricerche (prima_ricerca e alexandrino) con toast
     if(G.u)verificaBadgeRicerche();
   }
   catch(e){main.innerHTML=`<div class="er">⚠ ${e.message} — riprova.</div>`;}
@@ -1266,13 +1278,9 @@ async function renderPantheon(){
     try{const r=await fetch('/api/letti');if(r.ok){const d=await r.json();G.letti=new Set(d.map(s=>s.url_opac));G.lettiData=d;}}
     catch(e){console.error('renderPantheon caricaLetti',e);}
   }
-  // Rivaluta badge costellazioni in base ai libri letti
+  // Rivaluta badge costellazioni in base ai libri letti (senza toast — il toast arriva da renderCostellazioni)
   if(G.u&&G.lettiData?.length){
-    const lit=getAutoLitStars();
-    COSTELLAZIONI.forEach(ep=>{
-      const completed=ep.stars.every(s=>lit.has(s.id));
-      if(completed)unlockBadge(ep.badge);
-    });
+    rivalutaBadgeCostellazioni();
   }
   const unl=getBadgeUnlocked();
   gr.innerHTML=TUTTI_BADGE.map(b=>{
@@ -1557,13 +1565,24 @@ function mostraInfoStella(ep,star,wrap,isAuto){
   `;
 }
 
-/* Verifica badge alexandrino (50 ricerche) tramite storico API */
-async function verificaBadgeRicerche(){
-  if(getBadgeUnlocked().has('alexandrino'))return;
+/* Verifica badge alexandrino (50 ricerche) e prima_ricerca tramite storico API */
+async function verificaBadgeRicerche(silenzioso=false){
+  const unl=getBadgeUnlocked();
+  const needPrima=!unl.has('prima_ricerca');
+  const needAlex=!unl.has('alexandrino');
+  if(!needPrima&&!needAlex)return;
   try{
     const r=await fetch('/api/storico');if(!r.ok)return;
     const d=await r.json();
-    if((d.tot_ricerche||0)>=50){const nu=unlockBadge('alexandrino');if(nu)showBadgeToast(TUTTI_BADGE.find(b=>b.id==='alexandrino'));}
+    const tot=d.tot_ricerche||0;
+    if(needPrima&&tot>=1){
+      const nu=unlockBadge('prima_ricerca');
+      if(nu&&!silenzioso)showBadgeToast(TUTTI_BADGE.find(b=>b.id==='prima_ricerca'));
+    }
+    if(needAlex&&tot>=50){
+      const nu=unlockBadge('alexandrino');
+      if(nu&&!silenzioso)showBadgeToast(TUTTI_BADGE.find(b=>b.id==='alexandrino'));
+    }
   }catch{}
 }
 
