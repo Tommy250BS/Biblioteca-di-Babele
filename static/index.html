@@ -590,7 +590,7 @@ body{font-family:'Inter',sans-serif;background:var(--av);color:var(--ink);min-he
       <div class="sc" data-c="b" onclick="vai('smnem')">
         <div class="sc-arr">›</div>
         <div class="sc-ico">📊</div><div class="sc-nome">Mnemosine</div>
-        <div class="sc-desc">Le tracce del tuo viaggio</div><div class="sc-orn">M</div>
+        <div class="sc-desc">Le tue statistiche di lettura</div><div class="sc-orn">M</div>
       </div>
       <div class="sc wide" data-c="o" onclick="vai('slap')">
         <div class="sc-arr">›</div>
@@ -1077,6 +1077,8 @@ async function togSalv(btn,libro){
         body:JSON.stringify({titolo:libro.titolo,autore:libro.autore||'',url_opac:url,biblioteca:G.bib,disponibile:libro.disponibile?1:0})});
       if(!r.ok){const e=await r.json();throw new Error(e.error);}
       G.salv.add(url);btn.textContent='♥ Salvato';btn.classList.add('on');
+      // Badge: bibliofilo (10 libri salvati)
+      if(G.salv.size>=10){const nu=unlockBadge('bibliofilo');if(nu)showBadgeToast(TUTTI_BADGE.find(b=>b.id==='bibliofilo'));}
     }catch(e){console.error('togSalv add',e);}
   }
 }
@@ -1124,7 +1126,20 @@ async function cerca(){
   tap('medium');
   main.innerHTML='<div class="ld"><div class="sp"></div><p>Cerco nell\'OPAC…</p></div>';
   const bc=document.getElementById('bcerca');bc.disabled=true;bc.textContent='…';
-  try{if(G.u)await caricaSalv();const r=await fetch(`/api/search?q=${encodeURIComponent(q)}&biblioteca=${encodeURIComponent(G.bib)}`);if(!r.ok)throw new Error(`Errore ${r.status}`);renderRis(await r.json());}
+  try{
+    if(G.u)await caricaSalv();
+    const r=await fetch(`/api/search?q=${encodeURIComponent(q)}&biblioteca=${encodeURIComponent(G.bib)}`);
+    if(!r.ok)throw new Error(`Errore ${r.status}`);
+    const data=await r.json();
+    renderRis(data);
+    // Badge: prima ricerca
+    if(G.u&&data.risultati?.length){
+      const nu=unlockBadge('prima_ricerca');
+      if(nu)showBadgeToast(TUTTI_BADGE.find(b=>b.id==='prima_ricerca'));
+    }
+    // Badge: alexandrino (50 ricerche) — controlla storico
+    if(G.u)verificaBadgeRicerche();
+  }
   catch(e){main.innerHTML=`<div class="er">⚠ ${e.message} — riprova.</div>`;}
   finally{bc.disabled=false;bc.textContent='Cerca';}
 }
@@ -1261,8 +1276,21 @@ function unlockBadge(id){
   return true;
 }
 
-function renderPantheon(){
+async function renderPantheon(){
   const gr=document.getElementById('pant-bgr');if(!gr)return;
+  // Assicura che lettiData sia caricato prima di valutare i badge costellazione
+  if(G.u&&!G.lettiData?.length){
+    try{const r=await fetch('/api/letti');if(r.ok){const d=await r.json();G.letti=new Set(d.map(s=>s.url_opac));G.lettiData=d;}}
+    catch(e){console.error('renderPantheon caricaLetti',e);}
+  }
+  // Rivaluta badge costellazioni in base ai libri letti
+  if(G.u&&G.lettiData?.length){
+    const lit=getAutoLitStars();
+    COSTELLAZIONI.forEach(ep=>{
+      const completed=ep.stars.every(s=>lit.has(s.id));
+      if(completed)unlockBadge(ep.badge);
+    });
+  }
   const unl=getBadgeUnlocked();
   gr.innerHTML=TUTTI_BADGE.map(b=>{
     const ok=unl.has(b.id);
@@ -1517,8 +1545,8 @@ function renderCostellazioni(){
       svg.appendChild(g);
     });
 
-    // Controlla badge
-    if(completed)unlockBadge(ep.badge);
+    // Controlla badge costellazione e mostra toast se appena sbloccato
+    if(completed){const nu=unlockBadge(ep.badge);if(nu)showBadgeToast(TUTTI_BADGE.find(b=>b.id===ep.badge));}
   });
 }
 
@@ -1544,6 +1572,26 @@ function mostraInfoStella(ep,star,wrap,isAuto){
     <a class="cost-info-url" href="${star.url}" target="_blank" rel="noopener">🔍 Cerca nel catalogo RBBC →</a>
     ${statoMsg}
   `;
+}
+
+/* Verifica badge alexandrino (50 ricerche) tramite storico API */
+async function verificaBadgeRicerche(){
+  if(getBadgeUnlocked().has('alexandrino'))return;
+  try{
+    const r=await fetch('/api/storico');if(!r.ok)return;
+    const d=await r.json();
+    if((d.tot_ricerche||0)>=50){const nu=unlockBadge('alexandrino');if(nu)showBadgeToast(TUTTI_BADGE.find(b=>b.id==='alexandrino'));}
+  }catch{}
+}
+
+/* Contatore visite Atlante per badge esploratore */
+function incAtlanteVisits(){
+  const n=(parseInt(localStorage.getItem('rbbc_atlante_visits')||'0'))+1;
+  localStorage.setItem('rbbc_atlante_visits',n);
+  if(n>=5&&!getBadgeUnlocked().has('esploratore')){
+    const nu=unlockBadge('esploratore');
+    if(nu)setTimeout(()=>showBadgeToast(TUTTI_BADGE.find(b=>b.id==='esploratore')),400);
+  }
 }
 
 function showBadgeToast(badge){
