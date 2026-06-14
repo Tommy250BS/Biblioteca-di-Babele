@@ -263,8 +263,21 @@ body{font-family:'Inter',sans-serif;background:var(--av);color:var(--ink);min-he
 .cln:hover{text-decoration:underline}
 
 /* ATLANTE MAPPA */
-.mapwrap{background:#eef3f6;border-radius:var(--r);box-shadow:var(--sh-s);overflow:hidden;padding:8px}
+.mapwrap{background:#eef3f6;border-radius:var(--r);box-shadow:var(--sh-s);overflow:hidden;padding:8px;position:relative}
 .mapwrap svg{width:100%;height:auto;display:block}
+.map-expand{position:absolute;top:8px;right:8px;width:30px;height:30px;background:rgba(15,34,16,.72);border:1px solid rgba(201,168,76,.3);border-radius:6px;color:var(--oro);font-size:.85rem;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent}
+.map-expand:active{background:rgba(15,34,16,.9)}
+/* Fullscreen overlay mappa */
+.map-fs-ovr{position:fixed;inset:0;z-index:500;background:#0a140b;display:none;flex-direction:column}
+.map-fs-ovr.on{display:flex}
+.map-fs-bar{display:flex;align-items:center;justify-content:space-between;padding:calc(10px + var(--st)) 16px 10px;background:rgba(10,20,11,.97);border-bottom:1px solid rgba(201,168,76,.14);flex-shrink:0}
+.map-fs-title{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--oro);letter-spacing:.04em}
+.map-fs-close{width:34px;height:34px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:var(--rs);color:rgba(255,255,255,.7);font-size:1rem;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.map-fs-body{flex:1;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.map-fs-svg-wrap{flex:1;padding:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#eef3f6}
+.map-fs-svg-wrap svg{width:100%;height:100%;max-height:100%}
+.map-fs-info{background:var(--av);border-top:1px solid var(--av3);padding:10px 16px;max-height:35%;overflow-y:auto;flex-shrink:0}
+.map-fs-hint{font-size:.78rem;color:#aaa;font-style:italic;text-align:center;padding:4px 0}
 .mapcont{fill:var(--av3);stroke:#fff;stroke-width:1}
 .mapnaz{stroke:#fff;stroke-width:1.2;transition:fill .2s,stroke-width .2s}
 .mapnaz.attiva{fill:var(--bosco-2);cursor:pointer}
@@ -643,6 +656,7 @@ body{font-family:'Inter',sans-serif;background:var(--av);color:var(--ink);min-he
     <div class="psez">
       <div class="sh3">🗺️ Mappa del mondo letterario</div>
       <div class="mapwrap">
+        <button class="map-expand" onclick="apriMappaFS('atlante')" title="Schermo intero">⤢</button>
         <svg id="mapsvg" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
       </div>
       <div id="mapinfo" class="mapinfo">
@@ -698,6 +712,7 @@ body{font-family:'Inter',sans-serif;background:var(--av);color:var(--ink);min-he
         <div class="sh3">🗺️ Mappa delle letture</div>
         <p style="font-size:.74rem;color:#aaa;margin-bottom:10px;font-style:italic">I paesi diventano verdi quando leggi un autore che vi appartiene. Toccali per scoprire quali libri hai letto.</p>
         <div class="mapwrap">
+          <button class="map-expand" onclick="apriMappaFS('mnemosine')" title="Schermo intero">⤢</button>
           <svg id="mnmapsvg" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
         <div id="mnmapinfo" class="mapinfo">
@@ -799,6 +814,18 @@ body{font-family:'Inter',sans-serif;background:var(--av);color:var(--ink);min-he
   <div class="sh"><div class="shhnd"></div><div class="shtit">Cambia biblioteca</div>
     <div class="fi"><label>Biblioteca</label><div class="acw"><input type="text" id="pbi" placeholder="Es. Rezzato…" autocomplete="off"><div class="dd" id="ddpb"></div></div></div>
     <div style="display:flex;gap:10px"><button class="bsm bsmp" onclick="salvaLib()">Salva</button><button class="bsm bsmg" onclick="chiudiSh('shbib')">Annulla</button></div>
+  </div>
+</div>
+
+<!-- MAPPA FULLSCREEN OVERLAY -->
+<div class="map-fs-ovr" id="mapFsOvr">
+  <div class="map-fs-bar">
+    <span class="map-fs-title" id="mapFsTitle">Mappa</span>
+    <button class="map-fs-close" onclick="chiudiMappaFS()">✕</button>
+  </div>
+  <div class="map-fs-body">
+    <div class="map-fs-svg-wrap" id="mapFsSvgWrap"></div>
+    <div class="map-fs-info" id="mapFsInfo"><p class="map-fs-hint">Tocca una nazione evidenziata per scoprire autori e libri.</p></div>
   </div>
 </div>
 
@@ -1873,9 +1900,85 @@ function renderPassaporto(){
   if(!entries.length){cont.innerHTML='<div class="vp">Nessun timbro ancora: leggi un libro per iniziare il tuo viaggio.</div>';return;}
   cont.innerHTML=`<div class="passgr">${entries.map(([key,libri])=>{
     const nome=NAZIONI[key]?.nome||key;
-    return`<div class="passc"><div class="passorn">✦</div><div class="passn">${nome}</div><div class="passd">${libri.length} libro${libri.length>1?'i':''} letto${libri.length>1?'i':''}</div></div>`;
+    return`<div class="passc"><div class="passorn">✦</div><div class="passn">${nome}</div><div class="passd">${libri.length} ${libri.length>1?'libri letti':'libro letto'}</div></div>`;
   }).join('')}</div>`;
 }
+
+/* MAPPA FULLSCREEN */
+let _fsType=null;
+function apriMappaFS(tipo){
+  tap('light');
+  _fsType=tipo;
+  const ovr=document.getElementById('mapFsOvr');
+  const wrap=document.getElementById('mapFsSvgWrap');
+  const info=document.getElementById('mapFsInfo');
+  const title=document.getElementById('mapFsTitle');
+  ovr.classList.add('on');
+  info.innerHTML='<p class="map-fs-hint">Tocca una nazione evidenziata per scoprire autori e libri.</p>';
+
+  if(tipo==='atlante'){
+    title.textContent='Atlante — Mappa letteraria';
+    wrap.innerHTML='<svg id="mapsvg-fs" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%"></svg>';
+    _disegnaMappFS('mapsvg-fs',false,info);
+  }else{
+    title.textContent='Mnemosine — Le mie letture';
+    wrap.innerHTML='<svg id="mnmapsvg-fs" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%"></svg>';
+    _disegnaMappFS('mnmapsvg-fs',true,info);
+  }
+}
+function chiudiMappaFS(){
+  document.getElementById('mapFsOvr').classList.remove('on');
+  document.getElementById('mapFsSvgWrap').innerHTML='';
+  _fsType=null;
+}
+function _disegnaMappFS(svgId,isMnem,infoEl){
+  const svg=document.getElementById(svgId);
+  if(!svg||typeof d3==='undefined'||typeof topojson==='undefined'){
+    if(infoEl)infoEl.innerHTML='<p class="map-fs-hint">Libreria mappa non disponibile.</p>';return;
+  }
+  const letti=isMnem?getLettiPerNazione():{};
+  const W=1000,H=500;
+  const projection=d3.geoNaturalEarth1().scale(165).translate([W/2,H/2-10]);
+  const path=d3.geoPath(projection);
+  const s=d3.select(svg).attr('viewBox',`0 0 ${W} ${H}`);
+  s.append('rect').attr('width',W).attr('height',H).attr('fill','#eef3f6');
+  const g=s.append('g');
+
+  const cached=d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+  cached.then(world=>{
+    const countries=topojson.feature(world,world.objects.countries).features;
+    g.selectAll('path.mapcont-fs').data(countries).join('path')
+      .attr('class','mapcont').attr('d',path);
+    countries.forEach(f=>{
+      const info=NAZIONI[f.properties.name];if(!info)return;
+      const visitato=isMnem?!!letti[f.properties.name]:true;
+      if(!visitato)return;
+      const cls=isMnem?`mn-naz visitato`:`mapnaz attiva`;
+      g.append('path').datum(f).attr('class',cls).attr('d',path)
+        .on('click',()=>{
+          g.selectAll('.sel').classed('sel',false);
+          // seleziona visivamente
+          if(isMnem){
+            if(!letti[f.properties.name])return;
+            const libri=letti[f.properties.name];
+            const nome=NAZIONI[f.properties.name]?.nome||f.properties.name;
+            const ops=libri.map(l=>`<div class="opi"><div class="opb"><div class="opt">${l.titolo}</div><div style="font-size:.78rem;color:#999;font-style:italic;font-family:'Cormorant Garamond',serif">${l.autore||''}</div></div></div>`).join('');
+            infoEl.innerHTML=`<div class="ech"><div class="ecl">📍 ${nome}</div><div class="autn" style="font-size:1rem">Libri letti da qui</div></div><div class="oplist">${ops}</div>`;
+          }else{
+            const ninfo=NAZIONI[f.properties.name];
+            const nome=ninfo?.nome||f.properties.name;
+            const ops=(ninfo?.autori||[]).map(a=>`<div class="opi"><div class="opb"><div class="opt">${a.a}</div><div style="font-size:.78rem;color:#999;font-style:italic;font-family:'Cormorant Garamond',serif">${a.o}</div></div></div>`).join('');
+            infoEl.innerHTML=`<div class="ech"><div class="ecl">📍 ${nome}</div><div class="autn" style="font-size:1rem">Autori da scoprire</div></div><div class="oplist">${ops}</div>`;
+          }
+        });
+    });
+  }).catch(()=>{if(infoEl)infoEl.innerHTML='<p class="map-fs-hint">Impossibile caricare i dati geografici.</p>';});
+}
+// Chiudi fullscreen con tasto back fisico (Android)
+window.addEventListener('popstate',()=>{if(_fsType)chiudiMappaFS();});
+document.getElementById('mapFsOvr').addEventListener('touchstart',e=>{
+  // swipe down to close: gestito dal bottone ✕, qui no-op
+},{passive:true});
 
 /* PROFILO */
 function aggiornaUIProf(){
