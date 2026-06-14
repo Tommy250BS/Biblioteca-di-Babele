@@ -1379,18 +1379,22 @@ const LINGUE_COSTELLAZIONE_ANTICHITA={
   storie:'Greco antico',edipo:'Greco antico',repubbl:'Greco antico',ars:'Latino',georgiche:'Latino'
 };
 /* Autori Nobel per la letteratura (lista parziale ma estesa per i match presenti) */
-const AUTORI_NOBEL=['Toni Morrison','Ernest Hemingway','Gabriel García Márquez','Pablo Neruda','Albert Camus',
-  'Wisława Szymborska','Imre Kertész','Mario Vargas Llosa','Naguib Mahfouz','Kazuo Ishiguro','Doris Lessing',
-  'Günter Grass','José Saramago','Nadine Gordimer','J.M. Coetzee','Wole Soyinka','Octavio Paz','Czesław Miłosz',
-  'Elias Canetti','Isaac Bashevis Singer','Saul Bellow','Vicente Aleixandre','Eugenio Montale','Odysseas Elytis',
-  'Gao Xingjian','Orhan Pamuk','Herta Müller','Mo Yan','Svetlana Aleksievič','Olga Tokarczuk','Abdulrazak Gurnah',
-  'Han Kang','Bob Dylan','Rabindranath Tagore','William Faulkner','John Steinbeck','Pearl Buck','Thomas Mann',
-  'Hermann Hesse','André Gide','François Mauriac','Boris Pasternak','Mikhail Sholokhov','Samuel Beckett',
-  'Pär Lagerkvist','Halldór Laxness','Selma Lagerlöf','Henrik Pontoppidan','Karl Gjellerup','Sigrid Undset',
-  'Knut Hamsun','Bjørnstjerne Bjørnson','George Bernard Shaw','William Butler Yeats','Rudyard Kipling',
-  'Anatole France','Romain Rolland','Carl Spitteler','Sully Prudhomme','José Echegaray','Frédéric Mistral',
-  'Giosuè Carducci','Rudolf Christoph Eucken','Verner von Heidenstam','Maurice Maeterlinck','Gerhart Hauptmann',
-  'Paul Heyse','Theodor Mommsen','Sully'];
+const AUTORI_NOBEL=['René François Armand Prudhomme', 'Christian Matthias Theodor Mommsen', 'Bjørnstjerne Martinius Bjørnson', 'Frédéric Mistral', 'José Echegaray y Eizaguirre',
+                    'Henryk Adam Aleksander Pius Sienkiewicz', 'Giosuè Alessandro Giuseppe Carducci', 'Joseph Rudyard Kipling', 'Rudolf Christoph Eucken', 'Selma Ottilia Lovisa Lagerlöf',
+                    'Paul Johann Ludwig von Heyse', 'Maurice Polydore Marie Bernard Maeterlinck', 'Gerhart Johann Robert Hauptmann', 'Rabindranath Tagore', 'Romain Rolland', 'Carl Gustaf Verner von Heidenstam', 
+                    'Karl Adolph Gjellerup', 'Henrik Pontoppidan', 'Carl Friedrich Georg Spitteler', 'Knut Pedersen Hamsun', 'Anatole France', 'Jacinto Benavente y Martínez', 'William Butler Yeats', 'Władysław Stanisław Reymont', 
+                    'George Bernard Shaw', 'Grazia Maria Cosima Damiana Deledda', 'Henri-Louis Bergson', 'Sigrid Undset', 'Paul Thomas Mann', 'Harry Sinclair Lewis', 'Erik Axel Karlfeldt', 'John Galsworthy', 'Ivan Alekseyevich Bunin', 
+                    'Luigi Pirandello', 'Eugene Gladstone O’Neill', 'Roger Martin du Gard', 'Pearl Sydenstricker Buck', 'Frans Eemil Sillanpää', 'Johannes Vilhelm Jensen', 'Lucila de María del Perpetuo Socorro Godoy Alcayaga',
+                    'Hermann Karl Hesse', 'André Paul Guillaume Gide', 'Thomas Stearns Eliot', 'William Cuthbert Faulkner', 'Bertrand Arthur William Russell', 'Pär Fabian Lagerkvist', 'François Charles Mauriac', 'Winston Leonard Spencer Churchill',
+                    'Ernest Miller Hemingway', 'Halldór Kiljan Laxness', 'Juan Ramón Jiménez Mantecón', 'Albert Camus', 'Boris Leonidovich Pasternak', 'Salvatore Quasimodo', 'Saint-John Perse', 'Ivo Andrić', 'John Ernst Steinbeck', 'Giorgos Seferis',
+                    'Jean-Paul Sartre', 'Mikhail Aleksandrovich Sholokhov', 'Shmuel Yosef Agnon', 'Nelly Sachs', 'Miguel Ángel Asturias Rosales', 'Yasunari Kawabata', 'Samuel Barclay Beckett', 'Aleksandr Isayevich Solzhenitsyn', 'Pablo Neruda',
+                    'Heinrich Theodor Böll', 'Patrick Victor Martindale White', 'Eyvind Johnson', 'Harry Martinson', 'Eugenio Montale', 'Saul Bellow', 'Vicente Pío Marcelino Cirilo Aleixandre y Merlo', 'Isaac Bashevis Singer', 'Odysseas Elytis', 
+                    'Czesław Miłosz', 'Elias Canetti', 'Gabriel José de la Concordia García Márquez', 'William Gerald Golding', 'Jaroslav Seifert', 'Claude Simon', 'Akinwande Oluwole Soyinka', 'Joseph Alexandrovich Brodsky', 'Naguib Mahfouz',
+                    'Camilo José Cela', 'Octavio Paz Lozano', 'Nadine Gordimer', 'Derek Walcott', 'Chloe Anthony Wofford Morrison', 'Kenzaburō Ōe', 'Seamus Justin Heaney', 'Maria Wisława Anna Szymborska', 'Dario Fo', 'José de Sousa Saramago', 
+                    'Günter Wilhelm Grass', 'Gao Xingjian', 'Vidiadhar Surajprasad Naipaul', 'Imre Kertész', 'John Maxwell Coetzee', 'Elfriede Jelinek', 'Harold Pinter', 'Ferit Orhan Pamuk', 'Doris May Lessing', 'Jean-Marie Gustave Le Clézio', 
+                    'Herta Müller', 'Jorge Mario Pedro Vargas Llosa', 'Tomas Gösta Tranströmer', 'Mo Yan', 'Alice Ann Munro', 'Jean Patrick Modiano', 'Svetlana Alexandrovna Alexievich', 'Bob Dylan', 'Kazuo Ishiguro', 'Olga Nawoja Tokarczuk', 
+                    'Peter Handke', 'Louise Elisabeth Glück', 'Abdulrazak Gurnah', 'Annie Ernaux', 'Jon Olav Fosse', 'Han Kang', 'László Krasznahorkai']
+];
 function autLetto(nomeAutore){
   if(!G.lettiData?.length)return false;
   return G.lettiData.some(l=>autMatch(nomeAutore,l.autore));
