@@ -1982,6 +1982,15 @@ document.getElementById('mapFsOvr').addEventListener('touchstart',e=>{
 },{passive:true});
 
 /* PROFILO */
+const LIBRI_PREVIEW=5;
+function renderLibriProf(lista,tutti){
+  const ml=document.getElementById('p-mialib');if(!ml)return;
+  const mostra=tutti?lista:lista.slice(0,LIBRI_PREVIEW);
+  const righe=mostra.map(s=>`<div class="wi"><div class="wdot dv"></div><div class="wbod"><div class="wtt">${s.titolo}</div>${s.autore?`<div class="wat">${s.autore}</div>`:''}<div class="wmt">${s.biblioteca}</div></div><button class="bdel" title="Rimuovi dai letti" onclick="toglLettoProf('${encodeURIComponent(s.url_opac)}',this)">↺</button></div>`).join('');
+  const bottone=(!tutti&&lista.length>LIBRI_PREVIEW)?`<button class="bg" style="display:block;width:100%;text-align:center;margin-top:6px" onclick="renderLibriProf(window._mlLett,true)">Vedi tutti (${lista.length}) ↓</button>`:'';
+  ml.innerHTML=righe+bottone;
+}
+
 function aggiornaUIProf(){
   if(!G.u)return;const u=G.u;
   const pa=document.getElementById('pav');if(pa)pa.textContent=(u.nome||'?')[0].toUpperCase();
@@ -2000,13 +2009,6 @@ async function caricaProf(){
     G.letti=new Set(lett.map(s=>s.url_opac));
     G.lettiData=lett;
     const ml=document.getElementById('p-mialib');
-    const LIBRI_PREVIEW=5;
-    function renderLibriProf(lista,tutti){
-      const mostra=tutti?lista:lista.slice(0,LIBRI_PREVIEW);
-      const righe=mostra.map(s=>`<div class="wi"><div class="wdot dv"></div><div class="wbod"><div class="wtt">${s.titolo}</div>${s.autore?`<div class="wat">${s.autore}</div>`:''}<div class="wmt">${s.biblioteca}</div></div><button class="bdel" title="Rimuovi dai letti" onclick="toglLettoProf('${encodeURIComponent(s.url_opac)}',this)">↺</button></div>`).join('');
-      const bottone=(!tutti&&lista.length>LIBRI_PREVIEW)?`<button class="bg" style="display:block;width:100%;text-align:center;margin-top:6px" onclick="renderLibriProf(window._mlLett,true)">Vedi tutti (${lista.length}) ↓</button>`:'';
-      ml.innerHTML=righe+bottone;
-    }
     window._mlLett=lett;
     if(lett.length)renderLibriProf(lett,false);
     else ml.innerHTML='<div class="vp">Nessun libro segnato come letto.</div>';
