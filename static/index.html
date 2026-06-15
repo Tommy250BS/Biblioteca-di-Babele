@@ -353,7 +353,7 @@ body.dark .morph-ov{background:#121f13}
 #shome{background:var(--av)}
 .hh{background:var(--bosco-3);padding:calc(16px + var(--st)) 20px 0;position:relative;overflow:hidden}
 .hh::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 100% at 60% 0%,rgba(42,85,48,.6) 0%,transparent 65%);pointer-events:none}
-.hhi{position:relative;z-index:1;padding-bottom:30px}
+.hhi{position:relative;z-index:1;padding-bottom:14px}
 .hsal{font-size:.62rem;color:var(--oro);letter-spacing:.16em;text-transform:uppercase;margin-bottom:7px;opacity:.75;font-weight:600}
 .htit{font-family:'Cormorant Garamond',serif;font-size:2.05rem;font-weight:300;color:#fff;line-height:1.04;margin-bottom:4px}
 .htit strong{font-weight:600;color:var(--oro-2)}
@@ -409,7 +409,7 @@ body.dark .morph-ov{background:#121f13}
 /* SEZIONE INTRO (Clio, Mnem, ecc.) */
 .sint{background:var(--bosco-3);padding:calc(16px + var(--st)) 20px 0;position:relative;overflow:hidden}
 .sint::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 80% at 80% 50%,rgba(200,164,74,.05) 0%,transparent 70%);pointer-events:none}
-.sinti{padding-bottom:28px;position:relative;z-index:1}
+.sinti{padding-bottom:14px;position:relative;z-index:1}
 .stag{font-size:.6rem;color:var(--oro);letter-spacing:.16em;text-transform:uppercase;margin-bottom:9px;font-weight:700;opacity:.85}
 .stitolo{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:300;color:#fff;line-height:1.08;margin-bottom:5px}
 .stitolo strong{font-weight:600;color:var(--oro-2)}
@@ -513,7 +513,7 @@ body.dark .morph-ov{background:#121f13}
 
 /* PROFILO */
 .ph{background:var(--bosco-3);padding:calc(16px + var(--st)) 20px 0;position:relative;overflow:hidden}
-.phi{padding-bottom:28px;position:relative;z-index:1}
+.phi{padding-bottom:14px;position:relative;z-index:1}
 .pho{position:absolute;right:-15px;top:50%;transform:translateY(-50%);font-size:7rem;opacity:.1;font-family:'Cormorant Garamond',serif;color:var(--oro);line-height:1;pointer-events:none}
 .av{width:52px;height:52px;border-radius:50%;background:var(--bosco-2);border:2px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--oro);margin-bottom:10px}
 .pn{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:600;color:#fff;line-height:1.2}
@@ -2391,14 +2391,87 @@ const COSTELLAZIONI=[
 /* Normalizza titolo/autore per confronto */
 function normLib(s){return norm((s||'').replace(/['']/g,"'")).trim();}
 
+/* Dizionario alias autori: forme latinizzate/translitterate/alternate → forma italiana canonica */
+const AUT_ALIAS={
+  // Antichi greci e latini (forme latine RBBC → italiane)
+  'homerus':'omero','homeros':'omero',
+  'vergilius':'virgilio','virgilius':'virgilio','publius vergilius maro':'virgilio',
+  'ovidius':'ovidio','publius ovidius naso':'ovidio',
+  'horatius':'orazio','quintus horatius flaccus':'orazio',
+  'cicero':'cicerone','marcus tullius cicero':'cicerone',
+  'plato':'platone',
+  'aristoteles':'aristotele',
+  'herodotus':'erodoto',
+  'sophocles':'sofocle',
+  'euripides':'euripide',
+  'aeschylus':'eschilo',
+  'thucydides':'tucidide',
+  'lucretius':'lucrezio','titus lucretius carus':'lucrezio',
+  'tacitus':'tacito','publius cornelius tacitus':'tacito',
+  'suetonius':'svetonio',
+  'pliny':'plinio','gaius plinius caecilius secundus':'plinio',
+  // Russi (traslitterazioni alternative)
+  'dostoevskij':'dostoevskij','dostoevsky':'dostoevskij','dostoyevsky':'dostoevskij',
+  'fedor dostoevskij':'dostoevskij','fyodor dostoevsky':'dostoevskij',
+  'tolstoj':'tolstoj','tolstoy':'tolstoj','lev tolstoj':'tolstoj','leo tolstoy':'tolstoj',
+  'cechov':'cechov','chekhov':'cechov','anton chekhov':'cechov',
+  'gogol':'gogol','nikolaj gogol':'gogol',
+  'bulgakov':'bulgakov','mikhail bulgakov':'bulgakov',
+  'turgenev':'turgenev','ivan turgenev':'turgenev',
+  'goncharov':'goncharov',
+  'pasternak':'pasternak','boris pasternak':'pasternak',
+  'solzenicyn':'solzenicyn','solzhenitsyn':'solzenicyn',
+  // Giapponesi
+  'murakami haruki':'murakami','haruki murakami':'murakami',
+  'mishima yukio':'mishima','yukio mishima':'mishima',
+  'kawabata yasunari':'kawabata','yasunari kawabata':'kawabata',
+  // Cinesi
+  'lu xun':'lu xun','lu hsun':'lu xun',
+  // Arabi/Persiani
+  'gialal al-din rumi':'rumi','jalal al-din rumi':'rumi','jalāl ad-dīn rūmī':'rumi',
+  'hafiz':'hafez','hafis':'hafez',
+  'ferdowsi':'ferdowsi','firdausi':'ferdowsi','firdousi':'ferdowsi',
+  // Nordici
+  'ibsen':'ibsen','henrik ibsen':'ibsen',
+  'hamsun':'hamsun','knut hamsun':'hamsun',
+  'strindberg':'strindberg','august strindberg':'strindberg',
+  // Latinoamericani
+  'garcia marquez':'garcia marquez','gabriel garcia marquez':'garcia marquez',
+  'borges':'borges','jorge luis borges':'borges',
+  'cortazar':'cortazar','julio cortazar':'cortazar',
+  // Altre lingue → italianizzazioni comuni
+  'goethe':'goethe','johann wolfgang von goethe':'goethe','von goethe':'goethe',
+  'kafka':'kafka','franz kafka':'kafka',
+  'mann':'mann','thomas mann':'mann',
+  'hesse':'hesse','hermann hesse':'hesse',
+  'proust':'proust','marcel proust':'proust',
+  'joyce':'joyce','james joyce':'joyce',
+  'woolf':'woolf','virginia woolf':'woolf',
+  'camus':'camus','albert camus':'camus',
+  'sartre':'sartre','jean-paul sartre':'sartre',
+  'cervantes':'cervantes','miguel de cervantes':'cervantes',
+  'shakespeare':'shakespeare','william shakespeare':'shakespeare',
+  'dickens':'dickens','charles dickens':'dickens',
+};
+
+/* Risolve alias: se la forma normalizzata è nel dizionario, restituisce la forma canonica */
+function resolveAlias(s){
+  const n=normLib(s);
+  return AUT_ALIAS[n]||n;
+}
+
 /* Rimuove date <1903-1950> e virgole, restituisce set di parole significative dell'autore */
 function autWords(s){
-  const clean=normLib((s||'').replace(/<[^>]*>/g,' ').replace(/,/g,' '));
+  const resolved=resolveAlias(s);
+  const clean=normLib((resolved||'').replace(/<[^>]*>/g,' ').replace(/,/g,' '));
   return new Set(clean.split(/\s+/).filter(w=>w.length>1));
 }
 
 /* Vero se tutte le parole dell'autore "a" (più corto) sono presenti nell'autore "b" */
 function autMatch(a,b){
+  // Prova prima con alias risolti
+  const ra=resolveAlias(a),rb=resolveAlias(b);
+  if(ra&&rb&&(ra===rb||ra.includes(rb)||rb.includes(ra)))return true;
   const wa=autWords(a),wb=autWords(b);
   if(!wa.size||!wb.size)return false;
   const[small,big]=wa.size<=wb.size?[wa,wb]:[wb,wa];
@@ -2678,30 +2751,25 @@ function badgeCeremony(badgeId){
 
 function showBadgeToast(badge){
   if(!badge)return;
-  // Cerimonia sulla card se Pantheon visibile
   badgeCeremony(badge.id);
-
-  // Mostra l'overlay full-screen di cerimonia
   const ovr=document.getElementById('bdgCerOvr');
   if(!ovr)return;
   document.getElementById('bdgCerIcoInner').textContent=badge.ico;
   document.getElementById('bdgCerNome').textContent=badge.nome;
   document.getElementById('bdgCerDesc').textContent=badge.desc;
-  // Reset animation
+  // Reset senza transition, poi trigger nel doppio rAF (affidabile su iOS/Android)
   const card=ovr.querySelector('.bdg-ceremony-card');
+  ovr.classList.remove('active');
   card.style.transition='none';
-  card.style.opacity='0';card.style.transform='scale(.6) translateY(40px)';
-  void card.offsetWidth;
-  card.style.transition='';
-  ovr.classList.add('active');
-  _startCerParticles();
-
-  // Haptic pesante
-  tap('heavy');
-  // Auto-dismiss dopo 6s
-  setTimeout(()=>{
-    if(ovr.classList.contains('active'))chiudiBadgeCeremony();
-  },6000);
+  card.style.opacity='0';
+  card.style.transform='scale(.6) translateY(40px)';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    card.style.transition='';
+    ovr.classList.add('active');
+    _startCerParticles();
+    tap('heavy');
+  }));
+  setTimeout(()=>{if(ovr.classList.contains('active'))chiudiBadgeCeremony();},6000);
 }
 
 
