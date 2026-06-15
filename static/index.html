@@ -2846,12 +2846,25 @@ const WD_QID_MAP={
   Q214:'Slovakia', Q233:'Malta', Q760:'Iceland', Q711:'Moldova',
 };
 
-/* Cache in memoria + localStorage */
+/* Cache in memoria + localStorage.
+   Versione 2: invalida automaticamente la cache lasciata dal vecchio resolver
+   Wikipedia (che salvava null per gli autori non trovati). Wikidata li riprova. */
 let _nazioneCache=null;
+const _nazCacheVersion=2;
 function _getNazCache(){
   if(_nazioneCache)return _nazioneCache;
-  try{_nazioneCache=JSON.parse(localStorage.getItem('rbbc_naz_cache')||'{}');}
-  catch{_nazioneCache={};}
+  try{
+    const v=parseInt(localStorage.getItem('rbbc_naz_cache_v')||'0');
+    if(v<_nazCacheVersion){
+      localStorage.removeItem('rbbc_naz_cache');
+      localStorage.setItem('rbbc_naz_cache_v',String(_nazCacheVersion));
+      _nazioneCache={};
+    }else{
+      const raw=JSON.parse(localStorage.getItem('rbbc_naz_cache')||'{}');
+      // Scarta i null residui per forzare un nuovo tentativo
+      _nazioneCache=Object.fromEntries(Object.entries(raw).filter(([,val])=>val!==null));
+    }
+  }catch{_nazioneCache={};}
   return _nazioneCache;
 }
 function _saveNazCache(){
@@ -3075,14 +3088,11 @@ function renderPassaporto(){
   // Libri senza nazione ancora risolta
   const cache=_getNazCache();
   const nonClassificati=G.lettiData?.filter(l=>{
-    if(!l.autore)return true;
+    if(!l.autore)return false; // autore vuoto: non mostrare
     const key=l.autore.trim().toLowerCase();
-    // ha nazione in cache o in NAZIONI → classificato
-    if(cache[key])return false;
-    for(const info of Object.values(NAZIONI)){if(info.autori.some(a=>autMatch(a.a,l.autore)))return false;}
-    // key in cache ma null → non trovato da Wikipedia
-    if(key in cache)return true; // null = non trovato, ma abbiamo provato
-    return true; // non ancora risolto
+    if(cache[key])return false; // trovato in cache Wikidata
+    for(const info of Object.values(NAZIONI)){if(info.autori.some(a=>autMatch(a.a,l.autore)))return false;} // match hardcoded
+    return true; // non ancora risolto da Wikidata
   })||[];
 
   if(!entries.length&&!nonClassificati.length){
@@ -3096,13 +3106,28 @@ function renderPassaporto(){
 
   if(nonClassificati.length){
     html+=`<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--av3)">
-      <div style="font-size:.63rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#bbb;margin-bottom:8px">⏳ In elaborazione (${nonClassificati.length})</div>
-      <div style="font-size:.75rem;color:#aaa;font-style:italic;margin-bottom:8px">Stiamo cercando la nazionalità di questi autori su Wikipedia…</div>
-      <div class="passgr">${nonClassificati.map(l=>`<div class="passc" style="opacity:.5"><div class="passorn">?</div><div class="passn" style="font-size:.85rem">${l.titolo}</div><div class="passd">${l.autore||'Autore sconosciuto'}</div></div>`).join('')}</div>
+      <div style="font-size:.63rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#bbb;margin-bottom:6px">⏳ Nazionalità non trovata (${nonClassificati.length})</div>
+      <div style="font-size:.75rem;color:#aaa;font-style:italic;margin-bottom:10px">Wikidata non ha restituito risultati per questi autori.</div>
+      <button class="bric" onclick="riprovaNazioni()" style="margin-bottom:12px">↻ Riprova ricerca</button>
+      <div class="passgr">${nonClassificati.map(l=>`<div class="passc" style="opacity:.45"><div class="passorn">?</div><div class="passn" style="font-size:.85rem">${l.titolo}</div><div class="passd">${l.autore||'Autore sconosciuto'}</div></div>`).join('')}</div>
     </div>`;
   }
 
   cont.innerHTML=html;
+}
+
+/* Svuota le entry null dalla cache e rilancia la risoluzione. */
+async function riprovaNazioni(){
+  const cache=_getNazCache();
+  // Rimuove solo i null: le nazioni già trovate restano
+  let rimossi=0;
+  for(const k of Object.keys(cache)){
+    if(cache[k]===null){delete cache[k];rimossi++;}
+  }
+  _nazioneCache=cache;
+  _saveNazCache();
+  renderPassaporto();
+  await migraNazioniEsistenti();
 }
 
 /* MAPPA FULLSCREEN */
