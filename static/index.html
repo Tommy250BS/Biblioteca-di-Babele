@@ -2850,7 +2850,7 @@ const WD_QID_MAP={
    Versione 2: invalida automaticamente la cache lasciata dal vecchio resolver
    Wikipedia (che salvava null per gli autori non trovati). Wikidata li riprova. */
 let _nazioneCache=null;
-const _nazCacheVersion=2;
+const _nazCacheVersion=3;
 function _getNazCache(){
   if(_nazioneCache)return _nazioneCache;
   try{
@@ -2885,11 +2885,16 @@ function _normalizzaNomeAutore(autore){
 }
 
 /*
-  Interroga Wikidata per trovare il paese di cittadinanza (P27) di un autore.
-  Strategia in due passi:
-  1. SPARQL con label multilingua — preciso, cerca per nome esatto
-  2. wbsearchentities + wbgetclaims — fuzzy, per nomi non trovati al passo 1
-  Ritorna il nome EN della nazione (chiave world-atlas) o null.
+  Interroga Wikidata per il paese di cittadinanza (P27) di un autore.
+
+  Strategia (unico approccio, affidabile):
+  1. wbsearchentities — ricerca per nome in EN e IT, ottiene i QID candidati
+  2. Per ogni candidato: wbgetentities con props=claims|descriptions
+     → verifica P31=Q5 (human), poi legge P27 (citizenship) o P17 (country)
+  3. Prende il primo QID mappato in WD_QID_MAP
+
+  Non usa SPARQL (lento, timeout frequenti) né filtra per parole nella description
+  (inaffidabile: Wikidata ha description in lingue diverse).
 */
 async function fetchNazioneWikidata(autore){
   if(!autore||autore.trim().length<2)return null;
@@ -2900,57 +2905,45 @@ async function fetchNazioneWikidata(autore){
   const nome=_normalizzaNomeAutore(autore);
   if(!nome||nome.length<2){cache[key]=null;_saveNazCache();return null;}
 
-  // ── PASSO 1: SPARQL con label multilingua ───────────────────────────────
-  const sparql=`
-SELECT ?cit WHERE {
-  ?persona wdt:P31 wd:Q5.
-  ?persona rdfs:label ?lbl.
-  FILTER(LCASE(STR(?lbl))="${nome.toLowerCase()}"
-      || LCASE(STR(?lbl))="${nome.toLowerCase().split(' ').reverse().join(' ')}")
-  OPTIONAL { ?persona wdt:P27 ?cit. }
-}
-LIMIT 5`;
+  // Genera varianti: nome diretto + eventuale inversione "Cognome Nome" → "Nome Cognome"
+  const parti=nome.split(' ');
+  const varianti=[nome];
+  if(parti.length===2)varianti.push(parti[1]+' '+parti[0]);
 
-  try{
-    const r=await fetch(
-      'https://query.wikidata.org/sparql?format=json&query='+encodeURIComponent(sparql),
-      {headers:{'Accept':'application/sparql-results+json','User-Agent':'RBBC-PWA/1.0'},
-       signal:AbortSignal.timeout(7000)}
-    );
-    if(r.ok){
-      const d=await r.json();
-      for(const b of d.results?.bindings||[]){
-        const qid=(b.cit?.value||'').replace('http://www.wikidata.org/entity/','');
-        if(WD_QID_MAP[qid]){
-          const naz=WD_QID_MAP[qid];
-          cache[key]=naz;_saveNazCache();return naz;
-        }
-      }
-    }
-  }catch{}
-
-  // ── PASSO 2: wbsearchentities → wbgetclaims P27 ─────────────────────────
-  try{
-    const rs=await fetch(
-      `https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(nome)}&language=en&type=item&limit=3&format=json&origin=*`,
-      {signal:AbortSignal.timeout(5000)}
-    );
-    if(rs.ok){
+  for(const variante of varianti){
+    try{
+      // Passo A: cerca i QID candidati
+      const rs=await fetch(
+        `https://www.wikidata.org/w/api.php?action=wbsearchentities`+
+        `&search=${encodeURIComponent(variante)}&language=en&type=item&limit=5&format=json&origin=*`,
+        {signal:AbortSignal.timeout(6000)}
+      );
+      if(!rs.ok)continue;
       const ds=await rs.json();
-      for(const item of ds.search||[]){
-        // Preferisci entità con descrizione che indica una persona
-        const desc=(item.description||'').toLowerCase();
-        const isHuman=/(author|writer|poet|novelist|philosopher|playwright|journalist|historian|composer|architect|politician|activist|critic|essayist|dramatist|lyricist|screenwriter|person)/i.test(desc);
-        if(!isHuman&&(ds.search||[]).length>1)continue;
-        // Cerca prima P27 (citizenship), poi P17 (country)
+      const qids=(ds.search||[]).map(x=>x.id).filter(Boolean);
+      if(!qids.length)continue;
+
+      // Passo B: recupera claims di tutti i candidati in una sola chiamata
+      const re=await fetch(
+        `https://www.wikidata.org/w/api.php?action=wbgetentities`+
+        `&ids=${qids.join('|')}&props=claims&format=json&origin=*`,
+        {signal:AbortSignal.timeout(7000)}
+      );
+      if(!re.ok)continue;
+      const de=await re.json();
+
+      for(const qid of qids){
+        const claims=(de.entities||{})[qid]?.claims||{};
+
+        // Verifica che sia una persona (P31 contiene Q5)
+        const isHuman=(claims.P31||[]).some(
+          c=>c.mainsnak?.datavalue?.value?.id==='Q5'
+        );
+        if(!isHuman)continue;
+
+        // Cerca P27 (country of citizenship) poi P17 (country) come fallback
         for(const prop of['P27','P17']){
-          const rc=await fetch(
-            `https://www.wikidata.org/w/api.php?action=wbgetclaims&entity=${item.id}&property=${prop}&format=json&origin=*`,
-            {signal:AbortSignal.timeout(5000)}
-          );
-          if(!rc.ok)continue;
-          const dc=await rc.json();
-          for(const cl of dc.claims?.[prop]||[]){
+          for(const cl of claims[prop]||[]){
             const valQid=cl.mainsnak?.datavalue?.value?.id||'';
             if(WD_QID_MAP[valQid]){
               const naz=WD_QID_MAP[valQid];
@@ -2958,7 +2951,44 @@ LIMIT 5`;
             }
           }
         }
-        break;
+      }
+    }catch{}
+  }
+
+  // Ultimo tentativo: ricerca anche in italiano (utile per nomi translitterati
+  // che Wikidata ha come label IT ma non EN, es. "Dostoevskij")
+  try{
+    const rs=await fetch(
+      `https://www.wikidata.org/w/api.php?action=wbsearchentities`+
+      `&search=${encodeURIComponent(nome)}&language=it&type=item&limit=5&format=json&origin=*`,
+      {signal:AbortSignal.timeout(6000)}
+    );
+    if(rs.ok){
+      const ds=await rs.json();
+      const qids=(ds.search||[]).map(x=>x.id).filter(Boolean);
+      if(qids.length){
+        const re=await fetch(
+          `https://www.wikidata.org/w/api.php?action=wbgetentities`+
+          `&ids=${qids.join('|')}&props=claims&format=json&origin=*`,
+          {signal:AbortSignal.timeout(7000)}
+        );
+        if(re.ok){
+          const de=await re.json();
+          for(const qid of qids){
+            const claims=(de.entities||{})[qid]?.claims||{};
+            const isHuman=(claims.P31||[]).some(c=>c.mainsnak?.datavalue?.value?.id==='Q5');
+            if(!isHuman)continue;
+            for(const prop of['P27','P17']){
+              for(const cl of claims[prop]||[]){
+                const valQid=cl.mainsnak?.datavalue?.value?.id||'';
+                if(WD_QID_MAP[valQid]){
+                  const naz=WD_QID_MAP[valQid];
+                  cache[key]=naz;_saveNazCache();return naz;
+                }
+              }
+            }
+          }
+        }
       }
     }
   }catch{}
@@ -2967,6 +2997,8 @@ LIMIT 5`;
   _saveNazCache();
   return null;
 }
+
+
 
 /* Risolve in background le nazioni mancanti per i libri già letti.
    Aggiorna G.lettiData e ri-renderizza mappa + passaporto. */
