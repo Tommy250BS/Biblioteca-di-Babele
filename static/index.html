@@ -14,23 +14,20 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* Palette bosco — più stratificata */
+  /* Palette bosco */
   --bosco:#1b3d1e;--bosco-2:#2a5530;--bosco-3:#0d1f0f;--bosco-4:#132b15;
-  --bosco-glow:rgba(42,85,48,.55);
-  /* Oro — più materico */
-  --oro:#c8a44a;--oro-2:#e4c45e;--oro-3:#f0d98a;--oro-s:rgba(200,164,74,.14);--oro-glow:rgba(200,164,74,.35);
-  /* Avorio — più caldo */
+  /* Oro */
+  --oro:#c8a44a;--oro-2:#e4c45e;--oro-3:#f0d98a;--oro-s:rgba(200,164,74,.14);
+  /* Avorio */
   --av:#f8f4ec;--av2:#eee8db;--av3:#e0d9c8;--av4:#cfc7b3;
   /* Inchiostro */
   --ink:#0e0c09;--ink2:#282318;--ink3:#47413a;
   /* Accenti */
-  --rosso:#7a1c1c;--rosso-s:rgba(122,28,28,.12);
-  --rame:#b87333;
+  --rosso:#7a1c1c;
   /* Ombre */
   --sh-s:0 1px 3px rgba(13,31,15,.07),0 2px 8px rgba(13,31,15,.05);
   --sh-m:0 2px 10px rgba(13,31,15,.1),0 6px 24px rgba(13,31,15,.1);
   --sh-l:0 8px 32px rgba(13,31,15,.18),0 2px 8px rgba(13,31,15,.1);
-  --sh-glow:0 0 24px rgba(200,164,74,.18),0 8px 32px rgba(13,31,15,.22);
   /* Border radius */
   --r:12px;--rs:8px;--rl:22px;
   /* Safe areas */
@@ -214,22 +211,17 @@ body.dark .skel-foot{background:#0f1a10;border-color:var(--av3)}
 .skel-pill{height:28px;width:128px;border-radius:20px;background:linear-gradient(90deg,var(--av2) 25%,var(--av3) 50%,var(--av2) 75%);background-size:300% 100%;animation:skelShimmer 1.4s ease infinite}
 body.dark .skel-pill{background:linear-gradient(90deg,#1c2e1e 25%,#243426 50%,#1c2e1e 75%);background-size:300% 100%}
 /* ── MORPH EXPAND (card → schermata): la card si "trasforma" nel pannello a tutto schermo ── */
-.morph-ov{position:fixed;top:0;left:0;width:100vw;height:100dvh;z-index:600;background:#fff;pointer-events:none;transform-origin:top left;will-change:transform,border-radius,background-color,opacity;transition:transform .4s var(--ease-out-expo),border-radius .4s var(--ease-out-expo),background-color .4s var(--ease-out-expo),opacity .2s ease}
+.morph-ov{position:fixed;top:0;left:0;width:100vw;height:100dvh;z-index:600;background:#fff;pointer-events:none;transform-origin:top left;will-change:transform,border-radius,opacity;transition:transform .4s var(--ease-out-expo),border-radius .4s var(--ease-out-expo),opacity .4s ease}
 body.dark .morph-ov{background:#121f13}
-.morph-ov.exp{transform:none!important;border-radius:0!important;background-color:var(--bosco-3)!important}
+.morph-ov.exp{transform:none!important;border-radius:0!important;opacity:0!important}
 .er{background:#fff5f5;border-left:3px solid var(--rosso);border-radius:0 var(--rs) var(--rs) 0;padding:12px 14px;font-size:.83rem;color:var(--rosso);margin-bottom:12px}
 @keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes upSoft{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes riseBook{from{opacity:0;transform:translateY(28px) scaleY(.85)}to{opacity:1;transform:none}}
 @keyframes shimmer{0%,100%{opacity:.1}50%{opacity:.26}}
-@keyframes shimmerGold{0%{background-position:200% 0}100%{background-position:-200% 0}}
 @keyframes floatLogo{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-6px) rotate(.4deg)}}
 @keyframes drawLine{from{stroke-dashoffset:120}to{stroke-dashoffset:0}}
 @keyframes glowPulse{0%,100%{filter:drop-shadow(0 0 0px rgba(200,164,74,0))}55%{filter:drop-shadow(0 0 12px rgba(200,164,74,.45))}}
-@keyframes rotateSlow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@keyframes particleDrift{0%{opacity:0;transform:translateY(0) scale(0)}20%{opacity:.7}100%{opacity:0;transform:translateY(-60px) scale(1.2)}}
-@keyframes inkReveal{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0% 0 0)}}
 @keyframes pulseRing{0%{transform:scale(.85);opacity:.6}70%{transform:scale(1.15);opacity:0}100%{opacity:0}}
 @keyframes obLogoIn{0%{opacity:0;transform:scale(.82) translateY(10px)}65%{opacity:1;transform:scale(1.03) translateY(-2px)}100%{opacity:1;transform:scale(1) translateY(0)}}
 
@@ -364,7 +356,7 @@ body.dark .morph-ov{background:#121f13}
 
 /* ETIMO BOX */
 .etimo{background:#fff;border-radius:var(--r);box-shadow:var(--sh-s);padding:18px 19px;margin-bottom:20px;border-left:3px solid var(--oro);position:relative;overflow:hidden}
-.etimo::after{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--oro-2),var(--oro),var(--rame));border-radius:3px 0 0 3px}
+.etimo::after{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--oro-2),var(--oro),#b87333);border-radius:3px 0 0 3px}
 .etn{font-family:'Cormorant Garamond',serif;font-size:1.55rem;font-weight:600;color:var(--bosco);margin-bottom:2px;line-height:1.15}
 .eto{font-size:.66rem;color:#bbb;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;font-weight:600}
 .etd{font-size:.82rem;color:var(--ink2);line-height:1.72}
@@ -579,11 +571,6 @@ body.dark .morph-ov{background:#121f13}
 .shhnd{width:36px;height:4px;background:var(--av3);border-radius:2px;margin:14px auto 18px}
 .shtit{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;color:var(--bosco);margin-bottom:16px}
 
-/* ESPLORA TABS */
-.etabs{display:flex;border-bottom:1px solid var(--av3);margin-bottom:20px}
-.etab{flex:1;padding:10px 4px;text-align:center;font-size:.7rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:#bbb;background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s,border-color .15s;font-family:'Inter',sans-serif}
-.etab.on{color:var(--bosco);border-bottom-color:var(--bosco)}
-.epan{display:none}.epan.on{display:block}
 .ec{background:#fff;border-radius:0 var(--r) var(--r) 0;border-left:3px solid var(--oro);box-shadow:var(--sh-m);overflow:hidden;margin-bottom:16px;animation:up .3s ease both}
 .ech{padding:16px 16px 12px}
 .ecl{font-size:.61rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--oro);margin-bottom:7px}
@@ -598,8 +585,6 @@ body.dark .morph-ov{background:#121f13}
 .bric{display:inline-flex;align-items:center;gap:6px;background:none;border:1.5px solid var(--av3);border-radius:20px;color:#aaa;font-size:.73rem;font-weight:600;padding:6px 14px;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;margin-bottom:16px}
 .bric:hover{border-color:var(--bosco);color:var(--bosco)}
 .bric:disabled{opacity:.5;cursor:default}
-.spi{display:inline-block;animation:gira .7s linear infinite}
-.ecdata{font-size:.65rem;color:#bbb;letter-spacing:.08em;text-transform:uppercase;margin-bottom:11px}
 .autn{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--bosco);line-height:1.2;margin-bottom:2px}
 .auts{font-size:.73rem;color:#aaa}
 .oplist{padding:4px 16px 14px}
@@ -1161,7 +1146,7 @@ function vai(id,sub,noAnim){
   if(id==='smnem')caricaMnem();
   if(id==='slap')renderCostellazioni();
   if(id==='spant'){renderPantheon();}
-  if(id==='satlante'){incAtlanteVisits();if(!_atlAvv){_atlAvv=true;caricaCas();caricaAut();initMappa();}}
+  if(id==='satlante'){incAtlanteVisits();if(!_atlAvv){_atlAvv=true;initMappa();}}
   window.scrollTo(0,0);
 }
 function switchTab(id){document.querySelectorAll('.ntab').forEach(t=>t.classList.toggle('on',t.dataset.s===id));tap('light');vai(id);}
@@ -1187,10 +1172,7 @@ function morphVai(cardEl,id,sub){
 
   setTimeout(()=>{
     vai(id,sub,true);
-    requestAnimationFrame(()=>{
-      ov.style.opacity='0';
-      setTimeout(()=>{ov.remove();cardEl.style.visibility='';},220);
-    });
+    setTimeout(()=>{ov.remove();cardEl.style.visibility='';},420);
   },400);
 }
 
@@ -1210,33 +1192,6 @@ function skelCards(n){
     </div>`;
   }
   return h+'</div>';
-}
-function skelEC(){
-  return`<div class="ec" style="animation:up .3s ease both">
-    <div class="ech">
-      <div class="skel-line" style="width:90px;height:9px;margin-bottom:10px"></div>
-      <div class="skel-line t" style="width:85%;height:18px"></div>
-      <div class="skel-line a" style="width:45%;height:13px;margin-bottom:0"></div>
-    </div>
-    <div class="ecact"><div class="skel-pill"></div></div>
-  </div>`;
-}
-function skelAutore(n=3){
-  let ops='';
-  for(let i=0;i<n;i++){
-    ops+=`<div class="opi" style="align-items:center">
-      <div class="skel-line" style="width:18px;height:18px;border-radius:50%;margin-bottom:0;flex-shrink:0"></div>
-      <div class="opb"><div class="skel-line t" style="width:${75-(i%3)*12}%;height:14px;margin-bottom:0"></div></div>
-    </div>`;
-  }
-  return`<div class="ec" style="animation:up .3s ease both">
-    <div class="ech">
-      <div class="skel-line" style="width:120px;height:9px;margin-bottom:10px"></div>
-      <div class="skel-line t" style="width:55%;height:22px"></div>
-      <div class="skel-line s" style="width:35%;height:12px;margin-bottom:0"></div>
-    </div>
-    <div class="oplist">${ops}</div>
-  </div>`;
 }
 
 costruisciScaffale();
@@ -1526,36 +1481,6 @@ async function cerca(){
   finally{bc.disabled=false;bc.textContent='Cerca';}
 }
 document.getElementById('it').addEventListener('keydown',e=>{if(e.key==='Enter')cerca();});
-
-/* ATLANTE */
-function cardEC(libro,label){
-  const l=G.letti.has(libro.url);
-  const lt=G.u?`<button class="besalv bletto${l?' on':''}" data-url="${libro.url}" data-t="${(libro.titolo||'').replace(/"/g,'&quot;')}" data-a="${(libro.autore||'').replace(/"/g,'&quot;')}">${l?'✓ Letto':'○ Segna come letto'}</button>`:'';
-  return`<div class="ec"><div class="ech"><div class="ecl">${label}</div><div class="ect">${libro.titolo}</div>${libro.autore?`<div class="eca">${libro.autore}</div>`:''}</div><div class="ecact"><a class="bopac" href="${libro.url}" target="_blank" rel="noopener">Apri nel catalogo →</a>${lt}</div></div>`;
-}
-function attSalv(c){
-  c.querySelectorAll('.bletto').forEach(b=>{if(G.letti.has(b.dataset.url)){b.textContent='✓ Letto';b.classList.add('on');}b.addEventListener('click',async()=>togLetto(b,{url:b.dataset.url,titolo:b.dataset.t,autore:b.dataset.a}));});
-}
-async function caricaCas(){
-  const el=document.getElementById('ecCas'),btn=document.getElementById('btnCas'),sp=document.getElementById('spCas');
-  el.innerHTML=skelEC();
-  if(btn){btn.disabled=true;if(sp)sp.className='spi';}
-  try{const r=await fetch('/api/esplora/casuale');if(!r.ok)throw 0;const l=await r.json();if(l.error)throw 0;el.innerHTML=cardEC(l,'🎲 Libro a caso');attSalv(el);}
-  catch{el.innerHTML='<div class="er">Non è stato possibile caricare un libro casuale.</div>';}
-  finally{if(btn){btn.disabled=false;if(sp)sp.className='';}}
-}
-async function caricaAut(){
-  const el=document.getElementById('ecAut'),btn=document.getElementById('btnAut'),sp=document.getElementById('spAut');
-  el.innerHTML=skelAutore();
-  if(btn){btn.disabled=true;if(sp)sp.className='spi';}
-  try{
-    const r=await fetch('/api/esplora/autore');if(!r.ok)throw 0;const d=await r.json();if(d.error)throw 0;
-    const nome=d.autore.replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
-    const ops=d.opere?.length?d.opere.map((o,i)=>`<div class="opi"><span class="opn">${i+1}</span><div class="opb"><div class="opt">${o.titolo}</div><a class="opl" href="${o.url}" target="_blank" rel="noopener">Apri nel catalogo →</a></div></div>`).join(''):'<div class="vp">Nessuna opera trovata.</div>';
-    el.innerHTML=`<div class="ec"><div class="ech"><div class="ecl">✍️ Autore del momento</div><div class="autn">${nome}</div><div class="auts">${d.opere?.length||0} opere nel catalogo RBBC</div></div><div class="oplist">${ops}</div></div>`;
-  }catch{el.innerHTML='<div class="er">Non è stato possibile caricare un autore.</div>';}
-  finally{if(btn){btn.disabled=false;if(sp)sp.className='';}}
-}
 
 /* MAPPA DEL MONDO LETTERARIO (D3 + TopoJSON, dati geografici reali) */
 const NAZIONI={
