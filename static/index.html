@@ -244,8 +244,55 @@ body.dark .morph-ov{background:#121f13}
 /* logo animato */
 .wlogo{animation:floatLogo 5s ease-in-out infinite,glowPulse 5s ease-in-out infinite;display:block;margin-top:32px;filter:drop-shadow(0 4px 20px rgba(200,164,74,.12))}
 .wlogo-line{stroke-dasharray:120;animation:drawLine 1.6s cubic-bezier(.4,0,.2,1) both}
-.wt{font-family:'Cormorant Garamond',serif;font-size:2.9rem;font-weight:300;color:#fff;line-height:1.04;letter-spacing:-.015em;margin-bottom:6px;margin-top:18px;opacity:0;animation:up .75s .35s var(--ease-out-expo) both}
-.wt strong{font-weight:600;color:var(--oro-2);display:block;text-shadow:0 2px 20px rgba(200,164,74,.25)}
+/* ── INK REVEAL TITOLO ── */
+.wt{font-family:'Cormorant Garamond',serif;font-size:2.9rem;font-weight:300;color:#fff;line-height:1.04;letter-spacing:-.015em;margin-bottom:6px;margin-top:18px}
+.wt-line{display:block;overflow:hidden;position:relative}
+.wt-ink{display:block;clip-path:inset(0 100% 0 0);animation:inkSlide .9s var(--ease-out-expo) both}
+.wt-line:nth-child(1) .wt-ink{animation-delay:.3s}
+.wt-line:nth-child(2) .wt-ink{animation-delay:.62s;font-weight:600;color:var(--oro-2);text-shadow:0 2px 20px rgba(200,164,74,.25)}
+@keyframes inkSlide{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0% 0 0)}}
+
+/* ── PARTICELLE D'ORO ── */
+#wdust{position:absolute;inset:0;pointer-events:none;z-index:2;opacity:.7}
+
+/* ── STELLA ORBITANTE BADGE ── */
+@keyframes orbit{from{transform:rotate(0deg) translateX(22px) rotate(0deg)}to{transform:rotate(360deg) translateX(22px) rotate(-360deg)}}
+.bc:not(.lk) .bbi{position:relative;display:inline-block}
+.bc:not(.lk) .bbi::after{
+  content:'✦';
+  position:absolute;
+  top:50%;left:50%;
+  margin:-6px 0 0 -6px;
+  width:12px;height:12px;
+  font-size:.5rem;
+  line-height:12px;
+  text-align:center;
+  color:var(--oro-2);
+  text-shadow:0 0 6px rgba(200,164,74,.8);
+  animation:orbit 4s linear infinite var(--orbit-delay,0s);
+  transform-origin:center;
+  pointer-events:none;
+  opacity:.85;
+}
+
+/* ── SHIMMER BADGE SBLOCCATI ── */
+.bc:not(.lk){overflow:hidden}
+.bc:not(.lk)::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.22) 50%,transparent 70%);
+  background-size:300% 100%;
+  background-position:200% 0;
+  animation:badgeShimmer 5s ease infinite var(--shimmer-delay,0s);
+  border-radius:inherit;
+  pointer-events:none;
+}
+@keyframes badgeShimmer{
+  0%,72%{background-position:200% 0}
+  88%{background-position:-80% 0}
+  100%{background-position:200% 0}
+}
 .wsub{font-size:.62rem;color:rgba(255,255,255,.26);letter-spacing:.18em;text-transform:uppercase;margin-bottom:28px;opacity:0;animation:up .7s .55s var(--ease-out-expo) both}
 .wsep{display:flex;align-items:center;gap:12px;margin-bottom:22px;opacity:0;animation:up .6s .68s var(--ease-out-expo) both}
 .wsep-inner{display:flex;align-items:center;gap:12px;flex:1;opacity:.25}
@@ -616,6 +663,7 @@ body.dark .morph-ov{background:#121f13}
 <!-- WELCOME -->
 <div id="sw" class="S">
   <div class="wbg" id="wbg"></div>
+  <canvas id="wdust"></canvas>
   <div class="wver">RBBC</div>
   <div class="wc">
     <!-- Logo SVG animato -->
@@ -647,7 +695,10 @@ body.dark .morph-ov{background:#121f13}
         </linearGradient>
       </defs>
     </svg>
-    <h1 class="wt">La biblioteca<strong>di Babele</strong></h1>
+    <h1 class="wt">
+      <span class="wt-line"><span class="wt-ink">La biblioteca</span></span>
+      <span class="wt-line"><span class="wt-ink">di Babele</span></span>
+    </h1>
     <p class="wsub">Rete Bibliotecaria Bresciana e Cremonese</p>
     <div class="wsep">
       <div class="wsep-inner">
@@ -1391,12 +1442,71 @@ function costruisciScaffale(){
   }
   function onTouchEnd(){touchX0=null;touchY0=null;tx=0;ty=0;}
 
+  // ── MOTORE PARTICELLE POLVERE D'ORO ──
+  const canvas=document.getElementById('wdust');
+  let dustRafId=null;
+  let particles=[];
+
+  function initDust(){
+    if(!canvas)return;
+    canvas.width=window.innerWidth;
+    canvas.height=window.innerHeight;
+    const N=38;
+    particles=Array.from({length:N},(_,i)=>({
+      x:Math.random()*canvas.width,
+      y:Math.random()*canvas.height,
+      r:0.6+Math.random()*1.8,          // raggio 0.6–2.4px
+      vy:-(0.12+Math.random()*0.32),    // sale lentamente
+      vx:(Math.random()-.5)*0.18,       // deriva laterale
+      phase:Math.random()*Math.PI*2,    // fase sinusoide
+      freq:0.008+Math.random()*0.012,   // frequenza oscillazione
+      amp:0.6+Math.random()*1.4,        // ampiezza oscillazione px
+      alpha:0.12+Math.random()*0.55,    // opacità base
+      flicker:Math.random()*Math.PI*2,  // fase flicker
+      flickSpeed:0.04+Math.random()*0.06,
+    }));
+  }
+
+  function tickDust(){
+    if(!canvas)return;
+    const ctx=canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    const t=performance.now();
+    particles.forEach(p=>{
+      // Movimento
+      p.x+=p.vx+Math.sin(p.phase)*p.amp*0.012;
+      p.y+=p.vy;
+      p.phase+=p.freq;
+      p.flicker+=p.flickSpeed;
+
+      // Wrap: quando esce dal top, rientra dal basso
+      if(p.y<-4)p.y=canvas.height+4;
+      if(p.x<-4)p.x=canvas.width+4;
+      if(p.x>canvas.width+4)p.x=-4;
+
+      // Opacità con flicker sinusoidale
+      const a=p.alpha*(0.55+0.45*Math.sin(p.flicker));
+
+      // Disegno: cerchio con alone dorato
+      const grad=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*2.8);
+      grad.addColorStop(0,`rgba(228,196,94,${a})`);
+      grad.addColorStop(0.4,`rgba(200,164,74,${a*0.6})`);
+      grad.addColorStop(1,`rgba(200,164,74,0)`);
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r*2.8,0,Math.PI*2);
+      ctx.fillStyle=grad;
+      ctx.fill();
+    });
+    dustRafId=requestAnimationFrame(tickDust);
+  }
+
   // Attiva tutto quando la welcome è visibile, ferma quando sparisce
   const sw=document.getElementById('sw');
   const obs=new MutationObserver(()=>{
     const visible=sw.classList.contains('on');
     if(visible){
       if(!rafId){rafId=requestAnimationFrame(applyParallax);}
+      if(!dustRafId){initDust();dustRafId=requestAnimationFrame(tickDust);}
       window.addEventListener('mousemove',onMouse,{passive:true});
       sw.addEventListener('touchstart',onTouchStart,{passive:true});
       sw.addEventListener('touchmove',onTouchMove,{passive:true});
@@ -1404,11 +1514,20 @@ function costruisciScaffale(){
       attivaGyro();
     }else{
       if(rafId){cancelAnimationFrame(rafId);rafId=null;}
+      if(dustRafId){cancelAnimationFrame(dustRafId);dustRafId=null;}
       window.removeEventListener('mousemove',onMouse);
-      // touch listener rimangono (low cost)
     }
   });
   obs.observe(sw,{attributes:true,attributeFilter:['class']});
+
+  // Ridimensionamento finestra
+  window.addEventListener('resize',()=>{
+    if(canvas&&sw.classList.contains('on')){
+      canvas.width=window.innerWidth;
+      canvas.height=window.innerHeight;
+      initDust();
+    }
+  },{passive:true});
 }
 
 function mostraForm(t){
@@ -1899,9 +2018,13 @@ async function renderPantheon(){
     if(altri.every(b=>unl0.has(b.id)))unlockBadge('biblioteca_babele');
   }
   const unl=getBadgeUnlocked();
-  gr.innerHTML=TUTTI_BADGE.map(b=>{
+  gr.innerHTML=TUTTI_BADGE.map((b,i)=>{
     const ok=unl.has(b.id);
-    return`<div class="bc${ok?'':' lk'}"><div class="bbi">${b.ico}</div><div class="bbn">${b.nome}</div><div class="bbd">${b.desc}</div></div>`;
+    // Delay orbit e shimmer diversi per ogni badge così non sono sincronizzati
+    const orbitDelay=`${(i*0.37%4).toFixed(2)}s`;
+    const shimmerDelay=`${(i*1.13%5).toFixed(2)}s`;
+    const style=ok?` style="--orbit-delay:${orbitDelay};--shimmer-delay:${shimmerDelay}"`:''
+    return`<div class="bc${ok?'':' lk'}"${style}><div class="bbi">${b.ico}</div><div class="bbn">${b.nome}</div><div class="bbd">${b.desc}</div></div>`;
   }).join('');
 }
 
