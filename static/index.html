@@ -263,6 +263,18 @@ body.dark .morph-ov{background:#121f13}
 /* badge versione */
 .wver{position:absolute;top:calc(14px + var(--st));right:16px;font-size:.52rem;color:rgba(255,255,255,.15);letter-spacing:.14em;text-transform:uppercase;font-weight:600}
 
+/* ── PARALLASSE SCAFFALE ── */
+.wbg-layer{position:absolute;inset:0;will-change:transform;pointer-events:none}
+
+/* ── BADGE UNLOCK CEREMONY ── */
+@keyframes badgeFlash{0%{box-shadow:0 0 0 0 rgba(200,164,74,0),var(--sh-s)}30%{box-shadow:0 0 0 8px rgba(200,164,74,.35),0 0 32px rgba(200,164,74,.2)}100%{box-shadow:0 0 0 0 rgba(200,164,74,0),var(--sh-s)}}
+@keyframes badgeBounce{0%{transform:scale(1)}18%{transform:scale(1.18)}36%{transform:scale(.94)}52%{transform:scale(1.07)}68%{transform:scale(.98)}84%{transform:scale(1.02)}100%{transform:scale(1)}}
+@keyframes burstRay{0%{opacity:.9;stroke-dashoffset:0}100%{opacity:0;stroke-dashoffset:-38}}
+.bc.ceremony{animation:badgeFlash .9s ease both,badgeBounce .7s .05s cubic-bezier(.22,.68,0,1.15) both}
+.burst-svg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;overflow:visible;z-index:10}
+.burst-ray{stroke-dasharray:22 16;stroke-linecap:round;animation:burstRay .65s var(--ease-out-expo) both}
+.bc{position:relative;overflow:visible}
+
 /* AUTH */
 #sa{background:var(--bosco-3);align-items:stretch}
 .ahd{padding:calc(18px + var(--st)) 24px 22px;display:flex;align-items:center;gap:14px}
@@ -1273,40 +1285,130 @@ function mostraCitazione(){
 
 function costruisciScaffale(){
   const bg=document.getElementById('wbg');if(!bg)return;
-  // Linee orizzontali scaffale
-  const shelf_ys=[28,38,50,62,74];
-  shelf_ys.forEach(p=>{
-    const l=document.createElement('div');l.className='wbl';
-    l.style.cssText=`top:${p}%;opacity:${.04+p/400}`;
-    bg.appendChild(l);
-  });
-  // Stelle puntiformi
+
+  // Ogni piano dello scaffale = layer indipendente con profondità diversa
+  // depth 0 = sfondo (si muove poco), depth 1 = primo piano (si muove tanto)
+  const shelfMap=[
+    {pct:28,n:8,delay:0,   depth:0.12},
+    {pct:38,n:9,delay:.04, depth:0.28},
+    {pct:50,n:10,delay:.08,depth:0.48},
+    {pct:62,n:9,delay:.12, depth:0.70},
+    {pct:74,n:8,delay:.16, depth:1.00},
+  ];
+  const C=['#1e4d22','#2d6b32','#3a5f3c','#4a7a4e','#1a3a1c','#c9a84c','#254d28','#0f2210','#3d6b40','#2a5430','#4f5e33','#8a6a20','#3a4a25','#5c3a1a'];
   const starPos=[[8,12],[92,8],[15,22],[78,18],[55,6],[34,15],[67,9],[22,30],[85,25],[44,20],[12,35]];
+
+  // Layer stelle (sfondo, quasi fermo)
+  const starLayer=document.createElement('div');
+  starLayer.className='wbg-layer';starLayer.dataset.depth='0.06';
   starPos.forEach(([l,t],i)=>{
     const s=document.createElement('div');s.className='wstar';
     s.style.cssText=`left:${l}%;top:${t}%;animation-delay:${i*.38}s;opacity:${.2+Math.random()*.4}`;
-    bg.appendChild(s);
+    starLayer.appendChild(s);
   });
-  // Libri animati - colori più variegati
-  const C=['#1e4d22','#2d6b32','#3a5f3c','#4a7a4e','#1a3a1c','#c9a84c','#254d28','#0f2210','#3d6b40','#2a5430','#4f5e33','#8a6a20','#3a4a25','#5c3a1a'];
-  const shelfMap=[
-    {pct:28,n:8,delay:0},
-    {pct:38,n:9,delay:.04},
-    {pct:50,n:10,delay:.08},
-    {pct:62,n:9,delay:.12},
-    {pct:74,n:8,delay:.16},
-  ];
+  bg.appendChild(starLayer);
+
+  // Linee scaffale + libri: ogni piano nel suo layer
   let bi=0;
-  shelfMap.forEach(({pct,n,delay})=>{
+  shelfMap.forEach(({pct,n,delay,depth})=>{
+    const layer=document.createElement('div');
+    layer.className='wbg-layer';layer.dataset.depth=depth;
+
+    // Linea scaffale
+    const l=document.createElement('div');l.className='wbl';
+    l.style.cssText=`top:${pct}%;opacity:${.04+pct/400}`;
+    layer.appendChild(l);
+
+    // Libri su questo piano
     for(let i=0;i<n;i++){
       const bk=document.createElement('div');bk.className='wbk';
       const w=7+Math.random()*16,h=42+Math.random()*62;
       const xPct=(i/n)*100+Math.random()*2.5;
       const baseDelay=delay+bi*.038;
       bk.style.cssText=`width:${w}px;height:${h}px;left:calc(${xPct}% - ${w/2}px);bottom:calc(${100-pct}% + 1px);background:${C[~~(Math.random()*C.length)]};animation-delay:${baseDelay}s`;
-      bg.appendChild(bk);bi++;
+      layer.appendChild(bk);bi++;
+    }
+    bg.appendChild(layer);
+  });
+
+  // ── MOTORE PARALLASSE ──
+  const MAX_X=14,MAX_Y=7; // px massimi di spostamento al piano più vicino
+  let tx=0,ty=0,cx=0,cy=0; // target e corrente
+  let rafId=null;
+  const LERP=0.06; // smorzamento (~60ms lag morbido)
+
+  function applyParallax(){
+    cx+=(tx-cx)*LERP;
+    cy+=(ty-cy)*LERP;
+    const layers=bg.querySelectorAll('.wbg-layer');
+    layers.forEach(lay=>{
+      const d=parseFloat(lay.dataset.depth||0);
+      lay.style.transform=`translate(${(cx*d).toFixed(2)}px,${(cy*d).toFixed(2)}px)`;
+    });
+    rafId=requestAnimationFrame(applyParallax);
+  }
+
+  // Gyroscopio (mobile)
+  let gyroActive=false;
+  function onGyro(e){
+    if(!e.beta&&!e.gamma)return;
+    gyroActive=true;
+    // gamma = tilt sinistra/destra (-90/+90), beta = avanti/indietro (0/180)
+    const gx=Math.max(-25,Math.min(25,e.gamma||0));
+    const gy=Math.max(-15,Math.min(15,(e.beta||0)-20)); // -20 = posizione naturale
+    tx=(gx/25)*MAX_X;
+    ty=(gy/15)*MAX_Y;
+  }
+
+  // Richiesta permesso gyro (iOS 13+)
+  function attivaGyro(){
+    if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
+      DeviceOrientationEvent.requestPermission().then(s=>{
+        if(s==='granted')window.addEventListener('deviceorientation',onGyro,{passive:true});
+      }).catch(()=>{});
+    }else{
+      window.addEventListener('deviceorientation',onGyro,{passive:true});
+    }
+  }
+
+  // Mousemove (desktop) come fallback
+  function onMouse(e){
+    if(gyroActive)return;
+    const vw=window.innerWidth,vh=window.innerHeight;
+    tx=((e.clientX/vw)-.5)*2*MAX_X;
+    ty=((e.clientY/vh)-.5)*2*MAX_Y;
+  }
+
+  // Touch drag (mobile, quando gyro non disponibile)
+  let touchX0=null,touchY0=null;
+  function onTouchStart(e){touchX0=e.touches[0].clientX;touchY0=e.touches[0].clientY;}
+  function onTouchMove(e){
+    if(gyroActive||touchX0===null)return;
+    const dx=e.touches[0].clientX-touchX0;
+    const dy=e.touches[0].clientY-touchY0;
+    tx=Math.max(-MAX_X,Math.min(MAX_X,dx*.22));
+    ty=Math.max(-MAX_Y,Math.min(MAX_Y,dy*.12));
+  }
+  function onTouchEnd(){touchX0=null;touchY0=null;tx=0;ty=0;}
+
+  // Attiva tutto quando la welcome è visibile, ferma quando sparisce
+  const sw=document.getElementById('sw');
+  const obs=new MutationObserver(()=>{
+    const visible=sw.classList.contains('on');
+    if(visible){
+      if(!rafId){rafId=requestAnimationFrame(applyParallax);}
+      window.addEventListener('mousemove',onMouse,{passive:true});
+      sw.addEventListener('touchstart',onTouchStart,{passive:true});
+      sw.addEventListener('touchmove',onTouchMove,{passive:true});
+      sw.addEventListener('touchend',onTouchEnd,{passive:true});
+      attivaGyro();
+    }else{
+      if(rafId){cancelAnimationFrame(rafId);rafId=null;}
+      window.removeEventListener('mousemove',onMouse);
+      // touch listener rimangono (low cost)
     }
   });
+  obs.observe(sw,{attributes:true,attributeFilter:['class']});
 }
 
 function mostraForm(t){
@@ -2109,12 +2211,72 @@ async function incAtlanteVisits(){
   }
 }
 
+/* ── BADGE UNLOCK CEREMONY ── */
+function badgeCeremony(badgeId){
+  // Trova la card nella griglia pantheon
+  const gr=document.getElementById('pant-bgr');if(!gr)return;
+  const cards=[...gr.querySelectorAll('.bc')];
+  const idx=TUTTI_BADGE.findIndex(b=>b.id===badgeId);
+  const card=cards[idx];if(!card)return;
+
+  // Flash + bounce sulla card
+  card.classList.add('ceremony');
+  card.addEventListener('animationend',()=>card.classList.remove('ceremony'),{once:true});
+
+  // Burst SVG di 12 raggi dorati
+  const SIZE=120;
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('width',SIZE);svg.setAttribute('height',SIZE);
+  svg.setAttribute('viewBox',`0 0 ${SIZE} ${SIZE}`);
+  svg.className='burst-svg';svg.style.width=SIZE+'px';svg.style.height=SIZE+'px';
+
+  const cx2=SIZE/2,cy2=SIZE/2;
+  const N=12;
+  for(let i=0;i<N;i++){
+    const ang=(i/N)*Math.PI*2-Math.PI/2;
+    const r0=22,r1=46;
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',(cx2+Math.cos(ang)*r0).toFixed(1));
+    line.setAttribute('y1',(cy2+Math.sin(ang)*r0).toFixed(1));
+    line.setAttribute('x2',(cx2+Math.cos(ang)*r1).toFixed(1));
+    line.setAttribute('y2',(cy2+Math.sin(ang)*r1).toFixed(1));
+    line.setAttribute('stroke','#e4c45e');
+    line.setAttribute('stroke-width', i%3===0?'2.5':'1.5');
+    line.className='burst-ray';
+    line.style.animationDelay=`${i*0.022}s`;
+    svg.appendChild(line);
+  }
+
+  // Cerchio esterno che si espande e svanisce
+  const circle=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  circle.setAttribute('cx',cx2);circle.setAttribute('cy',cy2);circle.setAttribute('r','18');
+  circle.setAttribute('fill','none');circle.setAttribute('stroke','rgba(228,196,94,.5)');circle.setAttribute('stroke-width','1.5');
+  circle.style.animation='burstRing .6s var(--ease-out-expo) both';
+  svg.appendChild(circle);
+
+  card.appendChild(svg);
+  setTimeout(()=>svg.remove(),800);
+}
+
+// Keyframe burstRing via stylesheet (una sola volta)
+(function(){
+  if(document.getElementById('burst-ring-kf'))return;
+  const st=document.createElement('style');st.id='burst-ring-kf';
+  st.textContent='@keyframes burstRing{0%{r:18;opacity:.8}100%{r:52;opacity:0}}';
+  document.head.appendChild(st);
+})();
+
 function showBadgeToast(badge){
+  // Ceremony sulla card se Pantheon è visibile
+  if(document.getElementById('spant')?.classList.contains('on')){
+    badgeCeremony(badge.id);
+  }
+
   const t=document.createElement('div');
-  t.style.cssText='position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--bosco);color:var(--oro);padding:10px 20px;border-radius:30px;font-size:.82rem;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.3);display:flex;align-items:center;gap:8px;animation:badgePop .5s cubic-bezier(.18,.89,.32,1.28) both;white-space:nowrap';
-  t.innerHTML=`${badge.ico} Badge sbloccato: ${badge.nome}!`;
+  t.style.cssText='position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--bosco);color:var(--oro);padding:10px 20px;border-radius:30px;font-size:.82rem;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.3),0 0 0 1px rgba(200,164,74,.2);display:flex;align-items:center;gap:8px;animation:badgePop .5s cubic-bezier(.18,.89,.32,1.28) both;white-space:nowrap';
+  t.innerHTML=`${badge.ico} <span>Badge sbloccato: <strong>${badge.nome}</strong></span>`;
   document.body.appendChild(t);
-  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .4s';setTimeout(()=>t.remove(),400);},3200);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .4s';setTimeout(()=>t.remove(),400);},3500);
 }
 
 
