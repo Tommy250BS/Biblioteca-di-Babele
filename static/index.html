@@ -1817,7 +1817,7 @@ async function togLetto(btn,libro){
       btn.textContent='✓ Letto';btn.classList.add('on');
       // Risolvi subito la nazione in background per il nuovo libro
       if(libro.autore){
-        fetchNazioneWiki(libro.autore).then(()=>{
+        fetchNazioneWikidata(libro.autore).then(()=>{
           renderMnemoMappa();renderPassaporto();
         });
       }
@@ -2803,42 +2803,50 @@ async function caricaMnem(){
    Usa una cache localStorage per non rifare le stesse fetch.
    ─────────────────────────────────────────────────────────────────────── */
 
-/* Mappa descrizione Wikipedia → nome nazione come usato in NAZIONI/world-atlas */
-const WIKI_NAZIONE_MAP={
-  // Lingue/aggettivi → nazione EN (world-atlas key)
-  italian:'Italy',  french:'France',  spanish:'Spain',  british:'United Kingdom',
-  english:'United Kingdom',  scottish:'United Kingdom',  welsh:'United Kingdom',  irish:'Ireland',
-  german:'Germany',  austrian:'Austria',  swiss:'Switzerland',
-  russian:'Russia',  soviet:'Russia',
-  american:'United States of America',  'u.s.':'United States of America',
-  japanese:'Japan',  chinese:'China',  korean:'South Korea',
-  brazilian:'Brazil',  argentine:'Argentina',  colombian:'Colombia',
-  mexican:'Mexico',  chilean:'Chile',  peruvian:'Peru',  cuban:'Cuba',
-  uruguayan:'Uruguay',  venezuelan:'Venezuela',  bolivian:'Bolivia',  ecuadorian:'Ecuador',
-  portuguese:'Portugal',  greek:'Greece',  turkish:'Turkey',
-  polish:'Poland',  czech:'Czech Republic',  hungarian:'Hungary',
-  romanian:'Romania',  serbian:'Serbia',  croatian:'Croatia',  slovenian:'Slovenia',
-  bulgarian:'Bulgaria',  albanian:'Albania',  bosnian:'Bosnia and Herzegovina',
-  norwegian:'Norway',  swedish:'Sweden',  danish:'Denmark',  finnish:'Finland',
-  dutch:'Netherlands',  belgian:'Belgium',
-  ukrainian:'Ukraine',  belarusian:'Belarus',
-  lithuanian:'Lithuania',  latvian:'Latvia',  estonian:'Estonia',
-  georgian:'Georgia',  armenian:'Armenia',  azerbaijani:'Azerbaijan',
-  iranian:'Iran',  persian:'Iran',  turkish:'Turkey',
-  lebanese:'Lebanon',  syrian:'Syria',  israeli:'Israel',  iraqi:'Iraq',
-  egyptian:'Egypt',  moroccan:'Morocco',  algerian:'Algeria',  tunisian:'Tunisia',
-  nigerian:'Nigeria',  kenyan:'Kenya',  senegalese:'Senegal',  ethiopian:'Ethiopia',
-  tanzanian:'Tanzania',  ghanaian:'Ghana',  zimbabwean:'Zimbabwe',
-  'south african':'South Africa',  cameroonian:'Cameroon',  ivorian:'Ivory Coast',
-  indian:'India',  pakistani:'Pakistan',  bangladeshi:'Bangladesh',
-  'sri lankan':'Sri Lanka',  nepalese:'Nepal',
-  vietnamese:'Vietnam',  indonesian:'Indonesia',  malaysian:'Malaysia',  philippine:'Philippines',  filipino:'Philippines',
-  uzbek:'Uzbekistan',  kazakh:'Kazakhstan',  kyrgyz:'Kyrgyzstan',  tajik:'Tajikistan',  turkmen:'Turkmenistan',
-  afghan:'Afghanistan',  saudi:'Saudi Arabia',
-  canadian:'Canada',  australian:'Australia',
+/* ── WIKIDATA NATIONALITY RESOLVER ──────────────────────────────────────────
+   Usa l'API SPARQL di Wikidata per ottenere il paese di cittadinanza di un
+   autore. Molto più preciso di Wikipedia: restituisce direttamente il nome EN
+   della nazione (P27 country of citizenship) senza parsing di testo libero.
+   Cache in localStorage per non ripetere le stesse query.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/*
+  Mappa QID Wikidata → nome EN usato in world-atlas / chiave NAZIONI.
+  QID = identificatore Wikidata della nazione (Q...).
+*/
+const WD_QID_MAP={
+  Q38:'Italy', Q142:'France', Q29:'Spain', Q145:'United Kingdom',
+  Q183:'Germany', Q40:'Austria', Q39:'Switzerland',
+  Q159:'Russia', Q15180:'Russia', /* Soviet Union → Russia */
+  Q30:'United States of America', Q16:'Canada', Q408:'Australia',
+  Q17:'Japan', Q148:'China', Q884:'South Korea',
+  Q155:'Brazil', Q414:'Argentina', Q739:'Colombia',
+  Q96:'Mexico', Q298:'Chile', Q419:'Peru', Q241:'Cuba',
+  Q77:'Uruguay', Q717:'Venezuela', Q750:'Bolivia', Q736:'Ecuador',
+  Q45:'Portugal', Q41:'Greece', Q43:'Turkey',
+  Q36:'Poland', Q213:'Czech Republic', Q28:'Hungary',
+  Q218:'Romania', Q403:'Serbia', Q224:'Croatia', Q215:'Slovenia',
+  Q219:'Bulgaria', Q222:'Albania', Q225:'Bosnia and Herzegovina',
+  Q20:'Norway', Q34:'Sweden', Q35:'Denmark', Q33:'Finland',
+  Q55:'Netherlands', Q31:'Belgium',
+  Q212:'Ukraine', Q184:'Belarus',
+  Q37:'Lithuania', Q211:'Latvia', Q191:'Estonia',
+  Q230:'Georgia', Q399:'Armenia', Q227:'Azerbaijan',
+  Q794:'Iran', Q244:'Lebanon', Q858:'Syria', Q801:'Israel',
+  Q796:'Iraq', Q851:'Saudi Arabia', Q79:'Egypt',
+  Q1028:'Morocco', Q262:'Algeria', Q948:'Tunisia',
+  Q1033:'Nigeria', Q114:'Kenya', Q1041:'Senegal', Q115:'Ethiopia',
+  Q924:'Tanzania', Q117:'Ghana', Q954:'Zimbabwe',
+  Q258:'South Africa', Q1014:'Cameroon', Q1008:'Ivory Coast',
+  Q668:'India', Q843:'Pakistan', Q902:'Bangladesh',
+  Q854:'Sri Lanka', Q837:'Nepal',
+  Q881:'Vietnam', Q252:'Indonesia', Q833:'Malaysia', Q928:'Philippines',
+  Q265:'Uzbekistan', Q232:'Kazakhstan', Q813:'Kyrgyzstan',
+  Q863:'Tajikistan', Q874:'Turkmenistan', Q889:'Afghanistan',
+  Q214:'Slovakia', Q233:'Malta', Q760:'Iceland', Q711:'Moldova',
 };
 
-/* Cache: autore → nome nazione (EN) o null se non trovato */
+/* Cache in memoria + localStorage */
 let _nazioneCache=null;
 function _getNazCache(){
   if(_nazioneCache)return _nazioneCache;
@@ -2850,82 +2858,121 @@ function _saveNazCache(){
   try{localStorage.setItem('rbbc_naz_cache',JSON.stringify(_nazioneCache));}catch{}
 }
 
-/* Estrae la nazione dalla description Wikipedia */
-function _parseNazioneFromWiki(desc){
-  if(!desc)return null;
-  const d=desc.toLowerCase();
-  // cerca prima aggettivi composti (es. "south african")
-  for(const [adj,naz] of Object.entries(WIKI_NAZIONE_MAP)){
-    if(d.includes(adj))return naz;
-  }
-  return null;
+/*
+  Normalizza il nome autore per la ricerca:
+  rimuove date tipo "<1900-1980>", parentesi, parti dopo virgola (formato RBBC).
+*/
+function _normalizzaNomeAutore(autore){
+  return autore
+    .replace(/<[^>]*>/g,'')
+    .replace(/\([^)]*\)/g,'')
+    .replace(/,.*$/,'')
+    .replace(/\s+/g,' ')
+    .trim();
 }
 
-/* Fetch nazione da Wikipedia per un autore. Ritorna nome nazione EN o null. */
-async function fetchNazioneWiki(autore){
+/*
+  Interroga Wikidata per trovare il paese di cittadinanza (P27) di un autore.
+  Strategia in due passi:
+  1. SPARQL con label multilingua — preciso, cerca per nome esatto
+  2. wbsearchentities + wbgetclaims — fuzzy, per nomi non trovati al passo 1
+  Ritorna il nome EN della nazione (chiave world-atlas) o null.
+*/
+async function fetchNazioneWikidata(autore){
   if(!autore||autore.trim().length<2)return null;
   const cache=_getNazCache();
   const key=autore.trim().toLowerCase();
-  if(key in cache)return cache[key]; // già risolto (anche se null)
+  if(key in cache)return cache[key];
 
-  // Prova prima con il nome così com'è, poi con le parole principali
-  const varianti=[
-    autore.trim(),
-    // rimuove date tipo "<1900-1980>" e virgole (formato RBBC)
-    autore.replace(/<[^>]*>/g,'').replace(/,.*$/,'').trim(),
-  ].filter((v,i,a)=>v&&a.indexOf(v)===i);
+  const nome=_normalizzaNomeAutore(autore);
+  if(!nome||nome.length<2){cache[key]=null;_saveNazCache();return null;}
 
-  for(const variante of varianti){
-    try{
-      const q=encodeURIComponent(variante.replace(/\s+/g,'_'));
-      const url=`https://en.wikipedia.org/api/rest_v1/page/summary/${q}`;
-      const r=await fetch(url,{signal:AbortSignal.timeout(4000)});
-      if(!r.ok)continue;
-      const d=await r.json();
-      // usa description (breve) oppure extract (primo paragrafo)
-      const naz=_parseNazioneFromWiki(d.description)||_parseNazioneFromWiki(d.extract?.slice(0,300));
-      if(naz){cache[key]=naz;_saveNazCache();return naz;}
-    }catch{}
-  }
-  // Ultimo tentativo: cerca come termine su Wikipedia
+  // ── PASSO 1: SPARQL con label multilingua ───────────────────────────────
+  const sparql=`
+SELECT ?cit WHERE {
+  ?persona wdt:P31 wd:Q5.
+  ?persona rdfs:label ?lbl.
+  FILTER(LCASE(STR(?lbl))="${nome.toLowerCase()}"
+      || LCASE(STR(?lbl))="${nome.toLowerCase().split(' ').reverse().join(' ')}")
+  OPTIONAL { ?persona wdt:P27 ?cit. }
+}
+LIMIT 5`;
+
   try{
-    const q=encodeURIComponent(varianti[varianti.length-1]);
-    const url=`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${q}&srlimit=1&format=json&origin=*`;
-    const r=await fetch(url,{signal:AbortSignal.timeout(4000)});
+    const r=await fetch(
+      'https://query.wikidata.org/sparql?format=json&query='+encodeURIComponent(sparql),
+      {headers:{'Accept':'application/sparql-results+json','User-Agent':'RBBC-PWA/1.0'},
+       signal:AbortSignal.timeout(7000)}
+    );
     if(r.ok){
       const d=await r.json();
-      const snippet=d.query?.search?.[0]?.snippet||'';
-      const naz=_parseNazioneFromWiki(snippet);
-      if(naz){cache[key]=naz;_saveNazCache();return naz;}
+      for(const b of d.results?.bindings||[]){
+        const qid=(b.cit?.value||'').replace('http://www.wikidata.org/entity/','');
+        if(WD_QID_MAP[qid]){
+          const naz=WD_QID_MAP[qid];
+          cache[key]=naz;_saveNazCache();return naz;
+        }
+      }
     }
   }catch{}
 
-  cache[key]=null; // segna come "non trovato" per non riprovare
+  // ── PASSO 2: wbsearchentities → wbgetclaims P27 ─────────────────────────
+  try{
+    const rs=await fetch(
+      `https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(nome)}&language=en&type=item&limit=3&format=json&origin=*`,
+      {signal:AbortSignal.timeout(5000)}
+    );
+    if(rs.ok){
+      const ds=await rs.json();
+      for(const item of ds.search||[]){
+        // Preferisci entità con descrizione che indica una persona
+        const desc=(item.description||'').toLowerCase();
+        const isHuman=/(author|writer|poet|novelist|philosopher|playwright|journalist|historian|composer|architect|politician|activist|critic|essayist|dramatist|lyricist|screenwriter|person)/i.test(desc);
+        if(!isHuman&&(ds.search||[]).length>1)continue;
+        // Cerca prima P27 (citizenship), poi P17 (country)
+        for(const prop of['P27','P17']){
+          const rc=await fetch(
+            `https://www.wikidata.org/w/api.php?action=wbgetclaims&entity=${item.id}&property=${prop}&format=json&origin=*`,
+            {signal:AbortSignal.timeout(5000)}
+          );
+          if(!rc.ok)continue;
+          const dc=await rc.json();
+          for(const cl of dc.claims?.[prop]||[]){
+            const valQid=cl.mainsnak?.datavalue?.value?.id||'';
+            if(WD_QID_MAP[valQid]){
+              const naz=WD_QID_MAP[valQid];
+              cache[key]=naz;_saveNazCache();return naz;
+            }
+          }
+        }
+        break;
+      }
+    }
+  }catch{}
+
+  cache[key]=null;
   _saveNazCache();
   return null;
 }
 
 /* Risolve in background le nazioni mancanti per i libri già letti.
-   Aggiorna G.lettiData aggiungendo .nazione e ri-renderizza. */
+   Aggiorna G.lettiData e ri-renderizza mappa + passaporto. */
 async function migraNazioniEsistenti(){
   if(!G.lettiData?.length)return;
   const cache=_getNazCache();
-  // Trova autori unici senza nazione in cache
   const autoriDaRisolvere=[...new Set(
     G.lettiData
       .filter(l=>l.autore&&!(l.autore.trim().toLowerCase() in cache))
       .map(l=>l.autore.trim())
   )];
   if(!autoriDaRisolvere.length)return;
-  // Risolve in batch piccoli (3 alla volta) per non spammare Wikipedia
-  for(let i=0;i<autoriDaRisolvere.length;i+=3){
-    const batch=autoriDaRisolvere.slice(i,i+3);
-    await Promise.all(batch.map(a=>fetchNazioneWiki(a)));
-    // Aggiorna il rendering dopo ogni batch
+  // Batch da 2 per rispettare i rate limit Wikidata (60 req/min)
+  for(let i=0;i<autoriDaRisolvere.length;i+=2){
+    const batch=autoriDaRisolvere.slice(i,i+2);
+    await Promise.all(batch.map(a=>fetchNazioneWikidata(a)));
     renderMnemoMappa();
     renderPassaporto();
-    // piccola pausa per non stressare la rete
-    await new Promise(r=>setTimeout(r,300));
+    await new Promise(r=>setTimeout(r,500));
   }
 }
 
