@@ -213,16 +213,10 @@ body.dark .skel-foot{background:#0f1a10;border-color:var(--av3)}
 @keyframes skelShimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
 .skel-pill{height:28px;width:128px;border-radius:20px;background:linear-gradient(90deg,var(--av2) 25%,var(--av3) 50%,var(--av2) 75%);background-size:300% 100%;animation:skelShimmer 1.4s ease infinite}
 body.dark .skel-pill{background:linear-gradient(90deg,#1c2e1e 25%,#243426 50%,#1c2e1e 75%);background-size:300% 100%}
-/* ── MORPH EXPAND (card → schermata) ── */
-.morph-ov{position:fixed;z-index:600;background:#fff;border-radius:var(--r);box-shadow:var(--sh-l);overflow:hidden;pointer-events:none;transition:top .44s var(--ease-out-expo),left .44s var(--ease-out-expo),width .44s var(--ease-out-expo),height .44s var(--ease-out-expo),border-radius .4s var(--ease-out-expo),opacity .26s ease;will-change:top,left,width,height,border-radius,opacity}
+/* ── MORPH EXPAND (card → schermata): la card si "trasforma" nel pannello a tutto schermo ── */
+.morph-ov{position:fixed;top:0;left:0;width:100vw;height:100dvh;z-index:600;background:#fff;pointer-events:none;transform-origin:top left;will-change:transform,border-radius,background-color,opacity;transition:transform .4s var(--ease-out-expo),border-radius .4s var(--ease-out-expo),background-color .4s var(--ease-out-expo),opacity .2s ease}
 body.dark .morph-ov{background:#121f13}
-.morph-ov.exp{top:0!important;left:0!important;width:100vw!important;height:100dvh!important;border-radius:0!important}
-.morph-fill{position:absolute;border-radius:50%;background:var(--bosco-3);transform:scale(0);transition:transform .48s var(--ease-out-expo)}
-.morph-ov.exp .morph-fill{transform:scale(60)}
-.morph-ico{position:absolute;font-size:1.45rem;line-height:1;transform-origin:top left;transition:opacity .22s ease,transform .42s var(--ease-out-expo)}
-.morph-ov.exp .morph-ico{opacity:0;transform:scale(2.6)}
-.morph-nome{position:absolute;font-family:'Cormorant Garamond',serif;font-size:1.04rem;font-weight:600;color:var(--ink);white-space:nowrap;transition:opacity .18s ease}
-.morph-ov.exp .morph-nome{opacity:0}
+.morph-ov.exp{transform:none!important;border-radius:0!important;background-color:var(--bosco-3)!important}
 .er{background:#fff5f5;border-left:3px solid var(--rosso);border-radius:0 var(--rs) var(--rs) 0;padding:12px 14px;font-size:.83rem;color:var(--rosso);margin-bottom:12px}
 @keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes upSoft{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
@@ -1172,40 +1166,19 @@ function vai(id,sub,noAnim){
 }
 function switchTab(id){document.querySelectorAll('.ntab').forEach(t=>t.classList.toggle('on',t.dataset.s===id));tap('light');vai(id);}
 
-/* --- MORPH EXPAND: la card della home si espande nella schermata di destinazione --- */
+/* --- MORPH EXPAND: la card della home si trasforma nel pannello a tutto schermo --- */
 function morphVai(cardEl,id,sub){
   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){vai(id,sub);return;}
   const rect=cardEl.getBoundingClientRect();
-  const icoEl=cardEl.querySelector('.sc-ico'),nomeEl=cardEl.querySelector('.sc-nome');
-  const icoR=icoEl?icoEl.getBoundingClientRect():rect;
-  const nomeR=nomeEl?nomeEl.getBoundingClientRect():rect;
+  const vw=window.innerWidth,vh=window.innerHeight;
+  const sx=rect.width/vw,sy=rect.height/vh;
+  const R=12; // = var(--r)
+  const rx=(R/sx).toFixed(2),ry=(R/sy).toFixed(2);
 
   const ov=document.createElement('div');
   ov.className='morph-ov';
-  ov.style.top=rect.top+'px';ov.style.left=rect.left+'px';
-  ov.style.width=rect.width+'px';ov.style.height=rect.height+'px';
-  ov.style.borderTop=getComputedStyle(cardEl).borderTop;
-
-  const fs=28;
-  const fill=document.createElement('div');
-  fill.className='morph-fill';
-  fill.style.width=fs+'px';fill.style.height=fs+'px';
-  fill.style.left=(icoR.left-rect.left+icoR.width/2-fs/2)+'px';
-  fill.style.top=(icoR.top-rect.top+icoR.height/2-fs/2)+'px';
-  ov.appendChild(fill);
-
-  if(icoEl){
-    const ic=document.createElement('div');
-    ic.className='morph-ico';ic.textContent=icoEl.textContent;
-    ic.style.left=(icoR.left-rect.left)+'px';ic.style.top=(icoR.top-rect.top)+'px';
-    ov.appendChild(ic);
-  }
-  if(nomeEl){
-    const nm=document.createElement('div');
-    nm.className='morph-nome';nm.textContent=nomeEl.textContent;
-    nm.style.left=(nomeR.left-rect.left)+'px';nm.style.top=(nomeR.top-rect.top)+'px';
-    ov.appendChild(nm);
-  }
+  ov.style.transform=`translate(${rect.left}px,${rect.top}px) scale(${sx},${sy})`;
+  ov.style.borderRadius=`${rx}px / ${ry}px`;
 
   document.body.appendChild(ov);
   cardEl.style.visibility='hidden';
@@ -1216,9 +1189,9 @@ function morphVai(cardEl,id,sub){
     vai(id,sub,true);
     requestAnimationFrame(()=>{
       ov.style.opacity='0';
-      setTimeout(()=>{ov.remove();cardEl.style.visibility='';},280);
+      setTimeout(()=>{ov.remove();cardEl.style.visibility='';},220);
     });
-  },420);
+  },400);
 }
 
 /* --- SKELETON LOADING --- */
