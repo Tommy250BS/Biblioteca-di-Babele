@@ -26,7 +26,7 @@
   /* Accenti */
   --rosso:#7a1c1c;--rosso-s:rgba(122,28,28,.12);
   --rame:#b87333;
-  /* Ombre più profonde e stratificate */
+  /* Ombre */
   --sh-s:0 1px 3px rgba(13,31,15,.07),0 2px 8px rgba(13,31,15,.05);
   --sh-m:0 2px 10px rgba(13,31,15,.1),0 6px 24px rgba(13,31,15,.1);
   --sh-l:0 8px 32px rgba(13,31,15,.18),0 2px 8px rgba(13,31,15,.1);
@@ -40,6 +40,71 @@
   --ease-out-expo:cubic-bezier(.16,1,.3,1);
   --ease-spring:cubic-bezier(.34,1.56,.64,1);
 }
+
+/* ── DARK MODE ── */
+body.dark{
+  --av:#0f1a10;--av2:#152018;--av3:#1c2e1e;--av4:#243426;
+  --ink:#e8e2d6;--ink2:#cfc8bb;--ink3:#a09890;
+  --sh-s:0 1px 3px rgba(0,0,0,.25),0 2px 8px rgba(0,0,0,.2);
+  --sh-m:0 2px 10px rgba(0,0,0,.3),0 6px 24px rgba(0,0,0,.25);
+  --sh-l:0 8px 32px rgba(0,0,0,.4),0 2px 8px rgba(0,0,0,.2);
+}
+body.dark .hdr{background:rgba(5,10,6,.98)}
+body.dark #shome{background:var(--av)}
+body.dark .hm{background:var(--av)}
+body.dark .sbody{background:var(--av)}
+body.dark .pbody{background:var(--av)}
+body.dark .bb{background:var(--av)}
+body.dark .abd{background:var(--av)}
+/* Card e superfici bianche → verde scurissimo */
+body.dark .card,
+body.dark .cit,
+body.dark .sc,
+body.dark .bc,
+body.dark .stc,
+body.dark .imc,
+body.dark .etimo,
+body.dark .passc,
+body.dark .ec,
+body.dark .cost-info,
+body.dark .sh{background:#121f13;border-color:var(--av3)}
+body.dark .cit{border-left-color:var(--oro)}
+body.dark .etimo{border-left-color:var(--oro)}
+body.dark .ec{border-left-color:var(--oro)}
+body.dark .card.disp{border-left-color:var(--bosco-2)}
+body.dark .card.prest{border-left-color:var(--oro)}
+/* Testi chiari */
+body.dark .ctt,body.dark .sc-nome,body.dark .etn,body.dark .lapt,
+body.dark .wtt,body.dark .tqq,body.dark .riq,body.dark .opt,
+body.dark .ect,body.dark .pn,body.dark .autn,body.dark .cost-nome,
+body.dark .stitolo,body.dark .htit,body.dark .imlab{color:var(--ink)}
+body.dark .cta,body.dark .sc-desc,body.dark .etd,body.dark .eto,
+body.dark .citaut,body.dark .cs,body.dark .assl,body.dark .stl,
+body.dark .bbd,body.dark .bbn,body.dark .lapa,body.dark .lapan,
+body.dark .cost-badge-hint,body.dark .ssub,body.dark .hsubt,
+body.dark .imval,body.dark .imarr,body.dark .cc,body.dark .eca{color:var(--ink3)}
+/* Separatori */
+body.dark .lapi,body.dark .wi,body.dark .rci,body.dark .tqi,
+body.dark .opi,body.dark .copr,body.dark .imr{border-color:var(--av3)}
+/* Input */
+body.dark .fi input{background:#0f1a10;border-color:var(--av3);color:var(--ink)}
+body.dark .fi input:focus{border-color:var(--bosco-2);background:#0f1a10}
+body.dark .fi input::placeholder{color:var(--av4)}
+body.dark .dd{background:#121f13;border-color:var(--bosco-2)}
+body.dark .ddi{color:var(--ink2);border-color:var(--av3)}
+body.dark .ddi:hover,.dark .ddi.hl{background:var(--bosco);color:#fff}
+/* Sheet overlay */
+body.dark .shovr{background:rgba(0,0,0,.75)}
+/* Sezioni intro mantengono bosco-3, ok */
+/* cosae box già scuro, ok */
+/* mappa sfondo */
+body.dark .mapwrap{background:#0a1409}
+body.dark .map-fs-svg-wrap{background:#0a1409}
+/* ctcop */
+body.dark .ctcop{background:#0f1a10;border-color:var(--av3)}
+body.dark .cln{background:#0f1a10;border-color:var(--av3);color:var(--bosco-2)}
+/* badge locked */
+body.dark .bc.lk{background:#0f1a10}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{height:100%}
 body{font-family:'Inter',sans-serif;background:var(--av);color:var(--ink);min-height:100dvh;display:flex;flex-direction:column;overflow-x:hidden}
@@ -131,6 +196,21 @@ body{font-family:'Inter',sans-serif;background:var(--av);color:var(--ink);min-he
 .sp{width:30px;height:30px;border:2px solid rgba(27,61,30,.1);border-top-color:var(--bosco);border-right-color:rgba(200,164,74,.4);border-radius:50%;animation:gira .9s cubic-bezier(.4,0,.2,1) infinite;margin:0 auto 14px}
 @keyframes gira{to{transform:rotate(360deg)}}
 .ld p{font-size:.78rem;color:#bbb;font-style:italic;letter-spacing:.04em}
+/* ── SKELETON ── */
+.skel-wrap{padding:0}
+.skel-card{background:#fff;border-radius:0 var(--r) var(--r) 0;margin-bottom:10px;border-left:3px solid var(--av3);overflow:hidden;animation:up .22s var(--ease-out-expo) both}
+body.dark .skel-card{background:#121f13;border-left-color:var(--av3)}
+.skel-inner{padding:14px}
+.skel-line{border-radius:4px;background:linear-gradient(90deg,var(--av2) 25%,var(--av3) 50%,var(--av2) 75%);background-size:300% 100%;animation:skelShimmer 1.4s ease infinite;margin-bottom:8px}
+body.dark .skel-line{background:linear-gradient(90deg,#1c2e1e 25%,#243426 50%,#1c2e1e 75%);background-size:300% 100%}
+.skel-line.t{height:14px;width:75%}
+.skel-line.a{height:11px;width:45%;opacity:.7}
+.skel-line.s{height:10px;width:55%;opacity:.55}
+.skel-foot{height:32px;background:var(--av);border-top:1px solid var(--av2);display:flex;align-items:center;padding:0 14px;gap:8px}
+body.dark .skel-foot{background:#0f1a10;border-color:var(--av3)}
+.skel-foot-dot{width:8px;height:8px;border-radius:50%;background:linear-gradient(90deg,var(--av2) 25%,var(--av3) 50%,var(--av2) 75%);background-size:300% 100%;animation:skelShimmer 1.4s ease infinite}
+.skel-foot-line{height:9px;border-radius:3px;flex:1;background:linear-gradient(90deg,var(--av2) 25%,var(--av3) 50%,var(--av2) 75%);background-size:300% 100%;animation:skelShimmer 1.4s ease infinite}
+@keyframes skelShimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
 .er{background:#fff5f5;border-left:3px solid var(--rosso);border-radius:0 var(--rs) var(--rs) 0;padding:12px 14px;font-size:.83rem;color:var(--rosso);margin-bottom:12px}
 @keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes upSoft{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
@@ -923,6 +1003,15 @@ body{font-family:'Inter',sans-serif;background:var(--av);color:var(--ink);min-he
       <div class="imc">
         <div class="imr" onclick="apriSh('shprof')"><div class="imico">✏️</div><div class="imlab">Modifica profilo</div><div class="imarr">›</div></div>
         <div class="imr" onclick="apriSh('shbib')"><div class="imico">📍</div><div class="imlab">Cambia biblioteca</div><div class="imval" id="imbv"></div><div class="imarr">›</div></div>
+        <div class="imr" onclick="toggleDark()">
+          <div class="imico" id="darkico">🌙</div>
+          <div class="imlab">Tema scuro</div>
+          <div style="margin-left:auto;position:relative;width:40px;height:22px;flex-shrink:0">
+            <div id="darkpill" style="position:absolute;inset:0;border-radius:11px;background:var(--av3);transition:background .3s">
+              <div id="darkknob" style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:transform .3s var(--ease-spring)"></div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="imc">
         <div class="imr" onclick="doLogout()" style="color:var(--rosso)"><div class="imico">🚪</div><div class="imlab" style="color:var(--rosso)">Esci dall'account</div></div>
@@ -976,7 +1065,45 @@ body{font-family:'Inter',sans-serif;background:var(--av);color:var(--ink);min-he
 </div>
 
 <script>
-if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{});
+/* SWIPE TRA TAB */
+(function(){
+  const TAB_ORDER=['shome','salex','satlante','smnem','slap','sprof'];
+  let tx=0,ty=0,swiping=false;
+  document.addEventListener('touchstart',e=>{
+    const t=e.touches[0];
+    tx=t.clientX;ty=t.clientY;swiping=true;
+  },{passive:true});
+  document.addEventListener('touchend',e=>{
+    if(!swiping)return;swiping=false;
+    // Ignora se sheet aperto
+    if(document.querySelector('.shovr.on'))return;
+    // Ignora se fullscreen mappa aperta
+    if(document.getElementById('mapFsOvr')?.classList.contains('on'))return;
+    const t=e.changedTouches[0];
+    const dx=t.clientX-tx,dy=t.clientY-ty;
+    if(Math.abs(dx)<62||Math.abs(dy)>Math.abs(dx)*.7)return;
+    // Solo sulle schermate con nav
+    const cur=_scCorrente?.id;
+    if(!TAB_ORDER.includes(cur))return;
+    const idx=TAB_ORDER.indexOf(cur);
+    if(dx<0&&idx<TAB_ORDER.length-1)switchTab(TAB_ORDER[idx+1]);
+    else if(dx>0&&idx>0)switchTab(TAB_ORDER[idx-1]);
+  },{passive:true});
+})();
+function applyDark(on){
+  document.body.classList.toggle('dark',on);
+  const pill=document.getElementById('darkpill');
+  const knob=document.getElementById('darkknob');
+  const ico=document.getElementById('darkico');
+  if(pill)pill.style.background=on?'var(--bosco-2)':'var(--av3)';
+  if(knob)knob.style.transform=on?'translateX(18px)':'none';
+  if(ico)ico.textContent=on?'☀️':'🌙';
+  localStorage.setItem('rbbc_dark',on?'1':'0');
+}
+function toggleDark(){applyDark(!document.body.classList.contains('dark'));}
+// Ripristina preferenza salvata
+(function(){const s=localStorage.getItem('rbbc_dark');if(s==='1')applyDark(true);})();
+
 
 let G={u:null,bib:'',letti:new Set(),lettiData:[]};
 
