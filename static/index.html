@@ -2233,33 +2233,23 @@ async function renderPantheon(){
   }
   const unl=getBadgeUnlocked();
 
-  // Conta sbloccati totali
-  const totUnl=TUTTI_BADGE.filter(b=>unl.has(b.id)).length;
-  const totAll=TUTTI_BADGE.length;
+  const SEGRETI_IDS=['bibliotecario_fantasma','ultimo_scaffale','manoscritto','borges','biblioteca_babele'];
 
-  let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--av3)">
-    <div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;color:var(--ink)">I tuoi badge</div>
-      <div style="font-size:.7rem;color:#aaa;margin-top:2px">${totUnl} di ${totAll} sbloccati</div>
-    </div>
-    <div style="text-align:right">
-      <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:700;color:var(--bosco);line-height:1">${totUnl}</div>
-      <div style="font-size:.6rem;color:#bbb;letter-spacing:.08em;text-transform:uppercase">/${totAll}</div>
-    </div>
-  </div>`;
+  let html='';
 
   BADGE_CATEGORIE.forEach(cat=>{
     const badgesInCat=cat.ids.map(id=>TUTTI_BADGE.find(b=>b.id===id)).filter(Boolean);
     const unlockedInCat=badgesInCat.filter(b=>unl.has(b.id)).length;
     html+=`<div class="bdg-cat">
       <div class="bdg-cat-hd">
-        <span class="bdg-cat-label">${cat.ico} ${cat.label}</span>
+        <span class="bdg-cat-label">${cat.ico}&nbsp;${cat.label}</span>
         <div class="bdg-cat-line"></div>
         <span class="bdg-cat-count">${unlockedInCat}/${badgesInCat.length}</span>
       </div>
       <div class="bgr">`;
     badgesInCat.forEach((b,i)=>{
       const ok=unl.has(b.id);
+      const isSecret=SEGRETI_IDS.includes(b.id);
       const globalIdx=TUTTI_BADGE.findIndex(x=>x.id===b.id);
       const orbitDelay=`${(globalIdx*0.37%4).toFixed(2)}s`;
       const shimmerDelay=`${(globalIdx*1.13%5).toFixed(2)}s`;
@@ -2267,11 +2257,13 @@ async function renderPantheon(){
         ?`<div class="bc-pill on">✓ Sbloccato</div>`
         :`<div class="bc-pill off">Bloccato</div>`;
       const styleAttr=ok?` style="--orbit-delay:${orbitDelay};--shimmer-delay:${shimmerDelay}"`:'';
+      // desc: sempre visibile tranne badge segreti non sbloccati
+      const descTxt=(!ok&&isSecret)?'???':b.desc;
       html+=`<div class="bc${ok?'':' lk'}"${styleAttr} data-badge="${b.id}">
         <div class="bc-ico-wrap"><div class="bbi">${b.ico}</div></div>
         <div class="bc-body">
           <div class="bbn">${b.nome}</div>
-          <div class="bbd">${ok?b.desc:'???'}</div>
+          <div class="bbd">${descTxt}</div>
           ${pillHtml}
         </div>
       </div>`;
