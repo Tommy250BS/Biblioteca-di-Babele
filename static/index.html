@@ -65,6 +65,10 @@ body.dark .passc,
 body.dark .ec,
 body.dark .cost-info,
 body.dark .sh{background:#121f13;border-color:var(--av3)}
+/* Badge dark mode */
+body.dark .bc{background:#121f13}
+body.dark .bc .bc-ico-wrap{background:linear-gradient(160deg,#060e07,#0a1409)}
+body.dark .bc .bc-body{background:#121f13}
 body.dark .cit{border-left-color:var(--oro)}
 body.dark .etimo{border-left-color:var(--oro)}
 body.dark .ec{border-left-color:var(--oro)}
@@ -536,12 +540,176 @@ body.dark .morph-ov{background:#121f13}
 .bdel:hover{color:var(--rosso)}
 
 /* BADGE */
-.bgr{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.bc{background:#fff;border-radius:var(--r);padding:14px 10px;box-shadow:var(--sh-s);text-align:center}
-.bc.lk{opacity:.38;filter:grayscale(1)}
-.bbi{font-size:1.6rem;margin-bottom:5px;line-height:1}
-.bbn{font-size:.7rem;font-weight:600;letter-spacing:.04em;color:var(--ink2);line-height:1.3}
-.bbd{font-size:.62rem;color:#bbb;margin-top:2px;line-height:1.4}
+/* Categorie badge */
+.bdg-cat{margin-bottom:28px}
+.bdg-cat-hd{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.bdg-cat-label{font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--oro);flex-shrink:0}
+.bdg-cat-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(200,164,74,.25),transparent)}
+.bdg-cat-count{font-size:.6rem;color:#bbb;font-weight:600;letter-spacing:.06em}
+
+.bgr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bc{
+  background:#fff;border-radius:var(--r);padding:0;
+  box-shadow:var(--sh-s);text-align:center;
+  display:flex;flex-direction:column;align-items:center;
+  overflow:hidden;transition:box-shadow .3s,transform .2s var(--ease-spring);
+  cursor:default;
+}
+.bc:hover:not(.lk){box-shadow:var(--sh-m);transform:translateY(-2px)}
+.bc.lk{opacity:.32;filter:grayscale(1);cursor:not-allowed}
+/* icona + sfondo */
+.bc-ico-wrap{
+  width:100%;padding:18px 0 10px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,var(--bosco-3) 0%,var(--bosco-4) 100%);
+  position:relative;overflow:hidden;
+}
+.bc-ico-wrap::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(200,164,74,.12) 0%,transparent 70%);
+  pointer-events:none;
+}
+.bc.lk .bc-ico-wrap{background:linear-gradient(160deg,#1a1a1a,#222);}
+.bbi{font-size:2.2rem;line-height:1;position:relative;z-index:1;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4))}
+/* lock overlay sull'icona */
+.bc.lk .bbi::after{
+  content:'🔒';
+  position:absolute;
+  bottom:-4px;right:-6px;
+  font-size:.75rem;
+  filter:none;
+}
+.bc-body{padding:12px 10px 14px;width:100%}
+.bbn{font-size:.72rem;font-weight:700;letter-spacing:.03em;color:var(--ink);line-height:1.3;margin-bottom:4px}
+body.dark .bbn{color:var(--ink)}
+.bbd{font-size:.62rem;color:#aaa;line-height:1.5;margin-bottom:8px}
+/* pill stato */
+.bc-pill{
+  display:inline-flex;align-items:center;gap:4px;
+  border-radius:20px;padding:3px 9px;
+  font-size:.58rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+}
+.bc-pill.on{background:rgba(27,61,30,.1);color:var(--bosco);border:1px solid rgba(27,61,30,.2)}
+body.dark .bc-pill.on{background:rgba(200,164,74,.1);color:var(--oro-2);border-color:rgba(200,164,74,.2)}
+.bc-pill.off{background:var(--av2);color:var(--av4);border:1px solid var(--av3)}
+body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
+
+/* ── STELLA ORBITANTE BADGE sbloccati ── */
+.bc:not(.lk) .bbi{position:relative;display:inline-block}
+.bc:not(.lk) .bbi::before{
+  content:'✦';
+  position:absolute;
+  top:50%;left:50%;
+  margin:-6px 0 0 -6px;
+  width:12px;height:12px;
+  font-size:.5rem;
+  line-height:12px;
+  text-align:center;
+  color:var(--oro-2);
+  text-shadow:0 0 6px rgba(200,164,74,.8);
+  animation:orbit 4s linear infinite var(--orbit-delay,0s);
+  transform-origin:center;
+  pointer-events:none;
+  opacity:.85;
+}
+/* ── SHIMMER BADGE SBLOCCATI ── */
+.bc:not(.lk) .bc-ico-wrap::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.18) 50%,transparent 70%);
+  background-size:300% 100%;
+  background-position:200% 0;
+  animation:badgeShimmer 5s ease infinite var(--shimmer-delay,0s);
+  border-radius:inherit;
+  pointer-events:none;
+  z-index:2;
+}
+
+/* ── CERIMONIA DI SBLOCCO BADGE ── */
+.bdg-ceremony-ovr{
+  position:fixed;inset:0;z-index:1000;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(5,10,6,.0);
+  pointer-events:none;
+  transition:background .35s ease;
+}
+.bdg-ceremony-ovr.active{
+  pointer-events:auto;
+  background:rgba(5,10,6,.88);
+}
+.bdg-ceremony-card{
+  display:flex;flex-direction:column;align-items:center;gap:0;
+  background:linear-gradient(170deg,var(--bosco-3) 0%,#0a1409 100%);
+  border:1px solid rgba(200,164,74,.2);
+  border-radius:24px;
+  padding:36px 32px 28px;
+  max-width:280px;width:90%;
+  box-shadow:0 24px 80px rgba(0,0,0,.6),0 0 0 1px rgba(200,164,74,.08);
+  position:relative;overflow:hidden;
+  opacity:0;transform:scale(.6) translateY(40px);
+  transition:opacity .5s var(--ease-spring),transform .5s var(--ease-spring);
+}
+.bdg-ceremony-ovr.active .bdg-ceremony-card{
+  opacity:1;transform:scale(1) translateY(0);
+}
+.bdg-ceremony-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(200,164,74,.4),transparent);
+}
+.bdg-cer-label{
+  font-size:.58rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--oro);margin-bottom:16px;opacity:.7;
+}
+.bdg-cer-ico-wrap{
+  width:96px;height:96px;border-radius:50%;
+  background:linear-gradient(145deg,rgba(200,164,74,.18),rgba(200,164,74,.04));
+  border:1.5px solid rgba(200,164,74,.25);
+  display:flex;align-items:center;justify-content:center;
+  font-size:3rem;line-height:1;
+  margin-bottom:20px;position:relative;
+  box-shadow:0 0 40px rgba(200,164,74,.12),0 8px 32px rgba(0,0,0,.3);
+}
+.bdg-cer-ico-ring{
+  position:absolute;inset:-8px;border-radius:50%;
+  border:1px solid rgba(200,164,74,.15);
+  animation:cerRing 2s ease-in-out infinite;
+}
+.bdg-cer-ico-ring2{
+  position:absolute;inset:-18px;border-radius:50%;
+  border:1px solid rgba(200,164,74,.07);
+  animation:cerRing 2s .4s ease-in-out infinite;
+}
+@keyframes cerRing{
+  0%,100%{transform:scale(1);opacity:.6}
+  50%{transform:scale(1.06);opacity:1}
+}
+.bdg-cer-nome{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.4rem;font-weight:700;color:#fff;
+  text-align:center;line-height:1.2;margin-bottom:6px;
+}
+.bdg-cer-desc{
+  font-size:.75rem;color:rgba(255,255,255,.4);
+  text-align:center;line-height:1.6;margin-bottom:24px;
+}
+.bdg-cer-btn{
+  background:linear-gradient(135deg,var(--oro),var(--oro-2));
+  color:var(--bosco-3);border:none;border-radius:30px;
+  padding:11px 32px;font-family:'Inter',sans-serif;
+  font-size:.82rem;font-weight:700;letter-spacing:.06em;
+  cursor:pointer;transition:box-shadow .2s,transform .15s var(--ease-spring);
+  box-shadow:0 4px 20px rgba(200,164,74,.3);
+}
+.bdg-cer-btn:hover{box-shadow:0 6px 28px rgba(200,164,74,.45);}
+.bdg-cer-btn:active{transform:scale(.95);}
+/* canvas particelle cerimonia */
+#bdg-cer-canvas{
+  position:fixed;inset:0;z-index:999;
+  pointer-events:none;
+  display:none;
+}
+#bdg-cer-canvas.active{display:block;}
 
 /* COSTELLAZIONI */
 .cost-epoca{margin-bottom:36px}
@@ -1115,6 +1283,22 @@ body.dark .morph-ov{background:#121f13}
   <div class="map-fs-body">
     <div class="map-fs-svg-wrap" id="mapFsSvgWrap"></div>
     <div class="map-fs-info" id="mapFsInfo"><p class="map-fs-hint">Tocca una nazione evidenziata per scoprire autori e libri.</p></div>
+  </div>
+</div>
+
+<!-- BADGE UNLOCK CEREMONY OVERLAY -->
+<canvas id="bdg-cer-canvas"></canvas>
+<div class="bdg-ceremony-ovr" id="bdgCerOvr" onclick="chiudiBadgeCeremony()">
+  <div class="bdg-ceremony-card" onclick="event.stopPropagation()">
+    <div class="bdg-cer-label">✦ Badge sbloccato ✦</div>
+    <div class="bdg-cer-ico-wrap" id="bdgCerIco">
+      <div class="bdg-cer-ico-ring"></div>
+      <div class="bdg-cer-ico-ring2"></div>
+      <span id="bdgCerIcoInner"></span>
+    </div>
+    <div class="bdg-cer-nome" id="bdgCerNome"></div>
+    <div class="bdg-cer-desc" id="bdgCerDesc"></div>
+    <button class="bdg-cer-btn" onclick="chiudiBadgeCeremony()">Continua →</button>
   </div>
 </div>
 
@@ -1987,25 +2171,35 @@ async function doLogout(){
   vai('sw');
 }
   
+const BADGE_CATEGORIE=[
+  {id:'ricerche', label:'Ricerche & Esplorazione', ico:'📚',
+   ids:['prima_ricerca','alexandrino','esploratore','labirinto']},
+  {id:'costellazioni', label:'Costellazioni letterarie', ico:'⭐',
+   ids:['antichita','medioevo','rinascimento','seicento','ottocento','novecento','secolo_breve','novecento_baricco','custode_tempo','specchio','duemila_anni']},
+  {id:'viaggi', label:'Viaggi & Geografie', ico:'🌍',
+   ids:['navigatore','cartografo','cosmopolita','eterno_pellegrino','marco_polo','transiberiana','via_seta','nuova_via_seta','europa','africa','america','arcipelago','mediterraneo','crocevia_civilta','dal_nilo_al_gange','oceano_indiano','anima_eurasia','mille_e_una_notte','sette_mari','ultima_thule']},
+  {id:'letteratura', label:'Forme & Generi', ico:'🎭',
+   ids:['epico','tragico','cantastorie','rosa_profonda','colonne_ercole','torre_babele','accademia_svezia']},
+  {id:'grandi', label:'Traguardi supremi', ico:'👑',
+   ids:['pantocratore','alessandria_bibliotecario','aleph','biblioteca_babele']},
+  {id:'segreti', label:'Badge segreti', ico:'🔮',
+   ids:['bibliotecario_fantasma','ultimo_scaffale','manoscritto','borges']},
+];
+
 async function renderPantheon(){
   const gr=document.getElementById('pant-bgr');if(!gr)return;
-  // Assicura che lettiData sia caricato prima di valutare i badge costellazione
   if(G.u&&!G.lettiData?.length){
     try{const r=await fetch('/api/letti');if(r.ok){const d=await r.json();G.letti=new Set(d.map(s=>s.url_opac));G.lettiData=d;}}
     catch(e){console.error('renderPantheon caricaLetti',e);}
   }
-  // Rivaluta badge costellazioni in base ai libri letti
   if(G.u&&G.lettiData?.length){
     const lit=getAutoLitStars();
     COSTELLAZIONI.forEach(ep=>{
       const completed=ep.stars.every(s=>lit.has(s.id));
       if(completed)unlockBadge(ep.badge);
     });
-    // Custode del Tempo: almeno una stella accesa per costellazione
     if(COSTELLAZIONI.every(ep=>ep.stars.some(s=>lit.has(s.id))))unlockBadge('custode_tempo');
-    // Pantocratore: tutte le costellazioni complete
     if(COSTELLAZIONI.every(ep=>ep.stars.every(s=>lit.has(s.id))))unlockBadge('pantocratore');
-    // Torre di Babele: 5 lingue originali diverse (incl. costellazione Antichità)
     const lingue=new Set();
     G.lettiData.forEach(l=>{
       Object.entries(NAZIONI).forEach(([key,info])=>{
@@ -2016,14 +2210,11 @@ async function renderPantheon(){
       if(lit.has(s.id)&&LINGUE_COSTELLAZIONE_ANTICHITA[s.id])lingue.add(LINGUE_COSTELLAZIONE_ANTICHITA[s.id]);
     }));
     if(lingue.size>=5)unlockBadge('torre_babele');
-    // Accademia di Svezia: 20 autori Nobel letti
     const nobelLetti=AUTORI_NOBEL.filter(n=>autLetto(n)).length;
     if(nobelLetti>=20)unlockBadge('accademia_svezia');
-    // Transiberiana: 5 autori russi letti
     const russiLetti=new Set();
     (NAZIONI['Russia']?.autori||[]).forEach(a=>{if(autLetto(a.a))russiLetti.add(a.a);});
     if(russiLetti.size>=5)unlockBadge('transiberiana');
-    // Paesi "visitati" tramite letture
     const paesiVisitati=Object.keys(getLettiPerNazione());
     const nPaesi=paesiVisitati.length;
     if(nPaesi>=5)unlockBadge('viaggiatore');
@@ -2031,28 +2222,64 @@ async function renderPantheon(){
     if(nPaesi>=25)unlockBadge('cartografo');
     if(nPaesi>=50)unlockBadge('cosmopolita');
     if(nPaesi>=Object.keys(NAZIONI).length)unlockBadge('eterno_pellegrino');
-    // Via della Seta: almeno 5 paesi asiatici visitati
     if(PAESI_ASIATICI.filter(p=>paesiVisitati.includes(p)).length>=5)unlockBadge('via_seta');
-    // Giro del Mediterraneo: tutti i paesi richiesti
     if(PAESI_MEDITERRANEO.every(p=>paesiVisitati.includes(p)))unlockBadge('mediterraneo');
-    // Bibliotecario di Alessandria: 250 libri letti
     if(G.lettiData.length>=250)unlockBadge('alessandria_bibliotecario');
   }
-  // Biblioteca di Babele: tutti gli altri badge ottenuti
   {
     const unl0=getBadgeUnlocked();
     const altri=TUTTI_BADGE.filter(b=>b.id!=='biblioteca_babele');
     if(altri.every(b=>unl0.has(b.id)))unlockBadge('biblioteca_babele');
   }
   const unl=getBadgeUnlocked();
-  gr.innerHTML=TUTTI_BADGE.map((b,i)=>{
-    const ok=unl.has(b.id);
-    // Delay orbit e shimmer diversi per ogni badge così non sono sincronizzati
-    const orbitDelay=`${(i*0.37%4).toFixed(2)}s`;
-    const shimmerDelay=`${(i*1.13%5).toFixed(2)}s`;
-    const style=ok?` style="--orbit-delay:${orbitDelay};--shimmer-delay:${shimmerDelay}"`:''
-    return`<div class="bc${ok?'':' lk'}"${style}><div class="bbi">${b.ico}</div><div class="bbn">${b.nome}</div><div class="bbd">${b.desc}</div></div>`;
-  }).join('');
+
+  // Conta sbloccati totali
+  const totUnl=TUTTI_BADGE.filter(b=>unl.has(b.id)).length;
+  const totAll=TUTTI_BADGE.length;
+
+  let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--av3)">
+    <div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;color:var(--ink)">I tuoi badge</div>
+      <div style="font-size:.7rem;color:#aaa;margin-top:2px">${totUnl} di ${totAll} sbloccati</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:700;color:var(--bosco);line-height:1">${totUnl}</div>
+      <div style="font-size:.6rem;color:#bbb;letter-spacing:.08em;text-transform:uppercase">/${totAll}</div>
+    </div>
+  </div>`;
+
+  BADGE_CATEGORIE.forEach(cat=>{
+    const badgesInCat=cat.ids.map(id=>TUTTI_BADGE.find(b=>b.id===id)).filter(Boolean);
+    const unlockedInCat=badgesInCat.filter(b=>unl.has(b.id)).length;
+    html+=`<div class="bdg-cat">
+      <div class="bdg-cat-hd">
+        <span class="bdg-cat-label">${cat.ico} ${cat.label}</span>
+        <div class="bdg-cat-line"></div>
+        <span class="bdg-cat-count">${unlockedInCat}/${badgesInCat.length}</span>
+      </div>
+      <div class="bgr">`;
+    badgesInCat.forEach((b,i)=>{
+      const ok=unl.has(b.id);
+      const globalIdx=TUTTI_BADGE.findIndex(x=>x.id===b.id);
+      const orbitDelay=`${(globalIdx*0.37%4).toFixed(2)}s`;
+      const shimmerDelay=`${(globalIdx*1.13%5).toFixed(2)}s`;
+      const pillHtml=ok
+        ?`<div class="bc-pill on">✓ Sbloccato</div>`
+        :`<div class="bc-pill off">Bloccato</div>`;
+      const styleAttr=ok?` style="--orbit-delay:${orbitDelay};--shimmer-delay:${shimmerDelay}"`:'';
+      html+=`<div class="bc${ok?'':' lk'}"${styleAttr} data-badge="${b.id}">
+        <div class="bc-ico-wrap"><div class="bbi">${b.ico}</div></div>
+        <div class="bc-body">
+          <div class="bbn">${b.nome}</div>
+          <div class="bbd">${ok?b.desc:'???'}</div>
+          ${pillHtml}
+        </div>
+      </div>`;
+    });
+    html+=`</div></div>`;
+  });
+
+  gr.innerHTML=html;
 }
 
 /* COSTELLAZIONI — 10 stelle ciascuna, forme geometriche variate, viewBox 440×140 */
@@ -2361,72 +2588,128 @@ async function incAtlanteVisits(){
   }
 }
 
-/* ── BADGE UNLOCK CEREMONY ── */
-function badgeCeremony(badgeId){
-  // Trova la card nella griglia pantheon
-  const gr=document.getElementById('pant-bgr');if(!gr)return;
-  const cards=[...gr.querySelectorAll('.bc')];
-  const idx=TUTTI_BADGE.findIndex(b=>b.id===badgeId);
-  const card=cards[idx];if(!card)return;
+/* ── NUOVA CERIMONIA BADGE ── */
+let _cerRaf=null;
+let _cerParticles=[];
 
-  // Flash + bounce sulla card
-  card.classList.add('ceremony');
-  card.addEventListener('animationend',()=>card.classList.remove('ceremony'),{once:true});
-
-  // Burst SVG di 12 raggi dorati
-  const SIZE=120;
-  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
-  svg.setAttribute('width',SIZE);svg.setAttribute('height',SIZE);
-  svg.setAttribute('viewBox',`0 0 ${SIZE} ${SIZE}`);
-  svg.className='burst-svg';svg.style.width=SIZE+'px';svg.style.height=SIZE+'px';
-
-  const cx2=SIZE/2,cy2=SIZE/2;
-  const N=12;
+function _startCerParticles(){
+  const canvas=document.getElementById('bdg-cer-canvas');
+  if(!canvas)return;
+  canvas.classList.add('active');
+  canvas.width=window.innerWidth;
+  canvas.height=window.innerHeight;
+  const cx=canvas.width/2,cy=canvas.height/2;
+  _cerParticles=[];
+  const N=90;
   for(let i=0;i<N;i++){
-    const ang=(i/N)*Math.PI*2-Math.PI/2;
-    const r0=22,r1=46;
-    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
-    line.setAttribute('x1',(cx2+Math.cos(ang)*r0).toFixed(1));
-    line.setAttribute('y1',(cy2+Math.sin(ang)*r0).toFixed(1));
-    line.setAttribute('x2',(cx2+Math.cos(ang)*r1).toFixed(1));
-    line.setAttribute('y2',(cy2+Math.sin(ang)*r1).toFixed(1));
-    line.setAttribute('stroke','#e4c45e');
-    line.setAttribute('stroke-width', i%3===0?'2.5':'1.5');
-    line.className='burst-ray';
-    line.style.animationDelay=`${i*0.022}s`;
-    svg.appendChild(line);
+    const ang=Math.random()*Math.PI*2;
+    const spd=2.5+Math.random()*5;
+    _cerParticles.push({
+      x:cx,y:cy,
+      vx:Math.cos(ang)*spd*(0.6+Math.random()),
+      vy:Math.sin(ang)*spd*(0.6+Math.random())-3,
+      r:1.5+Math.random()*3.5,
+      alpha:0.9+Math.random()*0.1,
+      rot:Math.random()*360,
+      rotV:(Math.random()-.5)*8,
+      hue:Math.random()<0.7?45+Math.random()*20:0,// oro o bianco
+      life:1,
+      decay:0.012+Math.random()*0.018,
+      shape:Math.random()<0.5?'star':'rect',
+      gravity:0.12+Math.random()*0.08,
+    });
   }
-
-  // Cerchio esterno che si espande e svanisce
-  const circle=document.createElementNS('http://www.w3.org/2000/svg','circle');
-  circle.setAttribute('cx',cx2);circle.setAttribute('cy',cy2);circle.setAttribute('r','18');
-  circle.setAttribute('fill','none');circle.setAttribute('stroke','rgba(228,196,94,.5)');circle.setAttribute('stroke-width','1.5');
-  circle.style.animation='burstRing .6s var(--ease-out-expo) both';
-  svg.appendChild(circle);
-
-  card.appendChild(svg);
-  setTimeout(()=>svg.remove(),800);
+  const ctx=canvas.getContext('2d');
+  function tick(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    _cerParticles=_cerParticles.filter(p=>p.life>0);
+    _cerParticles.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      p.vy+=p.gravity;
+      p.vx*=0.995;
+      p.rot+=p.rotV;
+      p.life-=p.decay;
+      const a=p.alpha*Math.max(0,p.life);
+      ctx.save();
+      ctx.globalAlpha=a;
+      ctx.translate(p.x,p.y);
+      ctx.rotate(p.rot*Math.PI/180);
+      if(p.shape==='star'){
+        const c=p.hue?`hsl(${p.hue},85%,60%)`:'rgba(255,255,255,.9)';
+        ctx.fillStyle=c;
+        ctx.shadowBlur=p.hue?8:4;
+        ctx.shadowColor=p.hue?`hsl(${p.hue},85%,70%)`:'rgba(255,255,255,.5)';
+        // mini stella 4 punte
+        const r2=p.r,r1=p.r*0.4;
+        ctx.beginPath();
+        for(let k=0;k<8;k++){
+          const a2=k*Math.PI/4;
+          const r3=k%2===0?r2:r1;
+          k===0?ctx.moveTo(Math.cos(a2)*r3,Math.sin(a2)*r3):ctx.lineTo(Math.cos(a2)*r3,Math.sin(a2)*r3);
+        }
+        ctx.closePath();ctx.fill();
+      }else{
+        ctx.fillStyle=p.hue?`hsl(${p.hue},80%,65%)`:'rgba(255,255,255,.85)';
+        ctx.fillRect(-p.r/2,-p.r*1.5,p.r,p.r*3);
+      }
+      ctx.restore();
+    });
+    if(_cerParticles.length>0){_cerRaf=requestAnimationFrame(tick);}
+    else{canvas.classList.remove('active');_cerRaf=null;}
+  }
+  if(_cerRaf)cancelAnimationFrame(_cerRaf);
+  _cerRaf=requestAnimationFrame(tick);
 }
 
-// Keyframe burstRing via stylesheet (una sola volta)
-(function(){
-  if(document.getElementById('burst-ring-kf'))return;
-  const st=document.createElement('style');st.id='burst-ring-kf';
-  st.textContent='@keyframes burstRing{0%{r:18;opacity:.8}100%{r:52;opacity:0}}';
-  document.head.appendChild(st);
-})();
+function chiudiBadgeCeremony(){
+  const ovr=document.getElementById('bdgCerOvr');
+  if(!ovr)return;
+  ovr.classList.remove('active');
+  if(_cerRaf){cancelAnimationFrame(_cerRaf);_cerRaf=null;}
+  const canvas=document.getElementById('bdg-cer-canvas');
+  if(canvas)canvas.classList.remove('active');
+}
+
+function badgeCeremony(badgeId){
+  // Animazione sulla card in Pantheon se visibile
+  const gr=document.getElementById('pant-bgr');
+  if(gr&&document.getElementById('spant')?.classList.contains('on')){
+    const cards=[...gr.querySelectorAll('.bc')];
+    // trova la card per data-badge (nuovo attributo) o per indice
+    const card=cards.find(c=>c.dataset.badge===badgeId);
+    if(card){
+      card.classList.add('ceremony');
+      card.addEventListener('animationend',()=>card.classList.remove('ceremony'),{once:true});
+    }
+  }
+}
 
 function showBadgeToast(badge){
-  // Ceremony sulla card se Pantheon è visibile
-  if(document.getElementById('spant')?.classList.contains('on')){
-    badgeCeremony(badge.id);
-  }
+  if(!badge)return;
+  // Cerimonia sulla card se Pantheon visibile
+  badgeCeremony(badge.id);
 
-  const t=document.createElement('div');
-  t.style.cssText='position:fixed;bottom:calc(80px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:var(--bosco);color:var(--oro);padding:10px 20px;border-radius:30px;font-size:.82rem;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.3),0 0 0 1px rgba(200,164,74,.2);display:flex;align-items:center;gap:8px;animation:badgePop .5s cubic-bezier(.18,.89,.32,1.28) both;white-space:nowrap';
-  t.innerHTML=`${badge.ico} <span>Badge sbloccato: <strong>${badge.nome}</strong></span>`;
-  document.body.appendChild(t);
-  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .4s';setTimeout(()=>t.remove(),400);},3500);
+  // Mostra l'overlay full-screen di cerimonia
+  const ovr=document.getElementById('bdgCerOvr');
+  if(!ovr)return;
+  document.getElementById('bdgCerIcoInner').textContent=badge.ico;
+  document.getElementById('bdgCerNome').textContent=badge.nome;
+  document.getElementById('bdgCerDesc').textContent=badge.desc;
+  // Reset animation
+  const card=ovr.querySelector('.bdg-ceremony-card');
+  card.style.transition='none';
+  card.style.opacity='0';card.style.transform='scale(.6) translateY(40px)';
+  void card.offsetWidth;
+  card.style.transition='';
+  ovr.classList.add('active');
+  _startCerParticles();
+
+  // Haptic pesante
+  tap('heavy');
+  // Auto-dismiss dopo 6s
+  setTimeout(()=>{
+    if(ovr.classList.contains('active'))chiudiBadgeCeremony();
+  },6000);
 }
 
 
