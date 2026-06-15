@@ -1815,6 +1815,12 @@ async function togLetto(btn,libro){
       if(!r.ok){const e=await r.json();throw new Error(e.error);}
       G.letti.add(url);G.lettiData.push({titolo:libro.titolo,autore:libro.autore||'',url_opac:url,biblioteca:G.bib});
       btn.textContent='✓ Letto';btn.classList.add('on');
+      // Risolvi subito la nazione in background per il nuovo libro
+      if(libro.autore){
+        fetchNazioneWiki(libro.autore).then(()=>{
+          renderMnemoMappa();renderPassaporto();
+        });
+      }
     }else{
       const r=await fetch(`/api/letti/${encodeURIComponent(url)}`,{method:'DELETE'});
       if(!r.ok)throw new Error('delete failed');
@@ -2787,19 +2793,166 @@ async function caricaMnem(){
   }catch(e){console.error(e);}
   renderMnemoMappa();
   renderPassaporto();
+  // Risolve in background le nazioni dei libri già letti
+  migraNazioniEsistenti();
 }
 
-/* Restituisce {nazione:[libri letti che corrispondono]} usando NAZIONI come fonte autori */
+/* ── WIKIPEDIA NATIONALITY RESOLVER ──────────────────────────────────────
+   Dato un nome autore, cerca su Wikipedia (EN) e tenta di estrarre il paese
+   dalla description (es. "French novelist" → "France").
+   Usa una cache localStorage per non rifare le stesse fetch.
+   ─────────────────────────────────────────────────────────────────────── */
+
+/* Mappa descrizione Wikipedia → nome nazione come usato in NAZIONI/world-atlas */
+const WIKI_NAZIONE_MAP={
+  // Lingue/aggettivi → nazione EN (world-atlas key)
+  italian:'Italy',  french:'France',  spanish:'Spain',  british:'United Kingdom',
+  english:'United Kingdom',  scottish:'United Kingdom',  welsh:'United Kingdom',  irish:'Ireland',
+  german:'Germany',  austrian:'Austria',  swiss:'Switzerland',
+  russian:'Russia',  soviet:'Russia',
+  american:'United States of America',  'u.s.':'United States of America',
+  japanese:'Japan',  chinese:'China',  korean:'South Korea',
+  brazilian:'Brazil',  argentine:'Argentina',  colombian:'Colombia',
+  mexican:'Mexico',  chilean:'Chile',  peruvian:'Peru',  cuban:'Cuba',
+  uruguayan:'Uruguay',  venezuelan:'Venezuela',  bolivian:'Bolivia',  ecuadorian:'Ecuador',
+  portuguese:'Portugal',  greek:'Greece',  turkish:'Turkey',
+  polish:'Poland',  czech:'Czech Republic',  hungarian:'Hungary',
+  romanian:'Romania',  serbian:'Serbia',  croatian:'Croatia',  slovenian:'Slovenia',
+  bulgarian:'Bulgaria',  albanian:'Albania',  bosnian:'Bosnia and Herzegovina',
+  norwegian:'Norway',  swedish:'Sweden',  danish:'Denmark',  finnish:'Finland',
+  dutch:'Netherlands',  belgian:'Belgium',
+  ukrainian:'Ukraine',  belarusian:'Belarus',
+  lithuanian:'Lithuania',  latvian:'Latvia',  estonian:'Estonia',
+  georgian:'Georgia',  armenian:'Armenia',  azerbaijani:'Azerbaijan',
+  iranian:'Iran',  persian:'Iran',  turkish:'Turkey',
+  lebanese:'Lebanon',  syrian:'Syria',  israeli:'Israel',  iraqi:'Iraq',
+  egyptian:'Egypt',  moroccan:'Morocco',  algerian:'Algeria',  tunisian:'Tunisia',
+  nigerian:'Nigeria',  kenyan:'Kenya',  senegalese:'Senegal',  ethiopian:'Ethiopia',
+  tanzanian:'Tanzania',  ghanaian:'Ghana',  zimbabwean:'Zimbabwe',
+  'south african':'South Africa',  cameroonian:'Cameroon',  ivorian:'Ivory Coast',
+  indian:'India',  pakistani:'Pakistan',  bangladeshi:'Bangladesh',
+  'sri lankan':'Sri Lanka',  nepalese:'Nepal',
+  vietnamese:'Vietnam',  indonesian:'Indonesia',  malaysian:'Malaysia',  philippine:'Philippines',  filipino:'Philippines',
+  uzbek:'Uzbekistan',  kazakh:'Kazakhstan',  kyrgyz:'Kyrgyzstan',  tajik:'Tajikistan',  turkmen:'Turkmenistan',
+  afghan:'Afghanistan',  saudi:'Saudi Arabia',
+  canadian:'Canada',  australian:'Australia',
+};
+
+/* Cache: autore → nome nazione (EN) o null se non trovato */
+let _nazioneCache=null;
+function _getNazCache(){
+  if(_nazioneCache)return _nazioneCache;
+  try{_nazioneCache=JSON.parse(localStorage.getItem('rbbc_naz_cache')||'{}');}
+  catch{_nazioneCache={};}
+  return _nazioneCache;
+}
+function _saveNazCache(){
+  try{localStorage.setItem('rbbc_naz_cache',JSON.stringify(_nazioneCache));}catch{}
+}
+
+/* Estrae la nazione dalla description Wikipedia */
+function _parseNazioneFromWiki(desc){
+  if(!desc)return null;
+  const d=desc.toLowerCase();
+  // cerca prima aggettivi composti (es. "south african")
+  for(const [adj,naz] of Object.entries(WIKI_NAZIONE_MAP)){
+    if(d.includes(adj))return naz;
+  }
+  return null;
+}
+
+/* Fetch nazione da Wikipedia per un autore. Ritorna nome nazione EN o null. */
+async function fetchNazioneWiki(autore){
+  if(!autore||autore.trim().length<2)return null;
+  const cache=_getNazCache();
+  const key=autore.trim().toLowerCase();
+  if(key in cache)return cache[key]; // già risolto (anche se null)
+
+  // Prova prima con il nome così com'è, poi con le parole principali
+  const varianti=[
+    autore.trim(),
+    // rimuove date tipo "<1900-1980>" e virgole (formato RBBC)
+    autore.replace(/<[^>]*>/g,'').replace(/,.*$/,'').trim(),
+  ].filter((v,i,a)=>v&&a.indexOf(v)===i);
+
+  for(const variante of varianti){
+    try{
+      const q=encodeURIComponent(variante.replace(/\s+/g,'_'));
+      const url=`https://en.wikipedia.org/api/rest_v1/page/summary/${q}`;
+      const r=await fetch(url,{signal:AbortSignal.timeout(4000)});
+      if(!r.ok)continue;
+      const d=await r.json();
+      // usa description (breve) oppure extract (primo paragrafo)
+      const naz=_parseNazioneFromWiki(d.description)||_parseNazioneFromWiki(d.extract?.slice(0,300));
+      if(naz){cache[key]=naz;_saveNazCache();return naz;}
+    }catch{}
+  }
+  // Ultimo tentativo: cerca come termine su Wikipedia
+  try{
+    const q=encodeURIComponent(varianti[varianti.length-1]);
+    const url=`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${q}&srlimit=1&format=json&origin=*`;
+    const r=await fetch(url,{signal:AbortSignal.timeout(4000)});
+    if(r.ok){
+      const d=await r.json();
+      const snippet=d.query?.search?.[0]?.snippet||'';
+      const naz=_parseNazioneFromWiki(snippet);
+      if(naz){cache[key]=naz;_saveNazCache();return naz;}
+    }
+  }catch{}
+
+  cache[key]=null; // segna come "non trovato" per non riprovare
+  _saveNazCache();
+  return null;
+}
+
+/* Risolve in background le nazioni mancanti per i libri già letti.
+   Aggiorna G.lettiData aggiungendo .nazione e ri-renderizza. */
+async function migraNazioniEsistenti(){
+  if(!G.lettiData?.length)return;
+  const cache=_getNazCache();
+  // Trova autori unici senza nazione in cache
+  const autoriDaRisolvere=[...new Set(
+    G.lettiData
+      .filter(l=>l.autore&&!(l.autore.trim().toLowerCase() in cache))
+      .map(l=>l.autore.trim())
+  )];
+  if(!autoriDaRisolvere.length)return;
+  // Risolve in batch piccoli (3 alla volta) per non spammare Wikipedia
+  for(let i=0;i<autoriDaRisolvere.length;i+=3){
+    const batch=autoriDaRisolvere.slice(i,i+3);
+    await Promise.all(batch.map(a=>fetchNazioneWiki(a)));
+    // Aggiorna il rendering dopo ogni batch
+    renderMnemoMappa();
+    renderPassaporto();
+    // piccola pausa per non stressare la rete
+    await new Promise(r=>setTimeout(r,300));
+  }
+}
+
+/* Restituisce {nazione:[libri letti]} — usa cache Wikipedia + fallback matching NAZIONI */
 function getLettiPerNazione(){
   const out={};
   if(!G.lettiData?.length)return out;
-  Object.entries(NAZIONI).forEach(([key,info])=>{
-    const trovati=[];
-    G.lettiData.forEach(l=>{
-      const match=info.autori.some(a=>autMatch(a.a,l.autore));
-      if(match)trovati.push(l);
-    });
-    if(trovati.length)out[key]=trovati;
+  const cache=_getNazCache();
+
+  G.lettiData.forEach(l=>{
+    if(!l.autore)return;
+    const key=l.autore.trim().toLowerCase();
+
+    // 1. Prova cache Wikipedia
+    let naz=cache[key];
+
+    // 2. Fallback: matching con lista NAZIONI hardcoded
+    if(!naz){
+      for(const [nazKey,info] of Object.entries(NAZIONI)){
+        if(info.autori.some(a=>autMatch(a.a,l.autore))){naz=nazKey;break;}
+      }
+    }
+
+    if(!naz)return; // autore non risolto ancora
+    if(!out[naz])out[naz]=[];
+    // evita duplicati per stesso url
+    if(!out[naz].some(x=>x.url_opac===l.url_opac))out[naz].push(l);
   });
   return out;
 }
@@ -2840,15 +2993,15 @@ function renderMnemoMappa(){
 
     countries.forEach(f=>{
       const info=NAZIONI[f.properties.name];
-      if(!info)return;
       const visitato=!!letti[f.properties.name];
+      if(!info&&!visitato)return; // nazione non in NAZIONI e non visitata: salta
       const p=g.append('path')
         .datum(f)
         .attr('class',`mn-naz${visitato?' visitato':''}`)
         .attr('d',path)
         .on('click',()=>{
           if(!letti[f.properties.name])return;
-          selNazioneMnemo(f.properties.name,info,letti[f.properties.name],p.node());
+          selNazioneMnemo(f.properties.name,info||null,letti[f.properties.name],p.node());
         });
     });
   }).catch(e=>{
@@ -2862,7 +3015,7 @@ function selNazioneMnemo(name,info,libri,el){
   document.querySelectorAll('#mnmapsvg .mn-naz').forEach(p=>p.classList.remove('sel'));
   if(el)el.classList.add('sel');
   const box=document.getElementById('mnmapinfo');
-  const nome=info.nome||name;
+  const nome=(info&&(info.nome||name))||name;
   const ops=libri.map(l=>`<div class="opi"><div class="opb"><div class="opt">${l.titolo}</div><div style="font-size:.78rem;color:#999;font-style:italic;font-family:'Cormorant Garamond',serif">${l.autore||''}</div></div></div>`).join('');
   box.innerHTML=`<div class="ec"><div class="ech"><div class="ecl">📍 ${nome}</div><div class="autn" style="font-size:1.1rem">Libri letti da qui</div></div><div class="oplist">${ops}</div></div>`;
 }
@@ -2871,11 +3024,38 @@ function renderPassaporto(){
   const cont=document.getElementById('mnpass');if(!cont)return;
   const letti=getLettiPerNazione();
   const entries=Object.entries(letti);
-  if(!entries.length){cont.innerHTML='<div class="vp">Nessun timbro ancora: leggi un libro per iniziare il tuo viaggio.</div>';return;}
-  cont.innerHTML=`<div class="passgr">${entries.map(([key,libri])=>{
+
+  // Libri senza nazione ancora risolta
+  const cache=_getNazCache();
+  const nonClassificati=G.lettiData?.filter(l=>{
+    if(!l.autore)return true;
+    const key=l.autore.trim().toLowerCase();
+    // ha nazione in cache o in NAZIONI → classificato
+    if(cache[key])return false;
+    for(const info of Object.values(NAZIONI)){if(info.autori.some(a=>autMatch(a.a,l.autore)))return false;}
+    // key in cache ma null → non trovato da Wikipedia
+    if(key in cache)return true; // null = non trovato, ma abbiamo provato
+    return true; // non ancora risolto
+  })||[];
+
+  if(!entries.length&&!nonClassificati.length){
+    cont.innerHTML='<div class="vp">Nessun timbro ancora: leggi un libro per iniziare il tuo viaggio.</div>';return;
+  }
+
+  let html=`<div class="passgr">${entries.map(([key,libri])=>{
     const nome=NAZIONI[key]?.nome||key;
     return`<div class="passc"><div class="passorn">✦</div><div class="passn">${nome}</div><div class="passd">${libri.length} ${libri.length>1?'libri letti':'libro letto'}</div></div>`;
   }).join('')}</div>`;
+
+  if(nonClassificati.length){
+    html+=`<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--av3)">
+      <div style="font-size:.63rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#bbb;margin-bottom:8px">⏳ In elaborazione (${nonClassificati.length})</div>
+      <div style="font-size:.75rem;color:#aaa;font-style:italic;margin-bottom:8px">Stiamo cercando la nazionalità di questi autori su Wikipedia…</div>
+      <div class="passgr">${nonClassificati.map(l=>`<div class="passc" style="opacity:.5"><div class="passorn">?</div><div class="passn" style="font-size:.85rem">${l.titolo}</div><div class="passd">${l.autore||'Autore sconosciuto'}</div></div>`).join('')}</div>
+    </div>`;
+  }
+
+  cont.innerHTML=html;
 }
 
 /* MAPPA FULLSCREEN */
@@ -2986,6 +3166,8 @@ async function caricaProf(){
     window._mlLett=lett;
     if(lett.length)renderLibriProf(lett,false);
     else ml.innerHTML='<div class="vp">Nessun libro segnato come letto.</div>';
+    // avvia risoluzione nazioni in background
+    migraNazioniEsistenti();
   }catch(e){console.error('caricaProf',e);}
 }
 async function toglLettoProf(urlEnc,btn){
