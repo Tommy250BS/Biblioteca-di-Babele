@@ -431,9 +431,6 @@ body.dark .morph-ov{background:#121f13}
 /* SEZIONE h3 */
 .sh3{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--bosco);margin-bottom:11px;padding-bottom:7px;border-bottom:1px solid var(--av3)}
 
-/* ACCADDE OGGI */
-.adata{font-size:.68rem;color:var(--oro);letter-spacing:.1em;text-transform:uppercase;margin-bottom:11px;font-weight:600}
-
 /* INFO QUERY */
 .iq{margin-bottom:14px;padding-bottom:11px;border-bottom:1px solid var(--av3);display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 .iq h2{font-family:'Cormorant Garamond',serif;font-size:1.04rem;font-style:italic;color:var(--ink2)}
@@ -3407,11 +3404,6 @@ function selNazioneMnemo(name,info,libri,el){
   box.innerHTML=`<div class="ec"><div class="ech"><div class="ecl">📍 ${nome}</div><div class="autn" style="font-size:1.1rem">Libri letti da qui</div></div><div class="oplist">${ops}</div></div>`;
 }
 
-function renderPassaporto(){
-  const cont=document.getElementById('mnpass');if(!cont)return;
-  const letti=getLettiPerNazione();
-  const entries=Object.entries(letti);
-
   // Libri senza nazione ancora risolta
   const cache=_getNazCache();
   const nonClassificati=G.lettiData?.filter(l=>{
@@ -3453,7 +3445,6 @@ async function riprovaNazioni(){
   }
   _nazioneCache=cache;
   _saveNazCache();
-  renderPassaporto();
   await migraNazioniEsistenti();
 }
 
