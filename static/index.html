@@ -491,17 +491,6 @@ body.dark .morph-ov{background:#121f13}
 .mapinfo{margin-top:14px}
 .maphint{font-size:.8rem;color:#aaa;font-style:italic;text-align:center;padding:8px 0}
 
-/* MAPPA LETTURE */
-.mn-naz{fill:var(--av3);stroke:#fff;stroke-width:1;transition:fill .3s,stroke-width .2s}
-.mn-naz.visitato{fill:var(--bosco-2);cursor:pointer}
-.mn-naz.visitato:hover{fill:var(--bosco)}
-.mn-naz.visitato.sel{fill:var(--oro);stroke:var(--bosco);stroke-width:1.6}
-.passgr{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.passc{background:#fff;border-radius:var(--r);box-shadow:var(--sh-s);padding:14px;border-left:3px solid var(--oro);position:relative;overflow:hidden}
-.passorn{position:absolute;right:-6px;bottom:-10px;font-family:'Cormorant Garamond',serif;font-size:3.2rem;color:var(--oro);opacity:.12;line-height:1}
-.passn{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--bosco);line-height:1.2;margin-bottom:2px}
-.passd{font-size:.68rem;color:#aaa}
-
 /* LAPIDES */
 .lapi{display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid var(--av2)}
 .lapi:last-child{border-bottom:none}
@@ -966,11 +955,6 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
         <div class="sc-ico">🏛️</div><div class="sc-nome">Pantheon</div>
         <div class="sc-desc">I tuoi badge e traguardi</div><div class="sc-orn">P</div>
       </div>
-      <div class="sc" data-c="b" onclick="morphVai(this,'smnem')">
-        <div class="sc-arr">›</div>
-        <div class="sc-ico">📊</div><div class="sc-nome">Mnemosine</div>
-        <div class="sc-desc">Le tracce del tuo viaggio</div><div class="sc-orn">M</div>
-      </div>
       <div class="sc wide" data-c="o" onclick="morphVai(this,'slap')">
         <div class="sc-arr">›</div>
         <div class="sc-ico">🏺</div><div class="sc-nome">Lapides Miliarii</div>
@@ -1111,78 +1095,6 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
   </div>
 </div>
 
-<!-- MNEMOSINE -->
-<div id="smnem" class="S cnav">
-  <div class="sint">
-    <div class="sornbg">M</div>
-    <div class="sinti">
-      <div class="stag">Dea della Memoria</div>
-      <h1 class="stitolo">Mnemo<strong>sine</strong></h1>
-      <div class="ssub">Dal greco Μνημοσύνη — la personificazione della memoria</div>
-    </div>
-  </div>
-  <div class="sbody">
-    <button class="bsm bsmg" style="margin-bottom:20px" onclick="vai('shome')">← Home</button>
-    <div class="etimo">
-      <div class="etn">Mnemosine</div><div class="eto">Dal greco antico · Μνημοσύνη, Mnēmosýnē</div>
-      <p class="etd ph">Figlia della memoria e madre delle Muse, Mnemosine raccoglie le tracce del tuo viaggio letterario.</p>
-    </div>
-    <div id="mn-auth">
-      <div class="psez">
-        <div class="sh3">🗺️ Mappa delle letture</div>
-        <p style="font-size:.74rem;color:#aaa;margin-bottom:10px;font-style:italic">I paesi diventano verdi quando leggi un autore che vi appartiene. Toccali per scoprire quali libri hai letto.</p>
-        <div class="mapwrap">
-          <button class="map-expand" onclick="apriMappaFS('mnemosine')" title="Schermo intero">⤢</button>
-          <svg id="mnmapsvg" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
-        </div>
-        <div id="mnmapinfo" class="mapinfo">
-          <p class="maphint">Tocca un paese verde per scoprire i libri letti.</p>
-        </div>
-      </div>
-      <div class="psez">
-        <div class="sh3">📔 Passaporto letterario</div>
-        <p style="font-size:.74rem;color:#aaa;margin-bottom:10px;font-style:italic">I timbri dei paesi che hai visitato attraverso le tue letture.</p>
-        <div id="mnpass"><div class="vp">Nessun timbro ancora: leggi un libro per iniziare il tuo viaggio.</div></div>
-      </div>
-      </div>
-    </div>
-    <div id="mn-noauth" style="display:none">
-      <div class="vuoto">
-        <svg class="vuoto-ill" width="180" height="140" viewBox="0 0 180 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- mappa stilizzata sfumata -->
-          <ellipse cx="90" cy="75" rx="75" ry="52" fill="#0f2210" opacity=".55"/>
-          <!-- meridiani -->
-          <ellipse cx="90" cy="75" rx="75" ry="52" stroke="#1b3d1e" stroke-width="1" fill="none"/>
-          <ellipse cx="90" cy="75" rx="50" ry="52" stroke="#1b3d1e" stroke-width=".7" fill="none"/>
-          <ellipse cx="90" cy="75" rx="25" ry="52" stroke="#1b3d1e" stroke-width=".7" fill="none"/>
-          <!-- paralleli -->
-          <line x1="15" y1="75" x2="165" y2="75" stroke="#1b3d1e" stroke-width=".7"/>
-          <line x1="20" y1="55" x2="160" y2="55" stroke="#1b3d1e" stroke-width=".5"/>
-          <line x1="20" y1="95" x2="160" y2="95" stroke="#1b3d1e" stroke-width=".5"/>
-          <!-- punti-nazione stilizzati -->
-          <circle cx="58"  cy="62" r="3.5" fill="#2a5530" stroke="#c8a44a" stroke-width=".8" opacity=".6"/>
-          <circle cx="90"  cy="55" r="4"   fill="#2a5530" stroke="#c8a44a" stroke-width=".8" opacity=".5"/>
-          <circle cx="118" cy="65" r="3"   fill="#2a5530" stroke="#c8a44a" stroke-width=".8" opacity=".5"/>
-          <circle cx="75"  cy="85" r="3"   fill="#2a5530" stroke="#c8a44a" stroke-width=".8" opacity=".4"/>
-          <circle cx="130" cy="82" r="2.5" fill="#2a5530" stroke="#c8a44a" stroke-width=".8" opacity=".4"/>
-          <circle cx="48"  cy="88" r="2"   fill="#2a5530" stroke="#c8a44a" stroke-width=".8" opacity=".35"/>
-          <!-- lucchetto centrato -->
-          <rect x="76" y="68" width="28" height="22" rx="4" fill="#132b15" stroke="#c8a44a" stroke-width="1.5"/>
-          <path d="M82 68 C82 60 98 60 98 68" stroke="#c8a44a" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-          <circle cx="90" cy="79" r="3.5" fill="#c8a44a" opacity=".8"/>
-          <line x1="90" y1="82" x2="90" y2="86" stroke="#c8a44a" stroke-width="1.5" stroke-linecap="round" opacity=".8"/>
-          <!-- stelline -->
-          <circle cx="24"  cy="40" r="1.5" fill="#c8a44a" opacity=".35"/>
-          <circle cx="158" cy="35" r="1"   fill="#c8a44a" opacity=".3"/>
-          <circle cx="165" cy="105" r="1.5" fill="#c8a44a" opacity=".25"/>
-          <circle cx="14"  cy="100" r="1"  fill="#c8a44a" opacity=".2"/>
-        </svg>
-        <h2>Accedi per le statistiche</h2><p>Crea un account per tracciare le tue letture.</p>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- LAPIDES MILIARII -->
 <div id="slap" class="S cnav">
   <div class="sint">
@@ -1305,7 +1217,7 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
 <script>
 /* SWIPE TRA TAB */
 (function(){
-  const TAB_ORDER=['shome','salex','satlante','smnem','slap','sprof'];
+  const TAB_ORDER=['shome','salex','satlante','slap','sprof'];
   let tx=0,ty=0,swiping=false;
   document.addEventListener('touchstart',e=>{
     const t=e.touches[0];
@@ -1347,7 +1259,7 @@ let G={u:null,bib:'',letti:new Set(),lettiData:[]};
 
 const BIBS=["Acquafredda","Adro","Agnadello","Agnosine","Anfo","Angolo Terme","Annicco","Artogne","Azzano Mella","Bagnolo Cremasco","Bagnolo Mella","Bagolino","Barbariga","Barghe","Bassano Bresciano","Bedizzole","Berlingo","Berzo Demo","Berzo Inferiore","Bienno","Bione","Bonemerse","Borgo San Giacomo","Borgosatollo","Borno","Botticino","Bovegno","Bovezzo","Brandico","Braone","Breno","Brescia - Abba-Ballini","Brescia - Archivio Storico","Brescia - Arnaldo","Brescia - Bibliobus","Brescia - Buffalora","Brescia - Canton Mombello","Brescia - Casazza","Brescia - Centro Casa Severino","Brescia - Emeroteca Queriniana","Brescia - Fondazione Trebeschi","Brescia - Gambara","Brescia - Ghetti","Brescia - Golgi","Brescia - La Vetrina","Brescia - Largo Torrelunga","Brescia - Mediateca Queriniana","Brescia - Museo Scienze Naturali","Brescia - Parco Gallo","Brescia - Prealpino","Brescia - Queriniana","Brescia - San Polo","Brescia - SBU","Brescia - Sereno","Brescia - UAU","Brione","Caino","Calcinato","Calvagese D-R","Calvatone","Calvisano","Camisano","Capergnanica","Capo Di Ponte","Capovalle","Capralba","Capriano Del Colle","Capriolo","Carpenedolo","Casalbuttano","Casale Cremasco Vidolasco","Casaletto Ceredano","Casaletto Vaprio","Casalmaggiore","Casalpusterlengo","Castegnato","Castel Mella","Castelcovati","Castelleone","Castello Di Padernello","Castelverde","Castenedolo","Casto","Castrezzato","Cazzago SM","Cedegolo","Cellatica","Centro Fumetto A. Pazienza","Centro Studi RSI Salò","Cerveno","Ceto","Cevo","Chiari","Chieve","Cigole","Cimbergo","Cingia De' Botti","Cividate Camuno","Clusane","Coccaglio","Collebeato","Collio","Cologne","Comezzano - Cizzago","Concesio","Corte De' Frati","Corte Franca","Corteno Golgi","Corzano","Credera Rubbiano","Crema","Crema - Museo","Cremona - Anguissola","Cremona - CDA","Cremona - Manin","Darfo Boario Terme","Dello","Desenzano","Dovera","Edolo","Elnos","Erbusco","Esine","Fiesco","Fiesse","Flero","Gadesco Pieve Delmona","Gambara","Gardone Riviera","Gardone Val Trompia","Gargnano","Gavardo","Genivolta","Ghedi","Gianico","Gottolengo","Grontardo","Grumello Cremonese","Gussago","Gussola","Idro","Incudine","Irma","Iseo","Isola Dovarese","Isorella","Izano","Lavenone","Leno","Limone Sul Garda","Lodrino","Lograto","Lonato Del Garda","Longhena","Losine","Lozio","Lumezzane","Maclodio","Madignano","Magasa","Mairano","Malegno","Malonno","Manerba Del Garda","Manerbio","Marcheno","Marmentino","Marone","Martignana Di Po","Mazzano","Milzano","Moniga Del Garda","Monno","Monte Cremasco","Monte Isola","Monticelli Brusati","Montichiari","Montirone","Montodine","Mura","Muscoline","Nave","Niardo","Nuvolento","Nuvolera","Odolo","Offanengo","Offlaga","Ome","Ono San Pietro","Orzinuovi","Orzivecchi","Ospitaletto","Ostiano","Padenghe Sul Garda","Paderno FC","Paderno Ponchielli","Paitone","Palazzo Pignano","Palazzolo Sull'Oglio","Pandino","Paratico","Passirano","Pavone Del Mella","Persico Dosimo","Pertica Alta","Pertica Bassa","Pescarolo Ed Uniti","Pezzaze","Piadena Drizzona","Pian Camuno","Piancogno","Pianengo","Pisogne","Pizzighettone","Polaveno","Polpenazze Del Garda","Pompiano","Poncarale","Ponte Di Legno","Pontevico","Pontoglio","Pozzolengo","Pralboino","Preseglie","Prestine","Prevalle","Provaglio D'Iseo","Provaglio VS","Puegnago Del Garda","Quinzano D'Oglio","Remedello","Rezzato","Ricengo","Ripalta Cremasca","Rivarolo Del Re","Rivolta D'Adda","Roccafranca","Rodengo Saiano","Roè Volciano","Romanengo","Roncadelle","Rovato","Rudiano","Sabbio Chiese","Sale Marasino","Salò","San Bassano","San Daniele Po","San Felice Del Benaco","San Gervasio Bresciano","San Giovanni In Croce","San Paolo","San Zeno Naviglio","Sarezzo","Saviore Dell'Adamello","Sellero","Seniga","Sergnano","Serle","Sesto Ed Uniti","Sirmione","Soiano Del Lago","Solarolo Rainerio","Soncino","Sonico","Soresina","Sospiro","Spino D'Adda","Sulzano","Tavernole Sul Mella","Temù","Tignale","Torbole Casaglia","Tornata","Torre De' Picenardi","Torricella Del Pizzo","Toscolano Maderno","Travagliato","Tremosine","Trenzano","Trescore Balneario","Trescore Cremasco","Treviso Bresciano","Urago D'Oglio","Vallio Terme","Valvestino","Verolanuova","Verolavecchia","Vestone","Vezza D'Oglio","Villa Carcina","Villanuova Sul Clisi","Visano","Vobarno","Zone"];
 
-const CNV=['shome','salex','satlante','smnem','slap','sprof','spant'];
+const CNV=['shome','salex','satlante','slap','sprof','spant'];
 let _atlAvv=false;
 
 /* --- HAPTIC --- */
@@ -1390,9 +1302,8 @@ function vai(id,sub,noAnim){
   if(id==='sa')mostraForm(sub||'login');
   if(id==='shome')aggHome();
   if(id==='sprof')caricaProf();
-  if(id==='smnem')caricaMnem();
   if(id==='slap')renderCostellazioni();
-  if(id==='spant'){renderPantheon();}
+  if(id==='spant'){renderPantheon();migraNazioniEsistenti();}
   if(id==='satlante'){incAtlanteVisits();if(!_atlAvv){_atlAvv=true;initMappa();}}
   window.scrollTo(0,0);
 }
@@ -1815,10 +1726,10 @@ async function togLetto(btn,libro){
       if(!r.ok){const e=await r.json();throw new Error(e.error);}
       G.letti.add(url);G.lettiData.push({titolo:libro.titolo,autore:libro.autore||'',url_opac:url,biblioteca:G.bib});
       btn.textContent='✓ Letto';btn.classList.add('on');
-      // Risolvi subito la nazione in background per il nuovo libro
+      // Risolvi subito la nazione in background per il nuovo libro (serve al Pantheon per i badge geografici)
       if(libro.autore){
         fetchNazioneWikidata(libro.autore).then(()=>{
-          renderMnemoMappa();renderPassaporto();
+          renderPantheon();
         });
       }
     }else{
@@ -1827,7 +1738,7 @@ async function togLetto(btn,libro){
       G.letti.delete(url);G.lettiData=G.lettiData.filter(l=>l.url_opac!==url);
       btn.textContent='○ Segna come letto';btn.classList.remove('on');
     }
-    renderCostellazioni();renderPantheon();renderMnemoMappa();renderPassaporto();
+    renderCostellazioni();renderPantheon();
   }catch(e){console.error('togLetto',e);}
 }
 function renderRis(data){
@@ -2780,22 +2691,7 @@ function showBadgeToast(badge){
 
 
 
-/* MNEMOSINE */
-async function caricaMnem(){
-  if(!G.u){document.getElementById('mn-noauth').style.display='';document.getElementById('mn-auth').style.display='none';return;}
-  document.getElementById('mn-noauth').style.display='none';document.getElementById('mn-auth').style.display='';
-  try{
-    const stR=await fetch('/api/storico');
-    const st=await stR.json();
-    const mnrEl=document.getElementById('mnr');if(mnrEl)mnrEl.textContent=st.tot_ricerche||0;
-    const mntqEl=document.getElementById('mntq');if(mntqEl)mntqEl.innerHTML=st.top_query?.length?st.top_query.map((q,i)=>`<div class="tqi"><span class="tqr">${i+1}</span><span class="tqq">${q.query}</span><span class="tqn">${q.n}×</span></div>`).join(''):'<div class="vp">Nessuna ricerca ancora.</div>';
-    const mnstEl=document.getElementById('mnst');if(mnstEl)mnstEl.innerHTML=st.ricerche?.length?st.ricerche.map(r=>`<div class="rci"><div><div class="riq">${r.query}</div><div class="rib">${r.biblioteca}</div></div><div class="rim">${r.a_bib}/${r.trovati}<br>${r.cercato_il.slice(0,10)}</div></div>`).join(''):'<div class="vp">Nessuna ricerca ancora.</div>';
-  }catch(e){console.error(e);}
-  renderMnemoMappa();
-  renderPassaporto();
-  // Risolve in background le nazioni dei libri già letti
-  migraNazioniEsistenti();
-}
+/* Risoluzione nazionalità autori: usata dal Pantheon per i badge geografici (vedi getLettiPerNazione più sotto) */
 
 /* ── WIKIPEDIA NATIONALITY RESOLVER ──────────────────────────────────────
    Dato un nome autore, cerca su Wikipedia (EN) e tenta di estrarre il paese
@@ -3392,8 +3288,7 @@ async function migraNazioniEsistenti(){
   for(let i=0;i<autoriDaRisolvere.length;i+=2){
     const batch=autoriDaRisolvere.slice(i,i+2);
     await Promise.all(batch.map(a=>fetchNazioneWikidata(a)));
-    renderMnemoMappa();
-    renderPassaporto();
+    renderPantheon(); // aggiorna i badge geografici del Pantheon man mano che le nazioni vengono risolte
     await new Promise(r=>setTimeout(r,500));
   }
 }
@@ -3426,119 +3321,6 @@ function getLettiPerNazione(){
   return out;
 }
 
-let _mnMapInit=false;
-function renderMnemoMappa(){
-  const svg=document.getElementById('mnmapsvg');
-  if(!svg||typeof d3==='undefined'||typeof topojson==='undefined'){
-    const wrap=svg?.closest('.mapwrap');
-    if(wrap)wrap.innerHTML='<p class="maphint">Libreria mappa non caricata (D3/TopoJSON).</p><button class="bric" style="display:block;margin:8px auto 0" onclick="_mnMapInit=false;renderMnemoMappa()">↻ Riprova</button>';
-    return;
-  }
-  const letti=getLettiPerNazione();
-  if(_mnMapInit){
-    // mappa già disegnata: aggiorna solo i colori
-    d3.select(svg).selectAll('path.mn-naz').each(function(d){
-      const visitato=!!letti[d.properties.name];
-      d3.select(this).classed('visitato',visitato);
-      if(!visitato)d3.select(this).classed('sel',false);
-    });
-    return;
-  }
-  _mnMapInit=true;
-  const W=1000,H=500;
-  const projection=d3.geoNaturalEarth1().scale(165).translate([W/2,H/2-10]);
-  const path=d3.geoPath(projection);
-  const s=d3.select(svg).attr('viewBox',`0 0 ${W} ${H}`);
-  s.append('rect').attr('width',W).attr('height',H).attr('fill','#eef3f6');
-  const g=s.append('g');
-
-  d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world=>{
-    const countries=topojson.feature(world,world.objects.countries).features;
-    g.selectAll('path.mapcont')
-      .data(countries)
-      .join('path')
-      .attr('class','mapcont')
-      .attr('d',path);
-
-    countries.forEach(f=>{
-      const info=NAZIONI[f.properties.name];
-      const visitato=!!letti[f.properties.name];
-      if(!info&&!visitato)return; // nazione non in NAZIONI e non visitata: salta
-      const p=g.append('path')
-        .datum(f)
-        .attr('class',`mn-naz${visitato?' visitato':''}`)
-        .attr('d',path)
-        .on('click',()=>{
-          if(!letti[f.properties.name])return;
-          selNazioneMnemo(f.properties.name,info||null,letti[f.properties.name],p.node());
-        });
-    });
-  }).catch(e=>{
-    console.error('Mappa Mnemosine: errore caricamento dati geografici',e);
-    _mnMapInit=false;
-    const wrap=svg.closest('.mapwrap');
-    if(wrap)wrap.innerHTML='<p class="maphint">Impossibile caricare i dati geografici.</p><button class="bric" style="display:block;margin:8px auto 0" onclick="renderMnemoMappa()">↻ Riprova</button>';
-  });
-}
-function selNazioneMnemo(name,info,libri,el){
-  document.querySelectorAll('#mnmapsvg .mn-naz').forEach(p=>p.classList.remove('sel'));
-  if(el)el.classList.add('sel');
-  const box=document.getElementById('mnmapinfo');
-  const nome=(info&&(info.nome||name))||name;
-  const ops=libri.map(l=>`<div class="opi"><div class="opb"><div class="opt">${l.titolo}</div><div style="font-size:.78rem;color:#999;font-style:italic;font-family:'Cormorant Garamond',serif">${l.autore||''}</div></div></div>`).join('');
-  box.innerHTML=`<div class="ec"><div class="ech"><div class="ecl">📍 ${nome}</div><div class="autn" style="font-size:1.1rem">Libri letti da qui</div></div><div class="oplist">${ops}</div></div>`;
-}
-
-function renderPassaporto(){
-  const cont=document.getElementById('mnpass');if(!cont)return;
-  const letti=getLettiPerNazione();
-  const entries=Object.entries(letti);
-
-  // Libri senza nazione ancora risolta
-  const cache=_getNazCache();
-  const nonClassificati=G.lettiData?.filter(l=>{
-    if(!l.autore)return false; // autore vuoto: non mostrare
-    const key=l.autore.trim().toLowerCase();
-    if(cache[key])return false; // trovato in cache Wikidata
-    for(const info of Object.values(NAZIONI)){if(info.autori.some(a=>autMatch(a.a,l.autore)))return false;} // match hardcoded
-    return true; // non ancora risolto da Wikidata
-  })||[];
-
-  if(!entries.length&&!nonClassificati.length){
-    cont.innerHTML='<div class="vp">Nessun timbro ancora: leggi un libro per iniziare il tuo viaggio.</div>';return;
-  }
-
-  let html=`<div class="passgr">${entries.map(([key,libri])=>{
-    const nome=NAZIONI[key]?.nome||key;
-    return`<div class="passc"><div class="passorn">✦</div><div class="passn">${nome}</div><div class="passd">${libri.length} ${libri.length>1?'libri letti':'libro letto'}</div></div>`;
-  }).join('')}</div>`;
-
-  if(nonClassificati.length){
-    html+=`<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--av3)">
-      <div style="font-size:.63rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#bbb;margin-bottom:6px">⏳ Nazionalità non trovata (${nonClassificati.length})</div>
-      <div style="font-size:.75rem;color:#aaa;font-style:italic;margin-bottom:10px">Wikidata non ha restituito risultati per questi autori.</div>
-      <button class="bric" onclick="riprovaNazioni()" style="margin-bottom:12px">↻ Riprova ricerca</button>
-      <div class="passgr">${nonClassificati.map(l=>`<div class="passc" style="opacity:.45"><div class="passorn">?</div><div class="passn" style="font-size:.85rem">${l.titolo}</div><div class="passd">${l.autore||'Autore sconosciuto'}</div></div>`).join('')}</div>
-    </div>`;
-  }
-
-  cont.innerHTML=html;
-}
-
-/* Svuota le entry null dalla cache e rilancia la risoluzione. */
-async function riprovaNazioni(){
-  const cache=_getNazCache();
-  // Rimuove solo i null: le nazioni già trovate restano
-  let rimossi=0;
-  for(const k of Object.keys(cache)){
-    if(cache[k]===null){delete cache[k];rimossi++;}
-  }
-  _nazioneCache=cache;
-  _saveNazCache();
-  renderPassaporto();
-  await migraNazioniEsistenti();
-}
-
 /* MAPPA FULLSCREEN */
 let _fsType=null;
 function apriMappaFS(tipo){
@@ -3550,16 +3332,9 @@ function apriMappaFS(tipo){
   const title=document.getElementById('mapFsTitle');
   ovr.classList.add('on');
   info.innerHTML='<p class="map-fs-hint">Tocca una nazione evidenziata per scoprire autori e libri.</p>';
-
-  if(tipo==='atlante'){
-    title.textContent='Atlante — Mappa letteraria';
-    wrap.innerHTML='<svg id="mapsvg-fs" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%"></svg>';
-    _disegnaMappFS('mapsvg-fs',false,info);
-  }else{
-    title.textContent='Mnemosine — Le mie letture';
-    wrap.innerHTML='<svg id="mnmapsvg-fs" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%"></svg>';
-    _disegnaMappFS('mnmapsvg-fs',true,info);
-  }
+  title.textContent='Atlante — Mappa letteraria';
+  wrap.innerHTML='<svg id="mapsvg-fs" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%"></svg>';
+  _disegnaMappFS('mapsvg-fs',false,info);
 }
 function chiudiMappaFS(){
   document.getElementById('mapFsOvr').classList.remove('on');
@@ -3571,7 +3346,6 @@ function _disegnaMappFS(svgId,isMnem,infoEl){
   if(!svg||typeof d3==='undefined'||typeof topojson==='undefined'){
     if(infoEl)infoEl.innerHTML='<p class="map-fs-hint">Libreria mappa non disponibile.</p>';return;
   }
-  const letti=isMnem?getLettiPerNazione():{};
   const W=1000,H=500;
   const projection=d3.geoNaturalEarth1().scale(165).translate([W/2,H/2-10]);
   const path=d3.geoPath(projection);
@@ -3586,26 +3360,14 @@ function _disegnaMappFS(svgId,isMnem,infoEl){
       .attr('class','mapcont').attr('d',path);
     countries.forEach(f=>{
       const info=NAZIONI[f.properties.name];if(!info)return;
-      const visitato=isMnem?!!letti[f.properties.name]:true;
-      if(!visitato)return;
-      const cls=isMnem?`mn-naz visitato`:`mapnaz attiva`;
-      const pathEl=g.append('path').datum(f).attr('class',cls).attr('d',path);
+      const pathEl=g.append('path').datum(f).attr('class','mapnaz attiva').attr('d',path);
       pathEl.on('click',()=>{
           g.selectAll('.sel').classed('sel',false);
           pathEl.classed('sel',true);
-          // seleziona visivamente
-          if(isMnem){
-            if(!letti[f.properties.name])return;
-            const libri=letti[f.properties.name];
-            const nome=NAZIONI[f.properties.name]?.nome||f.properties.name;
-            const ops=libri.map(l=>`<div class="opi"><div class="opb"><div class="opt">${l.titolo}</div><div style="font-size:.78rem;color:#999;font-style:italic;font-family:'Cormorant Garamond',serif">${l.autore||''}</div></div></div>`).join('');
-            infoEl.innerHTML=`<div class="ech"><div class="ecl">📍 ${nome}</div><div class="autn" style="font-size:1rem">Libri letti da qui</div></div><div class="oplist">${ops}</div>`;
-          }else{
-            const ninfo=NAZIONI[f.properties.name];
-            const nome=ninfo?.nome||f.properties.name;
-            const ops=(ninfo?.autori||[]).map(a=>`<div class="opi"><div class="opb"><div class="opt">${a.a}</div><div style="font-size:.78rem;color:#999;font-style:italic;font-family:'Cormorant Garamond',serif">${a.o}</div></div></div>`).join('');
-            infoEl.innerHTML=`<div class="ech"><div class="ecl">📍 ${nome}</div><div class="autn" style="font-size:1rem">Autori da scoprire</div></div><div class="oplist">${ops}</div>`;
-          }
+          const ninfo=NAZIONI[f.properties.name];
+          const nome=ninfo?.nome||f.properties.name;
+          const ops=(ninfo?.autori||[]).map(a=>`<div class="opi"><div class="opb"><div class="opt">${a.a}</div><div style="font-size:.78rem;color:#999;font-style:italic;font-family:'Cormorant Garamond',serif">${a.o}</div></div></div>`).join('');
+          infoEl.innerHTML=`<div class="ech"><div class="ecl">📍 ${nome}</div><div class="autn" style="font-size:1rem">Autori da scoprire</div></div><div class="oplist">${ops}</div>`;
         });
     });
   }).catch(()=>{if(infoEl)infoEl.innerHTML='<p class="map-fs-hint">Impossibile caricare i dati geografici.</p>';});
