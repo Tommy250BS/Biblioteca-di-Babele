@@ -543,30 +543,30 @@ body.dark .morph-ov{background:#121f13}
 .bdg-cat-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(200,164,74,.25),transparent)}
 .bdg-cat-count{font-size:.6rem;color:#bbb;font-weight:600;letter-spacing:.06em}
 
-.bgr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bgr{display:flex;flex-direction:column;gap:8px}
 .bc{
   background:#fff;border-radius:var(--r);padding:0;
-  box-shadow:var(--sh-s);text-align:center;
-  display:flex;flex-direction:column;align-items:center;
+  box-shadow:var(--sh-s);text-align:left;
+  display:flex;flex-direction:row;align-items:stretch;
   overflow:hidden;transition:box-shadow .3s,transform .2s var(--ease-spring);
   cursor:default;
 }
-.bc:hover:not(.lk){box-shadow:var(--sh-m);transform:translateY(-2px)}
+.bc:hover:not(.lk){box-shadow:var(--sh-m);transform:translateX(2px)}
 .bc.lk{opacity:.32;filter:grayscale(1);cursor:not-allowed}
-/* icona + sfondo */
+/* icona + sfondo — ora colonna sinistra fissa */
 .bc-ico-wrap{
-  width:100%;padding:18px 0 10px;
+  width:68px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
   background:linear-gradient(160deg,var(--bosco-3) 0%,var(--bosco-4) 100%);
   position:relative;overflow:hidden;
 }
 .bc-ico-wrap::after{
   content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(200,164,74,.12) 0%,transparent 70%);
+  background:radial-gradient(ellipse 80% 120% at 50% 50%,rgba(200,164,74,.14) 0%,transparent 70%);
   pointer-events:none;
 }
 .bc.lk .bc-ico-wrap{background:linear-gradient(160deg,#1a1a1a,#222);}
-.bbi{font-size:2.2rem;line-height:1;position:relative;z-index:1;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4))}
+.bbi{font-size:1.9rem;line-height:1;position:relative;z-index:1;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4))}
 /* lock overlay sull'icona */
 .bc.lk .bbi::after{
   content:'🔒';
@@ -575,15 +575,16 @@ body.dark .morph-ov{background:#121f13}
   font-size:.75rem;
   filter:none;
 }
-.bc-body{padding:12px 10px 14px;width:100%}
-.bbn{font-size:.72rem;font-weight:700;letter-spacing:.03em;color:var(--ink);line-height:1.3;margin-bottom:4px}
+.bc-body{padding:11px 14px 11px;flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.bbn{font-size:.8rem;font-weight:700;letter-spacing:.02em;color:var(--ink);line-height:1.25;margin-bottom:2px}
 body.dark .bbn{color:var(--ink)}
-.bbd{font-size:.62rem;color:#aaa;line-height:1.5;margin-bottom:8px}
+.bbd{font-size:.69rem;color:#aaa;line-height:1.45;margin-bottom:6px}
 /* pill stato */
 .bc-pill{
   display:inline-flex;align-items:center;gap:4px;
   border-radius:20px;padding:3px 9px;
   font-size:.58rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  align-self:flex-start;
 }
 .bc-pill.on{background:rgba(27,61,30,.1);color:var(--bosco);border:1px solid rgba(27,61,30,.2)}
 body.dark .bc-pill.on{background:rgba(200,164,74,.1);color:var(--oro-2);border-color:rgba(200,164,74,.2)}
