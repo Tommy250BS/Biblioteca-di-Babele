@@ -491,6 +491,17 @@ body.dark .morph-ov{background:#121f13}
 .mapinfo{margin-top:14px}
 .maphint{font-size:.8rem;color:#aaa;font-style:italic;text-align:center;padding:8px 0}
 
+/* MAPPA LETTURE */
+.mn-naz{fill:var(--av3);stroke:#fff;stroke-width:1;transition:fill .3s,stroke-width .2s}
+.mn-naz.visitato{fill:var(--bosco-2);cursor:pointer}
+.mn-naz.visitato:hover{fill:var(--bosco)}
+.mn-naz.visitato.sel{fill:var(--oro);stroke:var(--bosco);stroke-width:1.6}
+.passgr{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.passc{background:#fff;border-radius:var(--r);box-shadow:var(--sh-s);padding:14px;border-left:3px solid var(--oro);position:relative;overflow:hidden}
+.passorn{position:absolute;right:-6px;bottom:-10px;font-family:'Cormorant Garamond',serif;font-size:3.2rem;color:var(--oro);opacity:.12;line-height:1}
+.passn{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--bosco);line-height:1.2;margin-bottom:2px}
+.passd{font-size:.68rem;color:#aaa}
+
 /* LAPIDES */
 .lapi{display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid var(--av2)}
 .lapi:last-child{border-bottom:none}
@@ -1116,6 +1127,56 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
       <div class="etn">Mnemosine</div><div class="eto">Dal greco antico · Μνημοσύνη, Mnēmosýnē</div>
       <p class="etd ph">Figlia della memoria e madre delle Muse, Mnemosine raccoglie le tracce del tuo viaggio letterario.</p>
     </div>
+    <div id="mn-auth">
+      <div class="psez">
+        <div class="sh3">🗺️ Mappa delle letture</div>
+        <p style="font-size:.74rem;color:#aaa;margin-bottom:10px;font-style:italic">I paesi diventano verdi quando leggi un autore che vi appartiene. Toccali per scoprire quali libri hai letto.</p>
+        <div class="mapwrap">
+          <button class="map-expand" onclick="apriMappaFS('mnemosine')" title="Schermo intero">⤢</button>
+          <svg id="mnmapsvg" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+        <div id="mnmapinfo" class="mapinfo">
+          <p class="maphint">Tocca un paese verde per scoprire i libri letti.</p>
+        </div>
+      </div>
+      <div class="psez">
+        <div class="sh3">📔 Passaporto letterario</div>
+        <p style="font-size:.74rem;color:#aaa;margin-bottom:10px;font-style:italic">I timbri dei paesi che hai visitato attraverso le tue letture.</p>
+        <div id="mnpass"><div class="vp">Nessun timbro ancora: leggi un libro per iniziare il tuo viaggio.</div></div>
+      </div>
+      </div>
+    </div>
+    <div id="mn-noauth" style="display:none">
+      <div class="vuoto">
+        <svg class="vuoto-ill" width="180" height="140" viewBox="0 0 180 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- mappa stilizzata sfumata -->
+          <ellipse cx="90" cy="75" rx="75" ry="52" fill="#0f2210" opacity=".55"/>
+          <!-- meridiani -->
+          <ellipse cx="90" cy="75" rx="75" ry="52" stroke="#1b3d1e" stroke-width="1" fill="none"/>
+          <ellipse cx="90" cy="75" rx="50" ry="52" stroke="#1b3d1e" stroke-width=".7" fill="none"/>
+          <ellipse cx="90" cy="75" rx="25" ry="52" stroke="#1b3d1e" stroke-width=".7" fill="none"/>
+          <!-- paralleli -->
+          <line x1="15" y1="75" x2="165" y2="75" stroke="#1b3d1e" stroke-width=".7"/>
+          <line x1="20" y1="55" x2="160" y2="55" stroke="#1b3d1e" stroke-width=".5"/>
+          <line x1="20" y1="95" x2="160" y2="95" stroke="#1b3d1e" stroke-width=".5"/>
+          <!-- punti-nazione stilizzati -->
+          <circle cx="58"  cy="62" r="3.5" fill="#2a5530" stroke="#c8a44a" stroke-width=".8" opacity=".6"/>
+          <circle cx="90"  cy="55" r="4"   fill="#2a5530" stroke="#c8a44a" stroke-width=".8" opacity=".5"/>
+          <circle cx="118" cy="65" r="3"   fill="#2a5530" stroke="#c8a44a" stroke-width=".8" opacity=".5"/>
+          <circle cx="75"  cy="85" r="3"   fill="#2a5530" stroke="#c8a44a" stroke-width=".8" opacity=".4"/>
+          <circle cx="130" cy="82" r="2.5" fill="#2a5530" stroke="#c8a44a" stroke-width=".8" opacity=".4"/>
+          <circle cx="48"  cy="88" r="2"   fill="#2a5530" stroke="#c8a44a" stroke-width=".8" opacity=".35"/>
+          <!-- lucchetto centrato -->
+          <rect x="76" y="68" width="28" height="22" rx="4" fill="#132b15" stroke="#c8a44a" stroke-width="1.5"/>
+          <path d="M82 68 C82 60 98 60 98 68" stroke="#c8a44a" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+          <circle cx="90" cy="79" r="3.5" fill="#c8a44a" opacity=".8"/>
+          <line x1="90" y1="82" x2="90" y2="86" stroke="#c8a44a" stroke-width="1.5" stroke-linecap="round" opacity=".8"/>
+          <!-- stelline -->
+          <circle cx="24"  cy="40" r="1.5" fill="#c8a44a" opacity=".35"/>
+          <circle cx="158" cy="35" r="1"   fill="#c8a44a" opacity=".3"/>
+          <circle cx="165" cy="105" r="1.5" fill="#c8a44a" opacity=".25"/>
+          <circle cx="14"  cy="100" r="1"  fill="#c8a44a" opacity=".2"/>
+        </svg>
         <h2>Accedi per le statistiche</h2><p>Crea un account per tracciare le tue letture.</p>
       </div>
     </div>
@@ -2715,6 +2776,767 @@ function showBadgeToast(badge){
     tap('heavy');
   }));
   setTimeout(()=>{if(ovr.classList.contains('active'))chiudiBadgeCeremony();},6000);
+}
+
+
+
+/* MNEMOSINE */
+async function caricaMnem(){
+  if(!G.u){document.getElementById('mn-noauth').style.display='';document.getElementById('mn-auth').style.display='none';return;}
+  document.getElementById('mn-noauth').style.display='none';document.getElementById('mn-auth').style.display='';
+  try{
+    const stR=await fetch('/api/storico');
+    const st=await stR.json();
+    const mnrEl=document.getElementById('mnr');if(mnrEl)mnrEl.textContent=st.tot_ricerche||0;
+    const mntqEl=document.getElementById('mntq');if(mntqEl)mntqEl.innerHTML=st.top_query?.length?st.top_query.map((q,i)=>`<div class="tqi"><span class="tqr">${i+1}</span><span class="tqq">${q.query}</span><span class="tqn">${q.n}×</span></div>`).join(''):'<div class="vp">Nessuna ricerca ancora.</div>';
+    const mnstEl=document.getElementById('mnst');if(mnstEl)mnstEl.innerHTML=st.ricerche?.length?st.ricerche.map(r=>`<div class="rci"><div><div class="riq">${r.query}</div><div class="rib">${r.biblioteca}</div></div><div class="rim">${r.a_bib}/${r.trovati}<br>${r.cercato_il.slice(0,10)}</div></div>`).join(''):'<div class="vp">Nessuna ricerca ancora.</div>';
+  }catch(e){console.error(e);}
+  renderMnemoMappa();
+  renderPassaporto();
+  // Risolve in background le nazioni dei libri già letti
+  migraNazioniEsistenti();
+}
+
+/* ── WIKIPEDIA NATIONALITY RESOLVER ──────────────────────────────────────
+   Dato un nome autore, cerca su Wikipedia (EN) e tenta di estrarre il paese
+   dalla description (es. "French novelist" → "France").
+   Usa una cache localStorage per non rifare le stesse fetch.
+   ─────────────────────────────────────────────────────────────────────── */
+
+/* ── WIKIDATA NATIONALITY RESOLVER ──────────────────────────────────────────
+   Usa l'API SPARQL di Wikidata per ottenere il paese di cittadinanza di un
+   autore. Molto più preciso di Wikipedia: restituisce direttamente il nome EN
+   della nazione (P27 country of citizenship) senza parsing di testo libero.
+   Cache in localStorage per non ripetere le stesse query.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/*
+  Mappa QID Wikidata → nome EN usato in world-atlas / chiave NAZIONI.
+  QID = identificatore Wikidata della nazione (Q...).
+*/
+const WD_QID_MAP={
+  Q38:'Italy', Q142:'France', Q29:'Spain', Q145:'United Kingdom',
+  Q183:'Germany', Q40:'Austria', Q39:'Switzerland',
+  Q159:'Russia', Q15180:'Russia', /* Soviet Union → Russia */
+  Q30:'United States of America', Q16:'Canada', Q408:'Australia',
+  Q17:'Japan', Q148:'China', Q884:'South Korea',
+  Q155:'Brazil', Q414:'Argentina', Q739:'Colombia',
+  Q96:'Mexico', Q298:'Chile', Q419:'Peru', Q241:'Cuba',
+  Q77:'Uruguay', Q717:'Venezuela', Q750:'Bolivia', Q736:'Ecuador',
+  Q45:'Portugal', Q41:'Greece', Q43:'Turkey',
+  Q36:'Poland', Q213:'Czech Republic', Q28:'Hungary',
+  Q218:'Romania', Q403:'Serbia', Q224:'Croatia', Q215:'Slovenia',
+  Q219:'Bulgaria', Q222:'Albania', Q225:'Bosnia and Herzegovina',
+  Q20:'Norway', Q34:'Sweden', Q35:'Denmark', Q33:'Finland',
+  Q55:'Netherlands', Q31:'Belgium',
+  Q212:'Ukraine', Q184:'Belarus',
+  Q37:'Lithuania', Q211:'Latvia', Q191:'Estonia',
+  Q230:'Georgia', Q399:'Armenia', Q227:'Azerbaijan',
+  Q794:'Iran', Q244:'Lebanon', Q858:'Syria', Q801:'Israel',
+  Q796:'Iraq', Q851:'Saudi Arabia', Q79:'Egypt',
+  Q1028:'Morocco', Q262:'Algeria', Q948:'Tunisia',
+  Q1033:'Nigeria', Q114:'Kenya', Q1041:'Senegal', Q115:'Ethiopia',
+  Q924:'Tanzania', Q117:'Ghana', Q954:'Zimbabwe',
+  Q258:'South Africa', Q1014:'Cameroon', Q1008:'Ivory Coast',
+  Q668:'India', Q843:'Pakistan', Q902:'Bangladesh',
+  Q854:'Sri Lanka', Q837:'Nepal',
+  Q881:'Vietnam', Q252:'Indonesia', Q833:'Malaysia', Q928:'Philippines',
+  Q265:'Uzbekistan', Q232:'Kazakhstan', Q813:'Kyrgyzstan',
+  Q863:'Tajikistan', Q874:'Turkmenistan', Q889:'Afghanistan',
+  Q214:'Slovakia', Q233:'Malta', Q760:'Iceland', Q711:'Moldova',
+};
+
+/* Cache in memoria + localStorage.
+   Versione 2: invalida automaticamente la cache lasciata dal vecchio resolver
+   Wikipedia (che salvava null per gli autori non trovati). Wikidata li riprova. */
+let _nazioneCache=null;
+const _nazCacheVersion=3;
+function _getNazCache(){
+  if(_nazioneCache)return _nazioneCache;
+  try{
+    const v=parseInt(localStorage.getItem('rbbc_naz_cache_v')||'0');
+    if(v<_nazCacheVersion){
+      localStorage.removeItem('rbbc_naz_cache');
+      localStorage.setItem('rbbc_naz_cache_v',String(_nazCacheVersion));
+      _nazioneCache={};
+    }else{
+      const raw=JSON.parse(localStorage.getItem('rbbc_naz_cache')||'{}');
+      // Scarta i null residui per forzare un nuovo tentativo
+      _nazioneCache=Object.fromEntries(Object.entries(raw).filter(([,val])=>val!==null));
+    }
+  }catch{_nazioneCache={};}
+  return _nazioneCache;
+}
+function _saveNazCache(){
+  try{localStorage.setItem('rbbc_naz_cache',JSON.stringify(_nazioneCache));}catch{}
+}
+
+/*
+  Dizionario statico autore → nazione (forma EN usata in world-atlas).
+  Copre classici greco-latini, medievali e moderni le cui forme italiane
+  non corrispondono alle label EN di Wikidata.
+  La chiave è la forma normalizzata (minuscolo, senza accenti).
+*/
+const AUTORE_NAZIONE_STATICO={
+  // ── GRECIA ANTICA ──
+  'omero':'Greece','homer':'Greece',
+  'platone':'Greece','plato':'Greece',
+  'aristotele':'Greece','aristoteles':'Greece',
+  'erodoto':'Greece','herodotus':'Greece',
+  'sofocle':'Greece','sophocles':'Greece',
+  'euripide':'Greece','euripides':'Greece',
+  'eschilo':'Greece','aeschylus':'Greece',
+  'tucidide':'Greece','thucydides':'Greece',
+  'aristofane':'Greece','aristophanes':'Greece',
+  'epicuro':'Greece','epicurus':'Greece',
+  'plotino':'Greece','plotinus':'Greece',
+  'plutarco':'Greece','plutarch':'Greece',
+  'senofonte':'Greece','xenophon':'Greece',
+  'pindaro':'Greece','pindar':'Greece',
+  'esiodo':'Greece','hesiod':'Greece',
+  'saffo':'Greece','sappho':'Greece',
+  'polibio':'Greece','polybius':'Greece',
+  'diogene laerzio':'Greece',
+  'luciano di samosata':'Greece',
+  'nikos kazantzakis':'Greece','kazantzakis':'Greece',
+  'odysseas elytis':'Greece','elytis':'Greece',
+  'giorgos seferis':'Greece','seferis':'Greece',
+  'konstantinos kavafis':'Greece','kavafis':'Greece','cavafy':'Greece',
+  // ── ROMA ANTICA ──
+  'virgilio':'Italy','vergilius':'Italy','publius vergilius maro':'Italy',
+  'ovidio':'Italy','ovidius':'Italy','publius ovidius naso':'Italy',
+  'orazio':'Italy','horatius':'Italy','quintus horatius flaccus':'Italy',
+  'cicerone':'Italy','cicero':'Italy','marcus tullius cicero':'Italy',
+  'lucrezio':'Italy','lucretius':'Italy','titus lucretius carus':'Italy',
+  'tacito':'Italy','tacitus':'Italy',
+  'svetonio':'Italy','suetonius':'Italy',
+  'tito livio':'Italy','livy':'Italy','livius':'Italy',
+  'plinio':'Italy','pliny':'Italy',
+  'seneca':'Spain','lucius annaeus seneca':'Spain',
+  'marziale':'Spain','martial':'Spain',
+  'quintiliano':'Spain','quintilian':'Spain',
+  'lucano':'Spain','lucan':'Spain',
+  'catullo':'Italy','catullus':'Italy',
+  'sallustio':'Italy','sallust':'Italy',
+  'giulio cesare':'Italy','gaius julius caesar':'Italy',
+  'plauto':'Italy','plautus':'Italy',
+  'terenzio':'Italy','terence':'Italy',
+  'petronio':'Italy','petronius':'Italy',
+  // ── ITALIA (medievale, rinascimentale, moderna) ──
+  'dante alighieri':'Italy','dante':'Italy',
+  'giovanni boccaccio':'Italy','boccaccio':'Italy',
+  'francesco petrarca':'Italy','petrarca':'Italy',
+  'nicolo machiavelli':'Italy','niccolo machiavelli':'Italy','machiavelli':'Italy',
+  'ludovico ariosto':'Italy','ariosto':'Italy',
+  'torquato tasso':'Italy','tasso':'Italy',
+  'baldassarre castiglione':'Italy','castiglione':'Italy',
+  'benvenuto cellini':'Italy','cellini':'Italy',
+  'giovanni pico della mirandola':'Italy',
+  'giambattista vico':'Italy','vico':'Italy',
+  'giacomo leopardi':'Italy','leopardi':'Italy',
+  'alessandro manzoni':'Italy','manzoni':'Italy',
+  'giovanni verga':'Italy','verga':'Italy',
+  'gabriele d annunzio':'Italy','d annunzio':'Italy',
+  'luigi pirandello':'Italy','pirandello':'Italy',
+  'italo svevo':'Italy','svevo':'Italy',
+  'cesare pavese':'Italy','pavese':'Italy',
+  'primo levi':'Italy','levi':'Italy',
+  'italo calvino':'Italy','calvino':'Italy',
+  'umberto eco':'Italy','eco':'Italy',
+  'elsa morante':'Italy','morante':'Italy',
+  'alberto moravia':'Italy','moravia':'Italy',
+  'dino buzzati':'Italy','buzzati':'Italy',
+  'giuseppe tomasi di lampedusa':'Italy','lampedusa':'Italy',
+  'carlo collodi':'Italy','collodi':'Italy',
+  'gianni rodari':'Italy','rodari':'Italy',
+  'eugenio montale':'Italy','montale':'Italy',
+  'salvatore quasimodo':'Italy','quasimodo':'Italy',
+  'grazia deledda':'Italy','deledda':'Italy',
+  'benvenuto cellini':'Italy',
+  'francesco colonna':'Italy',
+  'marco polo':'Italy',
+  // ── SPAGNA ──
+  'miguel de cervantes':'Spain','cervantes':'Spain',
+  'francisco de quevedo':'Spain','quevedo':'Spain',
+  'lope de vega':'Spain','lope de vega carpio':'Spain',
+  'pedro calderon de la barca':'Spain','calderon':'Spain',
+  'santa teresa de avila':'Spain','teresa d avila':'Spain',
+  'san juan de la cruz':'Spain',
+  'miguel de unamuno':'Spain','unamuno':'Spain',
+  'federico garcia lorca':'Spain','garcia lorca':'Spain','lorca':'Spain',
+  'antonio machado':'Spain',
+  'juan ramon jimenez':'Spain','jimenez':'Spain',
+  'vicente aleixandre':'Spain','aleixandre':'Spain',
+  'camilo jose cela':'Spain','cela':'Spain',
+  'carlos ruiz zafon':'Spain','zafon':'Spain',
+  'javier marias':'Spain',
+  'arturo perez-reverte':'Spain',
+  // ── FRANCIA ──
+  'francois rabelais':'France','rabelais':'France',
+  'michel de montaigne':'France','montaigne':'France',
+  'jean racine':'France','racine':'France',
+  'moliere':'France','jean-baptiste poquelin':'France',
+  'pierre corneille':'France','corneille':'France',
+  'blaise pascal':'France','pascal':'France',
+  'voltaire':'France','francois marie arouet':'France',
+  'jean-jacques rousseau':'France','rousseau':'France',
+  'denis diderot':'France','diderot':'France',
+  'victor hugo':'France','hugo':'France',
+  'honore de balzac':'France','balzac':'France',
+  'gustave flaubert':'France','flaubert':'France',
+  'emile zola':'France','zola':'France',
+  'stendhal':'France','marie-henri beyle':'France',
+  'guy de maupassant':'France','maupassant':'France',
+  'charles baudelaire':'France','baudelaire':'France',
+  'arthur rimbaud':'France','rimbaud':'France',
+  'paul verlaine':'France','verlaine':'France',
+  'stephane mallarme':'France','mallarme':'France',
+  'anatole france':'France',
+  'marcel proust':'France','proust':'France',
+  'andre gide':'France','gide':'France',
+  'albert camus':'France','camus':'France',
+  'jean-paul sartre':'France','sartre':'France',
+  'simone de beauvoir':'France','beauvoir':'France',
+  'francois mauriac':'France','mauriac':'France',
+  'roger martin du gard':'France',
+  'romain rolland':'France',
+  'saint-john perse':'France',
+  'claude simon':'France',
+  'patrick modiano':'France','modiano':'France',
+  'annie ernaux':'France','ernaux':'France',
+  'jean-marie gustave le clezio':'France','le clezio':'France',
+  // ── REGNO UNITO / IRLANDA ──
+  'william shakespeare':'United Kingdom','shakespeare':'United Kingdom',
+  'john milton':'United Kingdom','milton':'United Kingdom',
+  'daniel defoe':'United Kingdom','defoe':'United Kingdom',
+  'jonathan swift':'Ireland','swift':'Ireland',
+  'henry fielding':'United Kingdom','fielding':'United Kingdom',
+  'samuel richardson':'United Kingdom',
+  'laurence sterne':'United Kingdom',
+  'jane austen':'United Kingdom','austen':'United Kingdom',
+  'william blake':'United Kingdom','blake':'United Kingdom',
+  'george gordon byron':'United Kingdom','byron':'United Kingdom',
+  'percy bysshe shelley':'United Kingdom',
+  'john keats':'United Kingdom','keats':'United Kingdom',
+  'william wordsworth':'United Kingdom','wordsworth':'United Kingdom',
+  'charles dickens':'United Kingdom','dickens':'United Kingdom',
+  'george eliot':'United Kingdom','mary ann evans':'United Kingdom',
+  'thomas hardy':'United Kingdom','hardy':'United Kingdom',
+  'robert louis stevenson':'United Kingdom','stevenson':'United Kingdom',
+  'oscar wilde':'Ireland','wilde':'Ireland',
+  'rudyard kipling':'United Kingdom','kipling':'United Kingdom',
+  'joseph conrad':'United Kingdom','conrad':'United Kingdom',
+  'virginia woolf':'United Kingdom','woolf':'United Kingdom',
+  'james joyce':'Ireland','joyce':'Ireland',
+  'samuel beckett':'Ireland','beckett':'Ireland',
+  'w b yeats':'Ireland','william butler yeats':'Ireland','yeats':'Ireland',
+  'george orwell':'United Kingdom','orwell':'United Kingdom',
+  'aldous huxley':'United Kingdom','huxley':'United Kingdom',
+  'j r r tolkien':'United Kingdom','tolkien':'United Kingdom',
+  'c s lewis':'United Kingdom',
+  'graham greene':'United Kingdom',
+  'evelyn waugh':'United Kingdom',
+  'william golding':'United Kingdom','golding':'United Kingdom',
+  'kazuo ishiguro':'United Kingdom','ishiguro':'United Kingdom',
+  // ── GERMANIA / AUSTRIA / SVIZZERA (tedescofoni) ──
+  'johann wolfgang von goethe':'Germany','goethe':'Germany',
+  'friedrich schiller':'Germany','schiller':'Germany',
+  'gotthold ephraim lessing':'Germany','lessing':'Germany',
+  'heinrich von kleist':'Germany','kleist':'Germany',
+  'ernst theodor amadeus hoffmann':'Germany','e t a hoffmann':'Germany',
+  'heinrich heine':'Germany','heine':'Germany',
+  'theodor fontane':'Germany','fontane':'Germany',
+  'thomas mann':'Germany','mann':'Germany',
+  'heinrich mann':'Germany',
+  'gunter grass':'Germany','grass':'Germany',
+  'bertolt brecht':'Germany','brecht':'Germany',
+  'franz kafka':'Austria','kafka':'Austria',
+  'robert musil':'Austria','musil':'Austria',
+  'hugo von hofmannsthal':'Austria',
+  'arthur schnitzler':'Austria','schnitzler':'Austria',
+  'stefan zweig':'Austria','zweig':'Austria',
+  'thomas bernhard':'Austria','bernhard':'Austria',
+  'elfriede jelinek':'Austria','jelinek':'Austria',
+  'peter handke':'Austria','handke':'Austria',
+  'rainer maria rilke':'Austria','rilke':'Austria',
+  'gottfried keller':'Switzerland','keller':'Switzerland',
+  'max frisch':'Switzerland','frisch':'Switzerland',
+  'friedrich durrenmatt':'Switzerland','durrenmatt':'Switzerland',
+  'herman hesse':'Germany','hermann hesse':'Germany','hesse':'Germany',
+  // ── RUSSIA ──
+  'aleksandr puskin':'Russia','puskin':'Russia','pushkin':'Russia',
+  'nikolaj gogol':'Russia','gogol':'Russia',
+  'ivan turgenev':'Russia','turgenev':'Russia',
+  'fedor dostoevskij':'Russia','dostoevskij':'Russia','dostoevsky':'Russia','dostoevski':'Russia','fyodor dostoevsky':'Russia','fedor dostoevski':'Russia',
+  'lev tolstoj':'Russia','tolstoj':'Russia','tolstoy':'Russia','leo tolstoy':'Russia',
+  'anton cechov':'Russia','cechov':'Russia','chekhov':'Russia','anton chekhov':'Russia',
+  'ivan goncarov':'Russia','goncharov':'Russia',
+  'mikhail bulgakov':'Russia','bulgakov':'Russia',
+  'boris pasternak':'Russia','pasternak':'Russia',
+  'mikhail sholokhov':'Russia','sholokhov':'Russia',
+  'ivan bunin':'Russia','bunin':'Russia',
+  'aleksandr solzenicyn':'Russia','solzenicyn':'Russia','solzhenitsyn':'Russia',
+  'maksim gorkij':'Russia','gorky':'Russia','maxim gorky':'Russia',
+  'anna achmatova':'Russia','akhmatova':'Russia',
+  'marina cvetaeva':'Russia','tsvetaeva':'Russia',
+  'joseph brodsky':'Russia','brodsky':'Russia',
+  'vladimir nabokov':'Russia','nabokov':'Russia',
+  'mikhail lermontov':'Russia','lermontov':'Russia',
+  // ── PAESI NORDICI ──
+  'henrik ibsen':'Norway','ibsen':'Norway',
+  'knut hamsun':'Norway','hamsun':'Norway',
+  'sigrid undset':'Norway','undset':'Norway',
+  'jon fosse':'Norway',
+  'bjornstjerne bjornson':'Norway','bjornson':'Norway',
+  'august strindberg':'Sweden','strindberg':'Sweden',
+  'selma lagerlof':'Sweden','lagerlof':'Sweden',
+  'par lagerkvist':'Sweden','lagerkvist':'Sweden',
+  'astrid lindgren':'Sweden','lindgren':'Sweden',
+  'stieg larsson':'Sweden',
+  'hans christian andersen':'Denmark','andersen':'Denmark',
+  'karen blixen':'Denmark','blixen':'Denmark','isak dinesen':'Denmark',
+  'soren kierkegaard':'Denmark','kierkegaard':'Denmark',
+  'elias lonnrot':'Finland','lonnrot':'Finland',
+  'aleksis kivi':'Finland','kivi':'Finland',
+  'mika waltari':'Finland','waltari':'Finland',
+  // ── EUROPA ORIENTALE ──
+  'adam mickiewicz':'Poland','mickiewicz':'Poland',
+  'wislawa szymborska':'Poland','szymborska':'Poland',
+  'stanislaw lem':'Poland','lem':'Poland',
+  'olga tokarczuk':'Poland','tokarczuk':'Poland',
+  'ryszard kapuscinski':'Poland','kapuscinski':'Poland',
+  'boleslaw prus':'Poland',
+  'henryk sienkiewicz':'Poland','sienkiewicz':'Poland',
+  'jaroslav hasek':'Czech Republic','hasek':'Czech Republic',
+  'milan kundera':'Czech Republic','kundera':'Czech Republic',
+  'kafka':'Czech Republic',
+  'sandor marai':'Hungary','marai':'Hungary',
+  'imre kertesz':'Hungary','kertesz':'Hungary',
+  'magda szabo':'Hungary','szabo':'Hungary',
+  'mihai eminescu':'Romania','eminescu':'Romania',
+  'mircea cartarescu':'Romania','cartarescu':'Romania',
+  'ivo andric':'Serbia','andric':'Serbia',
+  'danilo kis':'Serbia','kis':'Serbia',
+  'dubravka ugresic':'Croatia','ugresic':'Croatia',
+  'ivan cankar':'Slovenia','cankar':'Slovenia',
+  'georgi gospodinov':'Bulgaria','gospodinov':'Bulgaria',
+  'ismail kadare':'Albania','kadare':'Albania',
+  'taras sevcenko':'Ukraine','sevcenko':'Ukraine','shevchenko':'Ukraine',
+  'mykola hohol':'Ukraine',
+  // ── PORTOGALLO / BRASILE / LATINOAMERICA ──
+  'luis de camoes':'Portugal','camoes':'Portugal',
+  'fernando pessoa':'Portugal','pessoa':'Portugal',
+  'jose saramago':'Portugal','saramago':'Portugal',
+  'eca de queiros':'Portugal','eca de queiroz':'Portugal',
+  'jorge amado':'Brazil','amado':'Brazil',
+  'clarice lispector':'Brazil','lispector':'Brazil',
+  'gabriel garcia marquez':'Colombia','garcia marquez':'Colombia','marquez':'Colombia',
+  'jorge luis borges':'Argentina','borges':'Argentina',
+  'julio cortazar':'Argentina','cortazar':'Argentina',
+  'ernesto sabato':'Argentina','sabato':'Argentina',
+  'juan rulfo':'Mexico','rulfo':'Mexico',
+  'octavio paz':'Mexico','paz':'Mexico',
+  'carlos fuentes':'Mexico','fuentes':'Mexico',
+  'mario vargas llosa':'Peru','vargas llosa':'Peru',
+  'jose maria arguedas':'Peru','arguedas':'Peru',
+  'pablo neruda':'Chile','neruda':'Chile',
+  'gabriela mistral':'Chile','mistral':'Chile',
+  'isabel allende':'Chile','allende':'Chile',
+  'jose marti':'Cuba','marti':'Cuba',
+  'alejo carpentier':'Cuba','carpentier':'Cuba',
+  'mario benedetti':'Uruguay','benedetti':'Uruguay',
+  'juan carlos onetti':'Uruguay','onetti':'Uruguay',
+  'romulo gallegos':'Venezuela','gallegos':'Venezuela',
+  // ── USA ──
+  'edgar allan poe':'United States of America','poe':'United States of America',
+  'nathaniel hawthorne':'United States of America','hawthorne':'United States of America',
+  'herman melville':'United States of America','melville':'United States of America',
+  'mark twain':'United States of America','twain':'United States of America',
+  'henry james':'United States of America',
+  'walt whitman':'United States of America','whitman':'United States of America',
+  'emily dickinson':'United States of America','dickinson':'United States of America',
+  'ernest hemingway':'United States of America','hemingway':'United States of America',
+  'william faulkner':'United States of America','faulkner':'United States of America',
+  'john steinbeck':'United States of America','steinbeck':'United States of America',
+  'f scott fitzgerald':'United States of America','fitzgerald':'United States of America',
+  'toni morrison':'United States of America','morrison':'United States of America',
+  'cormac mccarthy':'United States of America','mccarthy':'United States of America',
+  'saul bellow':'United States of America','bellow':'United States of America',
+  'philip roth':'United States of America','roth':'United States of America',
+  'john updike':'United States of America','updike':'United States of America',
+  'don delillo':'United States of America',
+  'thomas pynchon':'United States of America','pynchon':'United States of America',
+  'david foster wallace':'United States of America',
+  'gore vidal':'United States of America','vidal':'United States of America',
+  'ralph waldo emerson':'United States of America','emerson':'United States of America',
+  'henry david thoreau':'United States of America','thoreau':'United States of America',
+  // ── ASIA ──
+  'rabindranath tagore':'India','tagore':'India',
+  'arundhati roy':'India','roy':'India',
+  'haruki murakami':'Japan','murakami':'Japan',
+  'yukio mishima':'Japan','mishima':'Japan',
+  'yasunari kawabata':'Japan','kawabata':'Japan',
+  'kenzaburo oe':'Japan','oe':'Japan',
+  'lu xun':'China','lu hsun':'China',
+  'cao xueqin':'China',
+  'wu chengen':'China',
+  'yu hua':'China',
+  'mo yan':'China',
+  'han kang':'South Korea',
+  'jalal al-din rumi':'Iran','rumi':'Iran','gialal al-din rumi':'Iran','jalal ud din rumi':'Iran',
+  'hafez':'Iran','hafiz':'Iran',
+  'ferdowsi':'Iran','firdausi':'Iran',
+  'sadegh hedayat':'Iran','hedayat':'Iran',
+  'naguib mahfouz':'Egypt','mahfouz':'Egypt',
+  'gibran khalil gibran':'Lebanon','gibran':'Lebanon','kahlil gibran':'Lebanon',
+  'amin maalouf':'Lebanon','maalouf':'Lebanon',
+  'pramoedya ananta toer':'Indonesia','pramoedya':'Indonesia',
+  'jose rizal':'Philippines','rizal':'Philippines',
+  // ── AFRICA ──
+  'chinua achebe':'Nigeria','achebe':'Nigeria',
+  'wole soyinka':'Nigeria','soyinka':'Nigeria',
+  'chimamanda ngozi adichie':'Nigeria','adichie':'Nigeria',
+  'ngugi wa thiongo':'Kenya','ngugi':'Kenya',
+  'abdulrazak gurnah':'Tanzania','gurnah':'Tanzania',
+  'leopold sedar senghor':'Senegal','senghor':'Senegal',
+  'mariama ba':'Senegal',
+  'ousmane sembene':'Senegal','sembene':'Senegal',
+  'nadine gordimer':'South Africa','gordimer':'South Africa',
+  'j m coetzee':'South Africa','coetzee':'South Africa',
+  'kateb yacine':'Algeria','yacine':'Algeria',
+  'assia djebar':'Algeria','djebar':'Algeria',
+  'mongo beti':'Cameroon',
+  'ahmadou kourouma':'Ivory Coast','kourouma':'Ivory Coast',
+  'albert memmi':'Tunisia',
+  // ── MEDIO ORIENTE ──
+  'nizar qabbani':'Syria','qabbani':'Syria',
+  'amos oz':'Israel','oz':'Israel',
+  'david grossman':'Israel','grossman':'Israel',
+  'shmuel yosef agnon':'Israel','agnon':'Israel',
+  'orhan pamuk':'Turkey','pamuk':'Turkey',
+  'yasar kemal':'Turkey','kemal':'Turkey',
+  'yunus emre':'Turkey',
+  'alisher navoi':'Uzbekistan','navoi':'Uzbekistan',
+  'nizami ganjavi':'Azerbaijan','nizami':'Azerbaijan',
+  // ── MEDIEVALE (lingue varie) ──
+  'vari autori':'Italy','anonimi':'Italy','anonimo':'Italy',
+  'fratelli grimm':'Germany','jacob grimm':'Germany','wilhelm grimm':'Germany',
+};
+
+/*
+  Normalizza il nome autore per la ricerca:
+  rimuove date tipo "<1900-1980>", parentesi, parti dopo virgola (formato RBBC).
+*/
+function _normalizzaNomeAutore(autore){
+  return autore
+    .replace(/<[^>]*>/g,'')
+    .replace(/\([^)]*\)/g,'')
+    .replace(/,.*$/,'')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+/*
+  Interroga Wikidata per il paese di cittadinanza (P27) di un autore.
+
+  Strategia (unico approccio, affidabile):
+  1. wbsearchentities — ricerca per nome in EN e IT, ottiene i QID candidati
+  2. Per ogni candidato: wbgetentities con props=claims|descriptions
+     → verifica P31=Q5 (human), poi legge P27 (citizenship) o P17 (country)
+  3. Prende il primo QID mappato in WD_QID_MAP
+
+  Non usa SPARQL (lento, timeout frequenti) né filtra per parole nella description
+  (inaffidabile: Wikidata ha description in lingue diverse).
+*/
+async function fetchNazioneWikidata(autore){
+  if(!autore||autore.trim().length<2)return null;
+  const cache=_getNazCache();
+  const key=autore.trim().toLowerCase();
+  if(key in cache)return cache[key];
+
+  const nome=_normalizzaNomeAutore(autore);
+  if(!nome||nome.length<2){cache[key]=null;_saveNazCache();return null;}
+
+  // ── 1. Dizionario statico (classici, autori noti) ──
+  // Prova nome normalizzato, nome completo, e varianti senza accenti
+  const normNome=norm(nome).toLowerCase();
+  const normKey=norm(key).toLowerCase();
+  for(const k of [normKey, normNome]){
+    if(AUTORE_NAZIONE_STATICO[k]){
+      const naz=AUTORE_NAZIONE_STATICO[k];
+      cache[key]=naz;_saveNazCache();return naz;
+    }
+  }
+  // Prova match parziale: cerca se una chiave del dizionario è contenuta nel nome dell'autore
+  // (es. "Garcia Marquez, Gabriel" → "garcia marquez")
+  for(const [dKey,dNaz] of Object.entries(AUTORE_NAZIONE_STATICO)){
+    if(dKey.length<4)continue; // evita falsi positivi su chiavi corte
+    if(normNome.includes(dKey)||normKey.includes(dKey)){
+      cache[key]=dNaz;_saveNazCache();return dNaz;
+    }
+  }
+  // Prova anche l'alias risolto
+  const aliasKey=resolveAlias(nome);
+  if(aliasKey&&AUTORE_NAZIONE_STATICO[aliasKey]){
+    const naz=AUTORE_NAZIONE_STATICO[aliasKey];
+    cache[key]=naz;_saveNazCache();return naz;
+  }
+
+  // Genera varianti: nome diretto + eventuale inversione "Cognome Nome" → "Nome Cognome"
+  const parti=nome.split(' ');
+  const varianti=[nome];
+  if(parti.length===2)varianti.push(parti[1]+' '+parti[0]);
+
+  for(const variante of varianti){
+    try{
+      // Passo A: cerca i QID candidati
+      const rs=await fetch(
+        `https://www.wikidata.org/w/api.php?action=wbsearchentities`+
+        `&search=${encodeURIComponent(variante)}&language=en&type=item&limit=5&format=json&origin=*`,
+        {signal:AbortSignal.timeout(6000)}
+      );
+      if(!rs.ok)continue;
+      const ds=await rs.json();
+      const qids=(ds.search||[]).map(x=>x.id).filter(Boolean);
+      if(!qids.length)continue;
+
+      // Passo B: recupera claims di tutti i candidati in una sola chiamata
+      const re=await fetch(
+        `https://www.wikidata.org/w/api.php?action=wbgetentities`+
+        `&ids=${qids.join('|')}&props=claims&format=json&origin=*`,
+        {signal:AbortSignal.timeout(7000)}
+      );
+      if(!re.ok)continue;
+      const de=await re.json();
+
+      for(const qid of qids){
+        const claims=(de.entities||{})[qid]?.claims||{};
+
+        // Verifica che sia una persona (P31 contiene Q5)
+        const isHuman=(claims.P31||[]).some(
+          c=>c.mainsnak?.datavalue?.value?.id==='Q5'
+        );
+        if(!isHuman)continue;
+
+        // Cerca P27 (country of citizenship) poi P17 (country) come fallback
+        for(const prop of['P27','P17']){
+          for(const cl of claims[prop]||[]){
+            const valQid=cl.mainsnak?.datavalue?.value?.id||'';
+            if(WD_QID_MAP[valQid]){
+              const naz=WD_QID_MAP[valQid];
+              cache[key]=naz;_saveNazCache();return naz;
+            }
+          }
+        }
+      }
+    }catch{}
+  }
+
+  // Ultimo tentativo: ricerca anche in italiano (utile per nomi translitterati
+  // che Wikidata ha come label IT ma non EN, es. "Dostoevskij")
+  try{
+    const rs=await fetch(
+      `https://www.wikidata.org/w/api.php?action=wbsearchentities`+
+      `&search=${encodeURIComponent(nome)}&language=it&type=item&limit=5&format=json&origin=*`,
+      {signal:AbortSignal.timeout(6000)}
+    );
+    if(rs.ok){
+      const ds=await rs.json();
+      const qids=(ds.search||[]).map(x=>x.id).filter(Boolean);
+      if(qids.length){
+        const re=await fetch(
+          `https://www.wikidata.org/w/api.php?action=wbgetentities`+
+          `&ids=${qids.join('|')}&props=claims&format=json&origin=*`,
+          {signal:AbortSignal.timeout(7000)}
+        );
+        if(re.ok){
+          const de=await re.json();
+          for(const qid of qids){
+            const claims=(de.entities||{})[qid]?.claims||{};
+            const isHuman=(claims.P31||[]).some(c=>c.mainsnak?.datavalue?.value?.id==='Q5');
+            if(!isHuman)continue;
+            for(const prop of['P27','P17']){
+              for(const cl of claims[prop]||[]){
+                const valQid=cl.mainsnak?.datavalue?.value?.id||'';
+                if(WD_QID_MAP[valQid]){
+                  const naz=WD_QID_MAP[valQid];
+                  cache[key]=naz;_saveNazCache();return naz;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }catch{}
+
+  cache[key]=null;
+  _saveNazCache();
+  return null;
+}
+
+
+
+/* Risolve in background le nazioni mancanti per i libri già letti.
+   Aggiorna G.lettiData e ri-renderizza mappa + passaporto. */
+async function migraNazioniEsistenti(){
+  if(!G.lettiData?.length)return;
+  const cache=_getNazCache();
+  const autoriDaRisolvere=[...new Set(
+    G.lettiData
+      .filter(l=>l.autore&&!(l.autore.trim().toLowerCase() in cache))
+      .map(l=>l.autore.trim())
+  )];
+  if(!autoriDaRisolvere.length)return;
+  // Batch da 2 per rispettare i rate limit Wikidata (60 req/min)
+  for(let i=0;i<autoriDaRisolvere.length;i+=2){
+    const batch=autoriDaRisolvere.slice(i,i+2);
+    await Promise.all(batch.map(a=>fetchNazioneWikidata(a)));
+    renderMnemoMappa();
+    renderPassaporto();
+    await new Promise(r=>setTimeout(r,500));
+  }
+}
+
+/* Restituisce {nazione:[libri letti]} — usa cache Wikipedia + fallback matching NAZIONI */
+function getLettiPerNazione(){
+  const out={};
+  if(!G.lettiData?.length)return out;
+  const cache=_getNazCache();
+
+  G.lettiData.forEach(l=>{
+    if(!l.autore)return;
+    const key=l.autore.trim().toLowerCase();
+
+    // 1. Prova cache Wikipedia
+    let naz=cache[key];
+
+    // 2. Fallback: matching con lista NAZIONI hardcoded
+    if(!naz){
+      for(const [nazKey,info] of Object.entries(NAZIONI)){
+        if(info.autori.some(a=>autMatch(a.a,l.autore))){naz=nazKey;break;}
+      }
+    }
+
+    if(!naz)return; // autore non risolto ancora
+    if(!out[naz])out[naz]=[];
+    // evita duplicati per stesso url
+    if(!out[naz].some(x=>x.url_opac===l.url_opac))out[naz].push(l);
+  });
+  return out;
+}
+
+let _mnMapInit=false;
+function renderMnemoMappa(){
+  const svg=document.getElementById('mnmapsvg');
+  if(!svg||typeof d3==='undefined'||typeof topojson==='undefined'){
+    const wrap=svg?.closest('.mapwrap');
+    if(wrap)wrap.innerHTML='<p class="maphint">Libreria mappa non caricata (D3/TopoJSON).</p><button class="bric" style="display:block;margin:8px auto 0" onclick="_mnMapInit=false;renderMnemoMappa()">↻ Riprova</button>';
+    return;
+  }
+  const letti=getLettiPerNazione();
+  if(_mnMapInit){
+    // mappa già disegnata: aggiorna solo i colori
+    d3.select(svg).selectAll('path.mn-naz').each(function(d){
+      const visitato=!!letti[d.properties.name];
+      d3.select(this).classed('visitato',visitato);
+      if(!visitato)d3.select(this).classed('sel',false);
+    });
+    return;
+  }
+  _mnMapInit=true;
+  const W=1000,H=500;
+  const projection=d3.geoNaturalEarth1().scale(165).translate([W/2,H/2-10]);
+  const path=d3.geoPath(projection);
+  const s=d3.select(svg).attr('viewBox',`0 0 ${W} ${H}`);
+  s.append('rect').attr('width',W).attr('height',H).attr('fill','#eef3f6');
+  const g=s.append('g');
+
+  d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world=>{
+    const countries=topojson.feature(world,world.objects.countries).features;
+    g.selectAll('path.mapcont')
+      .data(countries)
+      .join('path')
+      .attr('class','mapcont')
+      .attr('d',path);
+
+    countries.forEach(f=>{
+      const info=NAZIONI[f.properties.name];
+      const visitato=!!letti[f.properties.name];
+      if(!info&&!visitato)return; // nazione non in NAZIONI e non visitata: salta
+      const p=g.append('path')
+        .datum(f)
+        .attr('class',`mn-naz${visitato?' visitato':''}`)
+        .attr('d',path)
+        .on('click',()=>{
+          if(!letti[f.properties.name])return;
+          selNazioneMnemo(f.properties.name,info||null,letti[f.properties.name],p.node());
+        });
+    });
+  }).catch(e=>{
+    console.error('Mappa Mnemosine: errore caricamento dati geografici',e);
+    _mnMapInit=false;
+    const wrap=svg.closest('.mapwrap');
+    if(wrap)wrap.innerHTML='<p class="maphint">Impossibile caricare i dati geografici.</p><button class="bric" style="display:block;margin:8px auto 0" onclick="renderMnemoMappa()">↻ Riprova</button>';
+  });
+}
+function selNazioneMnemo(name,info,libri,el){
+  document.querySelectorAll('#mnmapsvg .mn-naz').forEach(p=>p.classList.remove('sel'));
+  if(el)el.classList.add('sel');
+  const box=document.getElementById('mnmapinfo');
+  const nome=(info&&(info.nome||name))||name;
+  const ops=libri.map(l=>`<div class="opi"><div class="opb"><div class="opt">${l.titolo}</div><div style="font-size:.78rem;color:#999;font-style:italic;font-family:'Cormorant Garamond',serif">${l.autore||''}</div></div></div>`).join('');
+  box.innerHTML=`<div class="ec"><div class="ech"><div class="ecl">📍 ${nome}</div><div class="autn" style="font-size:1.1rem">Libri letti da qui</div></div><div class="oplist">${ops}</div></div>`;
+}
+
+function renderPassaporto(){
+  const cont=document.getElementById('mnpass');if(!cont)return;
+  const letti=getLettiPerNazione();
+  const entries=Object.entries(letti);
+
+  // Libri senza nazione ancora risolta
+  const cache=_getNazCache();
+  const nonClassificati=G.lettiData?.filter(l=>{
+    if(!l.autore)return false; // autore vuoto: non mostrare
+    const key=l.autore.trim().toLowerCase();
+    if(cache[key])return false; // trovato in cache Wikidata
+    for(const info of Object.values(NAZIONI)){if(info.autori.some(a=>autMatch(a.a,l.autore)))return false;} // match hardcoded
+    return true; // non ancora risolto da Wikidata
+  })||[];
+
+  if(!entries.length&&!nonClassificati.length){
+    cont.innerHTML='<div class="vp">Nessun timbro ancora: leggi un libro per iniziare il tuo viaggio.</div>';return;
+  }
+
+  let html=`<div class="passgr">${entries.map(([key,libri])=>{
+    const nome=NAZIONI[key]?.nome||key;
+    return`<div class="passc"><div class="passorn">✦</div><div class="passn">${nome}</div><div class="passd">${libri.length} ${libri.length>1?'libri letti':'libro letto'}</div></div>`;
+  }).join('')}</div>`;
+
+  if(nonClassificati.length){
+    html+=`<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--av3)">
+      <div style="font-size:.63rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#bbb;margin-bottom:6px">⏳ Nazionalità non trovata (${nonClassificati.length})</div>
+      <div style="font-size:.75rem;color:#aaa;font-style:italic;margin-bottom:10px">Wikidata non ha restituito risultati per questi autori.</div>
+      <button class="bric" onclick="riprovaNazioni()" style="margin-bottom:12px">↻ Riprova ricerca</button>
+      <div class="passgr">${nonClassificati.map(l=>`<div class="passc" style="opacity:.45"><div class="passorn">?</div><div class="passn" style="font-size:.85rem">${l.titolo}</div><div class="passd">${l.autore||'Autore sconosciuto'}</div></div>`).join('')}</div>
+    </div>`;
+  }
+
+  cont.innerHTML=html;
+}
+
+/* Svuota le entry null dalla cache e rilancia la risoluzione. */
+async function riprovaNazioni(){
+  const cache=_getNazCache();
+  // Rimuove solo i null: le nazioni già trovate restano
+  let rimossi=0;
+  for(const k of Object.keys(cache)){
+    if(cache[k]===null){delete cache[k];rimossi++;}
+  }
+  _nazioneCache=cache;
+  _saveNazCache();
+  renderPassaporto();
+  await migraNazioniEsistenti();
 }
 
 /* MAPPA FULLSCREEN */
