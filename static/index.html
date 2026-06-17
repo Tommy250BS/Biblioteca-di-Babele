@@ -2715,22 +2715,18 @@ function showBadgeToast(badge){
 
   const card=ovr.querySelector('.bdg-ceremony-card');
 
-  // 1. Rimuovi active e resetta stili inline con transition disabilitata
+  // 1. Rimuovi active e resetta senza inline styles
   ovr.classList.remove('active');
-  card.style.transition='none';
-  card.style.opacity='0';
-  card.style.transform='scale(.6) translateY(40px)';
 
-  // 2. Forza reflow per applicare lo stato di reset
-  void card.offsetHeight;
+  // 2. Forza reflow: il browser registra lo stato "senza .active" (card opacity:0 da CSS)
+  void ovr.offsetHeight;
 
-  // 3. Riattiva transition e aggiungi active dopo un micro-tick
-  setTimeout(()=>{
-    card.style.transition='';
+  // 3. Aggiungi active nel prossimo frame: la transition CSS parte da opacity:0 → opacity:1
+  requestAnimationFrame(()=>{
     ovr.classList.add('active');
     _startCerParticles();
     tap('heavy');
-  }, 20);
+  });
 
   // 4. Auto-chiudi dopo 6 secondi
   clearTimeout(ovr._autoClose);
