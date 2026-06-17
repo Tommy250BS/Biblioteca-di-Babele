@@ -35,11 +35,13 @@ The app is installable on smartphones as a Progressive Web App (PWA), so it beha
 ## File structure
 
 ```
-rbbc-pwa/
+biblioteca-di-babele/
 ├── app.py              # Flask backend (curl + API)
 ├── requirements.txt    # Python requirements
 ├── render.yaml         # Render deploy configurations
 └── static/
+    ├── icon-192.png
+    ├── icon-512.png
     ├── index.html      # PWA frontend
     ├── manifest.json   # PWA manifest (icon, colors, name)
     └── sw.js           # Service Worker
