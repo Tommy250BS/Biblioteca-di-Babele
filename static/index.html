@@ -732,7 +732,7 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
 .bdg-cer-btn:active{transform:scale(.95);}
 /* canvas particelle cerimonia */
 #bdg-cer-canvas{
-  position:fixed;inset:0;z-index:999;
+  position:fixed;inset:0;z-index:1001;
   pointer-events:none;
   display:none;
 }
@@ -2712,19 +2712,31 @@ function showBadgeToast(badge){
   document.getElementById('bdgCerIcoInner').textContent=badge.ico;
   document.getElementById('bdgCerNome').textContent=badge.nome;
   document.getElementById('bdgCerDesc').textContent=badge.desc;
-  // Reset senza transition, poi trigger nel doppio rAF (affidabile su iOS/Android)
+
   const card=ovr.querySelector('.bdg-ceremony-card');
+
+  // 1. Rimuovi active e resetta stili inline con transition disabilitata
   ovr.classList.remove('active');
   card.style.transition='none';
   card.style.opacity='0';
   card.style.transform='scale(.6) translateY(40px)';
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+
+  // 2. Forza reflow per applicare lo stato di reset
+  void card.offsetHeight;
+
+  // 3. Riattiva transition e aggiungi active dopo un micro-tick
+  setTimeout(()=>{
     card.style.transition='';
     ovr.classList.add('active');
     _startCerParticles();
     tap('heavy');
-  }));
-  setTimeout(()=>{if(ovr.classList.contains('active'))chiudiBadgeCeremony();},6000);
+  }, 20);
+
+  // 4. Auto-chiudi dopo 6 secondi
+  clearTimeout(ovr._autoClose);
+  ovr._autoClose=setTimeout(()=>{
+    if(ovr.classList.contains('active'))chiudiBadgeCeremony();
+  }, 6000);
 }
 
 
