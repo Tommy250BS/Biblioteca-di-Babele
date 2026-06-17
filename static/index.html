@@ -2415,11 +2415,15 @@ function resolveAlias(s){
   return AUT_ALIAS[n]||n;
 }
 
-/* Rimuove date <1903-1950> e virgole, restituisce set di parole significative dell'autore */
+/* Rimuove date <1903-1950> e virgole, restituisce set di parole significative dell'autore.
+   L'alias viene risolto PAROLA PER PAROLA (non sull'intera stringa): i nomi del catalogo
+   spesso arrivano nella forma "Cognome, Nome <date>" (es. "Vergilius Maro, Publius <70 a.C.-19 a.C.>"),
+   quindi un alias come 'vergilius'→'virgilio' va applicato al singolo token "vergilius",
+   altrimenti l'intera stringa normalizzata non coinciderà mai con una chiave del dizionario. */
 function autWords(s){
-  const resolved=resolveAlias(s);
-  const clean=normLib((resolved||'').replace(/<[^>]*>/g,' ').replace(/,/g,' '));
-  return new Set(clean.split(/\s+/).filter(w=>w.length>1));
+  const clean=normLib((s||'').replace(/<[^>]*>/g,' ').replace(/,/g,' '));
+  const words=clean.split(/\s+/).filter(w=>w.length>1);
+  return new Set(words.map(w=>AUT_ALIAS[w]||w));
 }
 
 /* Vero se tutte le parole dell'autore "a" (più corto) sono presenti nell'autore "b" */
