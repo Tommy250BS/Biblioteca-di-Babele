@@ -47,6 +47,6 @@ biblioteca-di-babele/
     └── sw.js           # Service Worker
 ```
 
-## Note
+## Notes
 
 Render goes into "sleep mode" after 15 minutes of inactivity. It may then take up to 30-40 seconds for the server to wake up. To avoid this, you can use a free [UptimeRobot](https://uptimerobot.com/) account which pings the server every 5 minutes, preventing it from "falling asleep".
