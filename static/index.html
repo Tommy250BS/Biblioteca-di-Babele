@@ -2044,6 +2044,31 @@ const TUTTI_BADGE=[
 /* Liste di supporto per nuovi badge */
 const PAESI_ASIATICI=['Russia','Japan','China','India','Iran','South Korea','Vietnam','Indonesia','Malaysia','Philippines','Uzbekistan','Lebanon','Syria','Israel','Iraq','Saudi Arabia','Turkey','Afghanistan','Georgia','Armenia'];
 const PAESI_MEDITERRANEO=['Italy','Greece','Turkey','Lebanon','Egypt','Morocco','Spain'];
+/* Liste geografiche per i badge "Viaggi & Geografia" */
+const PAESI_EUROPEI=['Italy','France','Spain','United Kingdom','Germany','Russia','Portugal','Ireland','Poland','Norway','Hungary','Czech Republic','Austria','Romania','Serbia','Denmark','Sweden','Finland','Netherlands','Belgium','Switzerland','Ukraine','Belarus','Croatia','Slovenia','Bulgaria','Slovakia','Lithuania','Latvia','Estonia','Greece','Albania','Bosnia and Herzegovina'];
+const PAESI_AFRICANI=['Egypt','South Africa','Kenya','Algeria','Senegal','Ethiopia','Nigeria','Tanzania','Morocco','Tunisia','Ghana','Zimbabwe','Ivory Coast','Cameroon'];
+const PAESI_AMERICANI=['United States of America','Canada','Brazil','Argentina','Colombia','Mexico','Chile','Peru','Cuba','Venezuela','Uruguay','Ecuador','Bolivia'];
+const PAESI_INSULARI=['United Kingdom','Ireland','Japan','Indonesia','Philippines','Sri Lanka','Cuba'];
+const PAESI_MARCO_POLO=['Italy','Iran','Uzbekistan','China'];
+const PAESI_NUOVA_VIA_SETA=['China','Uzbekistan','Iran','Turkey'];
+const PAESI_CROCEVIA=['Greece','Iran','India','China'];
+const PAESI_NILO_GANGE=['Egypt','Saudi Arabia','Iran','India'];
+const PAESI_OCEANO_INDIANO=['India','Saudi Arabia','Kenya','Tanzania','Ethiopia','Indonesia'];
+const PAESI_MEDIO_ORIENTE=['Lebanon','Syria','Israel','Iraq','Saudi Arabia','Iran','Egypt','Turkey','Afghanistan'];
+const PAESI_ULTIMA_THULE=['Norway']; /* Islanda e Groenlandia non presenti in NAZIONI: vincolo applicato sui paesi disponibili */
+/* Macro-aree culturali per il badge "Sette mari" (7 aree diverse) */
+const AREE_CULTURALI={
+  europa_occ:['Italy','France','Spain','United Kingdom','Germany','Ireland','Portugal','Netherlands','Belgium','Switzerland','Austria'],
+  europa_nord:['Norway','Sweden','Finland','Denmark'],
+  europa_est:['Russia','Poland','Hungary','Czech Republic','Romania','Serbia','Ukraine','Belarus','Croatia','Slovenia','Bulgaria','Slovakia','Lithuania','Latvia','Estonia','Georgia','Armenia','Albania','Bosnia and Herzegovina','Azerbaijan'],
+  mediterraneo_levante:['Greece','Turkey','Lebanon','Syria','Israel','Egypt'],
+  medio_oriente:['Iraq','Saudi Arabia','Iran','Afghanistan'],
+  asia_centrale_orientale:['Uzbekistan','Kazakhstan','Tajikistan','Kyrgyzstan','Turkmenistan','China','Japan','South Korea'],
+  asia_meridionale:['India','Nepal','Sri Lanka'],
+  sud_est_asiatico:['Vietnam','Indonesia','Malaysia','Philippines'],
+  africa:['Egypt','Morocco','Tunisia','Algeria','Senegal','Ghana','Ivory Coast','Cameroon','Nigeria','Kenya','Tanzania','Ethiopia','South Africa','Zimbabwe'],
+  americhe:['United States of America','Canada','Mexico','Cuba','Colombia','Venezuela','Ecuador','Peru','Bolivia','Brazil','Chile','Argentina','Uruguay'],
+};
 const LINGUE_NAZIONE={
   'Italy':'Italiano','France':'Francese','Spain':'Spagnolo','United Kingdom':'Inglese','Germany':'Tedesco',
   'Russia':'Russo','United States of America':'Inglese','Brazil':'Portoghese','Argentina':'Spagnolo','Japan':'Giapponese',
@@ -2172,7 +2197,6 @@ async function renderPantheon(){
     if(russiLetti.size>=5)unlockBadge('transiberiana');
     const paesiVisitati=Object.keys(getLettiPerNazione());
     const nPaesi=paesiVisitati.length;
-    if(nPaesi>=5)unlockBadge('viaggiatore');
     if(nPaesi>=10)unlockBadge('navigatore');
     if(nPaesi>=25)unlockBadge('cartografo');
     if(nPaesi>=50)unlockBadge('cosmopolita');
@@ -2180,6 +2204,20 @@ async function renderPantheon(){
     if(PAESI_ASIATICI.filter(p=>paesiVisitati.includes(p)).length>=5)unlockBadge('via_seta');
     if(PAESI_MEDITERRANEO.every(p=>paesiVisitati.includes(p)))unlockBadge('mediterraneo');
     if(G.lettiData.length>=250)unlockBadge('alessandria_bibliotecario');
+    /* Badge geografici */
+    if(PAESI_EUROPEI.filter(p=>paesiVisitati.includes(p)).length>=5)unlockBadge('europa');
+    if(PAESI_AFRICANI.filter(p=>paesiVisitati.includes(p)).length>=5)unlockBadge('africa');
+    if(PAESI_AMERICANI.filter(p=>paesiVisitati.includes(p)).length>=5)unlockBadge('america');
+    if(PAESI_INSULARI.filter(p=>paesiVisitati.includes(p)).length>=5)unlockBadge('arcipelago');
+    if(PAESI_MARCO_POLO.every(p=>paesiVisitati.includes(p)))unlockBadge('marco_polo');
+    if(PAESI_NUOVA_VIA_SETA.every(p=>paesiVisitati.includes(p)))unlockBadge('nuova_via_seta');
+    if(PAESI_CROCEVIA.every(p=>paesiVisitati.includes(p)))unlockBadge('crocevia_civilta');
+    if(PAESI_NILO_GANGE.every(p=>paesiVisitati.includes(p)))unlockBadge('dal_nilo_al_gange');
+    if(PAESI_OCEANO_INDIANO.every(p=>paesiVisitati.includes(p)))unlockBadge('oceano_indiano');
+    if(PAESI_MEDIO_ORIENTE.filter(p=>paesiVisitati.includes(p)).length>=5)unlockBadge('mille_e_una_notte');
+    if(PAESI_ULTIMA_THULE.every(p=>paesiVisitati.includes(p)))unlockBadge('ultima_thule');
+    const areeToccate=Object.values(AREE_CULTURALI).filter(area=>area.some(p=>paesiVisitati.includes(p))).length;
+    if(areeToccate>=7)unlockBadge('sette_mari');
   }
   {
     const unl0=getBadgeUnlocked();
