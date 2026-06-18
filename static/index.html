@@ -2057,6 +2057,19 @@ const PAESI_NILO_GANGE=['Egypt','Saudi Arabia','Iran','India'];
 const PAESI_OCEANO_INDIANO=['India','Saudi Arabia','Kenya','Tanzania','Ethiopia','Indonesia'];
 const PAESI_MEDIO_ORIENTE=['Lebanon','Syria','Israel','Iraq','Saudi Arabia','Iran','Egypt','Turkey','Afghanistan'];
 const PAESI_ULTIMA_THULE=['Norway']; /* Islanda e Groenlandia non presenti in NAZIONI: vincolo applicato sui paesi disponibili */
+/* Opere teatrali presenti nelle costellazioni (per il badge "Tragico": 5 opere teatrali) */
+const OPERE_TEATRALI=['edipo','amleto','macbeth'];
+/* 2 opere teatrali aggiuntive, non presenti nelle costellazioni, verificate per titolo (vedi titoloLetto) */
+const OPERE_TEATRALI_EXTRA=['Aspettando Godot',"Sei personaggi in cerca d'autore"];
+/* Opere poetiche presenti nelle costellazioni (per il badge "La rosa profonda": 10 opere poetiche) */
+const OPERE_POETICHE=['simposio','canzoniere','ars','georgiche'];
+/* Continenti coperti dalle nazioni in NAZIONI, per il badge "Aleph" */
+const CONTINENTI_NAZIONI={
+  europa:PAESI_EUROPEI,
+  africa:PAESI_AFRICANI,
+  americhe:PAESI_AMERICANI,
+  asia:PAESI_ASIATICI,
+};
 /* Macro-aree culturali per il badge "Sette mari" (7 aree diverse) */
 const AREE_CULTURALI={
   europa_occ:['Italy','France','Spain','United Kingdom','Germany','Ireland','Portugal','Netherlands','Belgium','Switzerland','Austria'],
@@ -2156,7 +2169,7 @@ const BADGE_CATEGORIE=[
   {id:'ricerche', label:'Esplorazione', ico:'📚',
    ids:['prima_ricerca','alexandrino','esploratore','labirinto']},
   {id:'costellazioni', label:'Costellazioni', ico:'⭐',
-   ids:['antichita','medioevo','rinascimento','seicento','ottocento','novecento','secolo_breve','novecento_baricco','custode_tempo','specchio','duemila_anni']},
+   ids:['antichita','medioevo','rinascimento','seicento','ottocento','novecento','novecento_baricco','custode_tempo','duemila_anni']},
   {id:'viaggi', label:'Viaggi & Geografia', ico:'🌍',
    ids:['navigatore','cartografo','cosmopolita','eterno_pellegrino','marco_polo','transiberiana','via_seta','nuova_via_seta','europa','africa','america','arcipelago','mediterraneo','crocevia_civilta','dal_nilo_al_gange','oceano_indiano','anima_eurasia','mille_e_una_notte','sette_mari','ultima_thule']},
   {id:'letteratura', label:'Forme & Generi', ico:'🎭',
@@ -2164,7 +2177,7 @@ const BADGE_CATEGORIE=[
   {id:'grandi', label:'Traguardi supremi', ico:'👑',
    ids:['pantocratore','alessandria_bibliotecario','aleph','biblioteca_babele']},
   {id:'segreti', label:'Badge segreti', ico:'🔮',
-   ids:['bibliotecario_fantasma','ultimo_scaffale','manoscritto','borges']},
+   ids:['walden','macondo','pequod','vronskij','boxer','manoscritto','fuoco_alessandria','mulino_acqua']},
 ];
 
 async function renderPantheon(){
@@ -2181,6 +2194,18 @@ async function renderPantheon(){
     });
     if(COSTELLAZIONI.every(ep=>ep.stars.some(s=>lit.has(s.id))))unlockBadge('custode_tempo');
     if(COSTELLAZIONI.every(ep=>ep.stars.every(s=>lit.has(s.id))))unlockBadge('pantocratore');
+    /* Epico: Iliade, Odissea ed Eneide */
+    if(['iliade','odissea','eneide'].every(s=>lit.has(s)))unlockBadge('epico');
+    /* Tragico: 5 opere teatrali (3 in costellazioni + 2 extra verificate per titolo) */
+    const tragicheLette=OPERE_TEATRALI.filter(s=>lit.has(s)).length+OPERE_TEATRALI_EXTRA.filter(t=>titoloLetto(t)).length;
+    if(tragicheLette>=5)unlockBadge('tragico');
+    /* Novecento + Baricco: costellazione Novecento completa e "Novecento" letto */
+    const novecentoEp=COSTELLAZIONI.find(ep=>ep.id==='novecento');
+    if(novecentoEp&&novecentoEp.stars.every(s=>lit.has(s.id))&&titoloLetto('Novecento'))unlockBadge('novecento_baricco');
+    /* Badge segreti: ciascuno legato a un'unica opera specifica */
+    Object.entries(BADGE_SEGRETI_LIBRO).forEach(([id,titolo])=>{
+      if(titoloLetto(titolo))unlockBadge(id);
+    });
     const lingue=new Set();
     G.lettiData.forEach(l=>{
       Object.entries(NAZIONI).forEach(([key,info])=>{
@@ -2219,6 +2244,20 @@ async function renderPantheon(){
     if(PAESI_ULTIMA_THULE.every(p=>paesiVisitati.includes(p)))unlockBadge('ultima_thule');
     const areeToccate=Object.values(AREE_CULTURALI).filter(area=>area.some(p=>paesiVisitati.includes(p))).length;
     if(areeToccate>=7)unlockBadge('sette_mari');
+    if(areeToccate>=5)unlockBadge('cantastorie');
+    /* Anima dell'Eurasia: Europa, Russia, Asia Centrale e Cina */
+    const PAESI_ANIMA_EURASIA_GRUPPI=[PAESI_EUROPEI,['Russia'],['Uzbekistan','Kazakhstan','Tajikistan','Kyrgyzstan','Turkmenistan'],['China']];
+    if(PAESI_ANIMA_EURASIA_GRUPPI.every(gruppo=>gruppo.some(p=>paesiVisitati.includes(p))))unlockBadge('anima_eurasia');
+    /* Oltre le colonne d'Ercole: prima opera non europea letta */
+    if(paesiVisitati.some(p=>!PAESI_EUROPEI.includes(p)))unlockBadge('colonne_ercole');
+    /* Duemila anni di storie: letta almeno un'opera dell'Antichità e una del Novecento */
+    const antichitaEp=COSTELLAZIONI.find(ep=>ep.id==='antichita');
+    const novecentoEp2=COSTELLAZIONI.find(ep=>ep.id==='novecento');
+    if(antichitaEp?.stars.some(s=>lit.has(s.id))&&novecentoEp2?.stars.some(s=>lit.has(s.id)))unlockBadge('duemila_anni');
+    /* Aleph: almeno un'opera per ogni costellazione, ogni continente e 5 lingue diverse */
+    const tutteCostellazioniToccate=COSTELLAZIONI.every(ep=>ep.stars.some(s=>lit.has(s.id)));
+    const tuttiContinentiToccati=Object.values(CONTINENTI_NAZIONI).every(lista=>lista.some(p=>paesiVisitati.includes(p)));
+    if(tutteCostellazioniToccate&&tuttiContinentiToccati&&lingue.size>=5)unlockBadge('aleph');
   }
   {
     const unl0=getBadgeUnlocked();
@@ -2227,7 +2266,7 @@ async function renderPantheon(){
   }
   const unl=getBadgeUnlocked();
 
-  const SEGRETI_IDS=['bibliotecario_fantasma','ultimo_scaffale','manoscritto','borges'];
+  const SEGRETI_IDS=['walden','macondo','pequod','vronskij','boxer','manoscritto','fuoco_alessandria','mulino_acqua'];
 
   let html='';
 
@@ -2497,6 +2536,29 @@ function getAutoLitStars(){
   return set;
 }
 
+/* Vero se tra i libri letti dall'utente ce n'è uno il cui titolo corrisponde (anche parzialmente) al titolo dato */
+function titoloLetto(titolo){
+  if(!G.lettiData?.length)return false;
+  const t=normLib(titolo);
+  return G.lettiData.some(l=>{
+    const lt=normLib(l.titolo);
+    if(!lt)return false;
+    return lt===t||lt.includes(t)||t.includes(lt);
+  });
+}
+
+/* Badge segreti: ciascuno si sblocca leggendo un'opera specifica */
+const BADGE_SEGRETI_LIBRO={
+  walden:'Walden ovvero la vita nei boschi',
+  macondo:"Cent'anni di solitudine",
+  pequod:'Moby Dick',
+  vronskij:'Anna Karenina',
+  boxer:'La fattoria degli animali',
+  manoscritto:'I promessi sposi',
+  fuoco_alessandria:'Fahrenheit 451',
+  mulino_acqua:'Il mulino sulla Floss',
+};
+
 /* Crea il path di una stella a 5 punte centrata in (cx,cy) con raggio esterno r */
 function stellaPath(cx,cy,r){
   const ri=r*0.42;
@@ -2648,6 +2710,10 @@ async function incAtlanteVisits(){
   if(n>=5&&!getBadgeUnlocked().has('esploratore')){
     const nu=unlockBadge('esploratore');
     if(nu)setTimeout(()=>showBadgeToast(TUTTI_BADGE.find(b=>b.id==='esploratore')),400);
+  }
+  if(n>=100&&!getBadgeUnlocked().has('labirinto')){
+    const nu2=unlockBadge('labirinto');
+    if(nu2)setTimeout(()=>showBadgeToast(TUTTI_BADGE.find(b=>b.id==='labirinto')),400);
   }
 }
 
