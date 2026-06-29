@@ -144,6 +144,15 @@ def curl_get(url):
            + HEADERS + [url])
     r = subprocess.run(cmd, capture_output=True, text=True,
                        encoding="utf-8", errors="replace")
+
+    # ── DEBUG TEMPORANEO ──────────────────────────────────────────────
+    print(f"[DEBUG curl_get] exit code: {r.returncode}")
+    if r.returncode != 0:
+        print(f"[DEBUG curl_get] ⚠ curl ha fallito. stderr: {r.stderr.strip()}")
+    if not r.stdout:
+        print("[DEBUG curl_get] ⚠ stdout vuoto.")
+    # ──────────────────────────────────────────────────────────────────
+
     return r.stdout
 
 def strip_tags(h):
@@ -156,6 +165,25 @@ def strip_tags(h):
 def cerca_titolo(titolo):
     url  = f"{BASE_URL}/opac/search?q={quote_plus(titolo)}"
     html = curl_get(url)
+
+    # ── DEBUG TEMPORANEO ──────────────────────────────────────────────
+    print(f"[DEBUG cerca_titolo] url richiesta: {url}")
+    print(f"[DEBUG cerca_titolo] lunghezza html ricevuto: {len(html) if html else 0}")
+    if not html:
+        print("[DEBUG cerca_titolo] html VUOTO — curl non ha ricevuto risposta "
+              "(timeout, blocco di rete, o errore di connessione).")
+    else:
+        anteprima = html[:800]
+        print(f"[DEBUG cerca_titolo] primi 800 caratteri ricevuti:\n{anteprima}")
+        for indizio in ["captcha", "robot", "access denied", "blocked",
+                        "verifica", "are you human", "cloudflare", "rate limit"]:
+            if indizio in html.lower():
+                print(f"[DEBUG cerca_titolo] ⚠ trovato indizio di blocco anti-bot: '{indizio}'")
+        if "test:catalog:" not in html:
+            print("[DEBUG cerca_titolo] ⚠ 'test:catalog:' NON presente nell'HTML — "
+                  "il pattern regex non troverà nulla (struttura pagina cambiata o blocco).")
+    # ──────────────────────────────────────────────────────────────────
+
     if not html:
         return []
     pattern = r'href="opac/detail/view/test:catalog:(\d+)"[\s\S]{0,200}?title="([^"]{5,200})"'
@@ -165,6 +193,9 @@ def cerca_titolo(titolo):
             t = strip_tags(raw)
             if t and not t.lower().startswith("vai a"):
                 visti[num] = t
+
+    print(f"[DEBUG cerca_titolo] risultati trovati dal regex: {len(visti)}")
+
     return [{"titolo": tit, "url": f"{BASE_URL}/opac/detail/view/test:catalog:{num}"}
             for num, tit in list(visti.items())[:10]]
 
