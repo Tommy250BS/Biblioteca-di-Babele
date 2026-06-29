@@ -139,14 +139,37 @@ def login_richiesto(fn):
 #  curl + OPAC 
 
 def curl_get(url):
+    # ── Relay opzionale e GRATUITO: se impostata la variabile d'ambiente
+    #    OPAC_RELAY_URL, la richiesta non va direttamente all'OPAC (il cui
+    #    blocco è specifico per gli IP di Render) ma passa attraverso un
+    #    relay esterno (es. un Cloudflare Worker — piano gratuito, vedi
+    #    worker.js). Il relay fa la richiesta con un IP diverso e ci
+    #    restituisce l'HTML.
+    #    Formato: OPAC_RELAY_URL=https://tuo-worker.workers.dev
+    relay = os.environ.get("OPAC_RELAY_URL", "").strip()
+    richiesta_url = f"{relay}/?url={quote_plus(url)}" if relay else url
+
     cmd = (["curl", "-s", "-L", "--compressed", "--max-time", "25",
             "--cookie-jar", CURL_COOKIE, "--cookie", CURL_COOKIE]
-           + HEADERS + [url])
+           + HEADERS)
+
+    # ── Proxy opzionale (alternativa al relay): se impostata la variabile
+    #    d'ambiente OPAC_PROXY, instrada la richiesta tramite quel proxy
+    #    HTTP/SOCKS. Formato: OPAC_PROXY=http://utente:password@host:porta
+    proxy = os.environ.get("OPAC_PROXY", "").strip()
+    if proxy and not relay:
+        cmd += ["--proxy", proxy]
+
+    cmd += [richiesta_url]
+
     r = subprocess.run(cmd, capture_output=True, text=True,
                        encoding="utf-8", errors="replace")
 
     # ── DEBUG TEMPORANEO ──────────────────────────────────────────────
+    print(f"[DEBUG curl_get] url effettivo chiamato: {richiesta_url}")
     print(f"[DEBUG curl_get] exit code: {r.returncode}")
+    print(f"[DEBUG curl_get] relay attivo: {'sì — ' + relay if relay else 'no'}")
+    print(f"[DEBUG curl_get] proxy attivo: {'sì — ' + proxy if (proxy and not relay) else 'no'}")
     if r.returncode != 0:
         print(f"[DEBUG curl_get] ⚠ curl ha fallito. stderr: {r.stderr.strip()}")
     if not r.stdout:
