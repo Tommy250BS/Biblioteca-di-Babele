@@ -5,7 +5,7 @@ DB: PostgreSQL
 Auth: bcrypt + flask-login, cookie di sessione firmato
 """
 
-import subprocess, re, time, os
+import subprocess, re, time, os, unicodedata
 from datetime import datetime
 from urllib.parse import quote_plus
 from flask import (Flask, request, jsonify, g,
@@ -15,7 +15,6 @@ from psycopg.rows import dict_row
 from psycopg import errors
 import bcrypt
 import psycopg
-import uuid
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 app.secret_key = os.environ.get("SECRET_KEY", "cambia-questa-chiave-in-produzione")
@@ -153,6 +152,12 @@ def strip_tags(h):
                  ('&gt;','>'),('&#39;',"'"),('&quot;','"')]:
         t = t.replace(a, b)
     return re.sub(r'\s+', ' ', t).strip()
+
+def _norm(s):
+    """Normalizza per confronto: minuscolo, senza accenti."""
+    s = unicodedata.normalize('NFD', s or '')
+    s = ''.join(c for c in s if unicodedata.category(c) != 'Mn')
+    return s.lower().strip()
 
 def cerca_titolo(titolo):
     url  = f"{BASE_URL}/opac/search?q={quote_plus(titolo)}"
@@ -302,11 +307,15 @@ def aggiorna_profilo():
 def api_search():
     q          = request.args.get("q", "").strip()
     biblioteca = request.args.get("biblioteca", "").strip()
+    campo      = request.args.get("campo", "titolo").strip().lower()
+    if campo not in ("titolo", "autore"):
+        campo = "titolo"
     if not q or not biblioteca:
         return jsonify({"error": "Parametri mancanti"}), 400
 
     risultati_base = cerca_titolo(q)
     output = []
+    q_norm = _norm(q)
     for libro in risultati_base:
         time.sleep(0.5)
         det = verifica_disponibilita(libro["url"], biblioteca)
@@ -315,6 +324,14 @@ def api_search():
         if autore_r in ("—","") and " - " in titolo_r:
             parti = titolo_r.rsplit(" - ", 1)
             titolo_r, autore_r = parti[0].strip(), parti[1].strip()
+
+        # In modalità "autore" scarta i risultati la cui pagina di dettaglio
+        # non riporta un autore che combacia con la query: la ricerca OPAC di
+        # base indicizza anche il titolo, quindi senza questo filtro
+        # comparirebbero falsi positivi (titoli che contengono la query).
+        if campo == "autore" and (not autore_r or q_norm not in _norm(autore_r)):
+            continue
+
         copie = det["copie"]
         output.append({
             "titolo":        titolo_r,
@@ -335,7 +352,7 @@ def api_search():
             (u["id"], q, biblioteca, len(output), a_bib))
         get_db().commit()
 
-    return jsonify({"query": q, "biblioteca": biblioteca, "risultati": output})
+    return jsonify({"query": q, "biblioteca": biblioteca, "campo": campo, "risultati": output})
 
 #  API Salvati
 
@@ -404,18 +421,9 @@ def get_letti():
 def aggiungi_letto():
     u = utente_corrente()
     d = request.get_json() or {}
-    manuale = bool(d.get("manuale"))
     url_opac = (d.get("url_opac") or "").strip()
-
     if not url_opac:
-        if manuale:
-            titolo = (d.get("titolo") or "").strip()
-            if not titolo:
-                return jsonify({"error": "Titolo mancante"}), 400
-            url_opac = f"manuale:{uuid.uuid4().hex}"
-        else:
-            return jsonify({"error": "url_opac mancante"}), 400
-
+        return jsonify({"error": "url_opac mancante"}), 400
     db = get_db()
     try:
         db.execute(
@@ -425,7 +433,7 @@ def aggiungi_letto():
             ON CONFLICT (utente_id, url_opac) DO NOTHING
             """,
             (u["id"], d.get("titolo",""), d.get("autore",""),
-             url_opac, d.get("biblioteca","") or "—")
+             url_opac, d.get("biblioteca",""))
         )
         db.commit()
         return jsonify({"ok": True})
