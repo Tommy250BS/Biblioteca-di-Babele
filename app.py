@@ -15,6 +15,7 @@ from psycopg.rows import dict_row
 from psycopg import errors
 import bcrypt
 import psycopg
+import uuid
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 app.secret_key = os.environ.get("SECRET_KEY", "cambia-questa-chiave-in-produzione")
@@ -139,43 +140,11 @@ def login_richiesto(fn):
 #  curl + OPAC 
 
 def curl_get(url):
-    # ── Relay opzionale e GRATUITO: se impostata la variabile d'ambiente
-    #    OPAC_RELAY_URL, la richiesta non va direttamente all'OPAC (il cui
-    #    blocco è specifico per gli IP di Render) ma passa attraverso un
-    #    relay esterno (es. un Cloudflare Worker — piano gratuito, vedi
-    #    worker.js). Il relay fa la richiesta con un IP diverso e ci
-    #    restituisce l'HTML.
-    #    Formato: OPAC_RELAY_URL=https://tuo-worker.workers.dev
-    relay = os.environ.get("OPAC_RELAY_URL", "").strip()
-    richiesta_url = f"{relay}/?url={quote_plus(url)}" if relay else url
-
     cmd = (["curl", "-s", "-L", "--compressed", "--max-time", "25",
             "--cookie-jar", CURL_COOKIE, "--cookie", CURL_COOKIE]
-           + HEADERS)
-
-    # ── Proxy opzionale (alternativa al relay): se impostata la variabile
-    #    d'ambiente OPAC_PROXY, instrada la richiesta tramite quel proxy
-    #    HTTP/SOCKS. Formato: OPAC_PROXY=http://utente:password@host:porta
-    proxy = os.environ.get("OPAC_PROXY", "").strip()
-    if proxy and not relay:
-        cmd += ["--proxy", proxy]
-
-    cmd += [richiesta_url]
-
+           + HEADERS + [url])
     r = subprocess.run(cmd, capture_output=True, text=True,
                        encoding="utf-8", errors="replace")
-
-    # ── DEBUG TEMPORANEO ──────────────────────────────────────────────
-    print(f"[DEBUG curl_get] url effettivo chiamato: {richiesta_url}")
-    print(f"[DEBUG curl_get] exit code: {r.returncode}")
-    print(f"[DEBUG curl_get] relay attivo: {'sì — ' + relay if relay else 'no'}")
-    print(f"[DEBUG curl_get] proxy attivo: {'sì — ' + proxy if (proxy and not relay) else 'no'}")
-    if r.returncode != 0:
-        print(f"[DEBUG curl_get] ⚠ curl ha fallito. stderr: {r.stderr.strip()}")
-    if not r.stdout:
-        print("[DEBUG curl_get] ⚠ stdout vuoto.")
-    # ──────────────────────────────────────────────────────────────────
-
     return r.stdout
 
 def strip_tags(h):
@@ -188,25 +157,6 @@ def strip_tags(h):
 def cerca_titolo(titolo):
     url  = f"{BASE_URL}/opac/search?q={quote_plus(titolo)}"
     html = curl_get(url)
-
-    # ── DEBUG TEMPORANEO ──────────────────────────────────────────────
-    print(f"[DEBUG cerca_titolo] url richiesta: {url}")
-    print(f"[DEBUG cerca_titolo] lunghezza html ricevuto: {len(html) if html else 0}")
-    if not html:
-        print("[DEBUG cerca_titolo] html VUOTO — curl non ha ricevuto risposta "
-              "(timeout, blocco di rete, o errore di connessione).")
-    else:
-        anteprima = html[:800]
-        print(f"[DEBUG cerca_titolo] primi 800 caratteri ricevuti:\n{anteprima}")
-        for indizio in ["captcha", "robot", "access denied", "blocked",
-                        "verifica", "are you human", "cloudflare", "rate limit"]:
-            if indizio in html.lower():
-                print(f"[DEBUG cerca_titolo] ⚠ trovato indizio di blocco anti-bot: '{indizio}'")
-        if "test:catalog:" not in html:
-            print("[DEBUG cerca_titolo] ⚠ 'test:catalog:' NON presente nell'HTML — "
-                  "il pattern regex non troverà nulla (struttura pagina cambiata o blocco).")
-    # ──────────────────────────────────────────────────────────────────
-
     if not html:
         return []
     pattern = r'href="opac/detail/view/test:catalog:(\d+)"[\s\S]{0,200}?title="([^"]{5,200})"'
@@ -216,9 +166,6 @@ def cerca_titolo(titolo):
             t = strip_tags(raw)
             if t and not t.lower().startswith("vai a"):
                 visti[num] = t
-
-    print(f"[DEBUG cerca_titolo] risultati trovati dal regex: {len(visti)}")
-
     return [{"titolo": tit, "url": f"{BASE_URL}/opac/detail/view/test:catalog:{num}"}
             for num, tit in list(visti.items())[:10]]
 
@@ -457,9 +404,18 @@ def get_letti():
 def aggiungi_letto():
     u = utente_corrente()
     d = request.get_json() or {}
+    manuale = bool(d.get("manuale"))
     url_opac = (d.get("url_opac") or "").strip()
+
     if not url_opac:
-        return jsonify({"error": "url_opac mancante"}), 400
+        if manuale:
+            titolo = (d.get("titolo") or "").strip()
+            if not titolo:
+                return jsonify({"error": "Titolo mancante"}), 400
+            url_opac = f"manuale:{uuid.uuid4().hex}"
+        else:
+            return jsonify({"error": "url_opac mancante"}), 400
+
     db = get_db()
     try:
         db.execute(
@@ -469,7 +425,7 @@ def aggiungi_letto():
             ON CONFLICT (utente_id, url_opac) DO NOTHING
             """,
             (u["id"], d.get("titolo",""), d.get("autore",""),
-             url_opac, d.get("biblioteca",""))
+             url_opac, d.get("biblioteca","") or "—")
         )
         db.commit()
         return jsonify({"ok": True})
