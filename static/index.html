@@ -1096,6 +1096,10 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
     </div>
     <div class="psez">
       <div class="sh3">🗺️ Mappa del mondo letterario</div>
+      <div class="cost-stato" style="margin-bottom:14px">
+        <div class="cost-prog"><div class="cost-prog-inner" id="atlProgBar" style="width:0%"></div></div>
+        <div class="cost-prog-txt" id="atlProgTxt">0/0 nazioni scoperte</div>
+      </div>
       <div class="mapwrap">
         <button class="map-expand" onclick="apriMappaFS('atlante')" title="Schermo intero">⤢</button>
         <svg id="mapsvg" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
@@ -1354,7 +1358,7 @@ function vai(id,sub,noAnim){
   if(id==='smnem')caricaMnem();
   if(id==='slap')renderCostellazioni();
   if(id==='spant'){renderPantheon();}
-  if(id==='satlante'){incAtlanteVisits();if(!_atlAvv){_atlAvv=true;initMappa();}}
+  if(id==='satlante'){incAtlanteVisits();aggiornaProgressoAtlante();if(!_atlAvv){_atlAvv=true;initMappa();}}
   window.scrollTo(0,0);
 }
 function switchTab(id){document.querySelectorAll('.ntab').forEach(t=>t.classList.toggle('on',t.dataset.s===id));tap('light');vai(id);}
@@ -2026,12 +2030,36 @@ function fmtOpere(o){
   return o;
 }
 
+function marcaNazioneScoperta(name){
+  let s;try{s=new Set(JSON.parse(localStorage.getItem('rbbc_atlante_scoperte')||'[]'));}catch{s=new Set();}
+  if(!s.has(name)){s.add(name);localStorage.setItem('rbbc_atlante_scoperte',JSON.stringify([...s]));}
+  aggiornaProgressoAtlante();
+}
+function aggiornaProgressoAtlante(){
+  const bar=document.getElementById('atlProgBar'),txt=document.getElementById('atlProgTxt');
+  if(!bar||!txt)return;
+  let s;try{s=new Set(JSON.parse(localStorage.getItem('rbbc_atlante_scoperte')||'[]'));}catch{s=new Set();}
+  const tot=Object.keys(NAZIONI).length;
+  const n=[...s].filter(k=>NAZIONI[k]).length;
+  const pct=tot?Math.round(n/tot*100):0;
+  bar.style.width=pct+'%';
+  txt.textContent=`${n}/${tot} nazioni scoperte`;
+}
+function cercaAutoreInAlexandria(nome){
+  tap('light');
+  if(!G.bib){vai('sbib');return;}
+  vai('salex');
+  const inp=document.getElementById('it');
+  if(inp)inp.value=nome;
+  cerca();
+}
 function selNazione(name,info,el){
   document.querySelectorAll('.mapnaz').forEach(p=>p.classList.remove('sel'));
   if(el)el.classList.add('sel');
+  marcaNazioneScoperta(name);
   const box=document.getElementById('mapinfo');
   const nome=info.nome||name;
-  const ops=info.autori.map(a=>`<div class="opi"><div class="opb"><div class="opt">${a.a}</div><div class="opo">${fmtOpere(a.o)}</div></div></div>`).join('');
+  const ops=info.autori.map(a=>`<div class="opi"><div class="opb"><div class="opt">${a.a}</div><div class="opo">${fmtOpere(a.o)}</div></div><button class="bric" style="margin:0;padding:5px 10px;font-size:.62rem;flex-shrink:0" onclick="cercaAutoreInAlexandria('${a.a.replace(/'/g,"\\'")}')">🔍 Cerca</button></div>`).join('');
   box.innerHTML=`<div class="ec"><div class="ech"><div class="ecl">📍 ${nome}</div><div class="autn" style="font-size:1.1rem">Autori da scoprire</div></div><div class="oplist">${ops}</div></div>`;
 }
 
@@ -3718,9 +3746,10 @@ function _disegnaMappFS(svgId,isMnem,infoEl){
             const ops=libri.map(l=>`<div class="opi"><div class="opb"><div class="opt">${l.titolo}</div><div class="opo">${l.autore||''}</div></div></div>`).join('');
             infoEl.innerHTML=`<div class="ech"><div class="ecl">📍 ${nome}</div><div class="autn" style="font-size:1rem">Libri letti da qui</div></div><div class="oplist">${ops}</div>`;
           }else{
+            marcaNazioneScoperta(f.properties.name);
             const ninfo=NAZIONI[f.properties.name];
             const nome=ninfo?.nome||f.properties.name;
-            const ops=(ninfo?.autori||[]).map(a=>`<div class="opi"><div class="opb"><div class="opt">${a.a}</div><div class="opo">${a.o}</div></div></div>`).join('');
+            const ops=(ninfo?.autori||[]).map(a=>`<div class="opi"><div class="opb"><div class="opt">${a.a}</div><div class="opo">${fmtOpere(a.o)}</div></div><button class="bric" style="margin:0;padding:5px 10px;font-size:.62rem;flex-shrink:0" onclick="chiudiMappaFS();cercaAutoreInAlexandria('${a.a.replace(/'/g,"\\'")}')">🔍 Cerca</button></div>`).join('');
             infoEl.innerHTML=`<div class="ech"><div class="ecl">📍 ${nome}</div><div class="autn" style="font-size:1rem">Autori da scoprire</div></div><div class="oplist">${ops}</div>`;
           }
         });
