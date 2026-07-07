@@ -1148,6 +1148,7 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
       <div class="etn">Lapides Miliarii</div><div class="eto">Dal latino · Pietre miliari</div>
       <p class="etd">Come le stelle formano costellazioni, i grandi classici disegnano la mappa della letteratura universale. Ogni opera letta illumina una stella; quando due stelle vicine brillano insieme, si accende il legame tra loro. Completa una costellazione per ottenere il badge dell'epoca.</p>
     </div>
+    <button class="bsm bsmp" style="margin-bottom:20px" onclick="apriLetturaManuale()">+ Aggiungi lettura passata</button>
     <div id="cost-container"><!-- costellazioni renderizzate da JS --></div>
   </div>
 </div>
@@ -1214,6 +1215,17 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
   <div class="sh"><div class="shhnd"></div><div class="shtit">Modifica profilo</div>
     <div class="fi"><label>Nome</label><input type="text" id="pni" placeholder="Il tuo nome"></div>
     <div style="display:flex;gap:10px"><button class="bsm bsmp" onclick="salvaProfilo()">Salva</button><button class="bsm bsmg" onclick="chiudiSh('shprof')">Annulla</button></div>
+  </div>
+</div>
+<div class="shovr" id="shlett" onclick="chiudiSh('shlett',event)">
+  <div class="sh"><div class="shhnd"></div><div class="shtit">Aggiungi lettura passata</div>
+    <div class="aerr" id="mlerr"></div>
+    <div class="fi"><label>Titolo</label><input type="text" id="mlt" placeholder="Es. Cent'anni di solitudine"></div>
+    <div class="fi"><label>Autore</label><input type="text" id="mla" placeholder="Es. Gabriel García Márquez"></div>
+    <div style="display:flex;gap:10px">
+      <button class="bsm bsmp" onclick="aggiungiLetturaManuale()">Aggiungi</button>
+      <button class="bsm bsmg" onclick="chiudiSh('shlett')">Annulla</button>
+    </div>
   </div>
 </div>
 <div class="shovr" id="shbib" onclick="chiudiSh('shbib',event)">
@@ -1778,6 +1790,29 @@ async function togLetto(btn,libro){
     }
     renderCostellazioni();renderPantheon();renderMnemoMappa();renderPassaporto();
   }catch(e){console.error('togLetto',e);}
+}
+function apriLetturaManuale(){
+  if(!G.u){vai('sa','login');return;}
+  document.getElementById('mlerr').style.display='none';
+  apriSh('shlett');
+}
+async function aggiungiLetturaManuale(){
+  const t=document.getElementById('mlt').value.trim();
+  const a=document.getElementById('mla').value.trim();
+  const err=document.getElementById('mlerr');
+  err.style.display='none';
+  if(!t){err.textContent='Inserisci almeno il titolo.';err.style.display='block';return;}
+  tap('medium');
+  try{
+    const r=await fetch('/api/letti',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({titolo:t,autore:a,biblioteca:G.bib||'',manuale:true})});
+    if(!r.ok){const e=await r.json();throw new Error(e.error||'Errore');}
+    await caricaSalv();
+    document.getElementById('mlt').value='';document.getElementById('mla').value='';
+    chiudiSh('shlett');
+    renderCostellazioni();renderPantheon();renderMnemoMappa();renderPassaporto();
+    if(a)fetchNazioneWikidata(a).then(()=>{renderMnemoMappa();renderPassaporto();});
+  }catch(e){err.textContent=e.message;err.style.display='block';}
 }
 function renderRis(data){
   const{query,biblioteca,risultati}=data;
