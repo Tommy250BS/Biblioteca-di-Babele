@@ -163,6 +163,17 @@ def _norm(s):
     s = ''.join(c for c in s if unicodedata.category(c) != 'Mn')
     return s.lower().strip()
 
+def _estrai_risultati(html):
+    """Estrae (numero_notizia, titolo) dai risultati di una pagina OPAC."""
+    pattern = r'href="opac/detail/view/test:catalog:(\d+)"[\s\S]{0,200}?title="([^"]{5,200})"'
+    visti = {}
+    for num, raw in re.findall(pattern, html):
+        if num not in visti:
+            t = strip_tags(raw)
+            if t and not t.lower().startswith("vai a"):
+                visti[num] = t
+    return visti
+
 def cerca_autore(autore, rows=30):
     """Ricerca dedicata per autore.
 
@@ -171,27 +182,45 @@ def cerca_autore(autore, rows=30):
     filtrare a posteriori i risultati di una ricerca per titolo produceva
     pochissimi o nessun risultato per query come "Orwell".
 
-    DiscoveryNG espone però un parametro speciale `solr=` che permette di
-    interrogare direttamente i campi Solr indicizzati da ClavisNG. Il campo
-    DNG "autha" (usato dalla ricerca avanzata per "Autore") corrisponde a:
-        fldin_txt_author_main:{value}^1000 OR fldin_txt_author:{value}^10
-    Usiamo la stessa query per cercare esclusivamente nel campo autore.
+    Il modo corretto e documentato per interrogare un singolo campo in
+    DiscoveryNG è la Ricerca Avanzata, che passa via URL i parametri
+    field_N / value_N (es. field_1=autha&value_1=Eco). Questo endpoint usa
+    lo stesso motore/template di rendering della ricerca semplice, quindi
+    l'estrazione dei risultati (regex su href/title) funziona allo stesso
+    modo. "autha" è il campo DNG dedicato all'autore ("Nomi", campo di
+    default per la ricerca dell'autore in ricerca avanzata).
+
+    Come rete di sicurezza, se la ricerca avanzata non restituisce nulla
+    (es. per un cambio di configurazione lato server) si ripiega sulla
+    vecchia modalità con query Solr esplicita passata tramite `solr=`.
     """
     val = re.sub(r'"', ' ', autore or '').strip()
     if not val:
         return []
-    solr_q = f'fldin_txt_author_main:"{val}" OR fldin_txt_author:"{val}"'
-    url = f"{BASE_URL}/opac/search?solr={quote_plus(solr_q)}&rows={rows}"
+
+    # 1) Ricerca avanzata sul campo "autha" (Nomi — default per ricerca autore)
+    url = (f"{BASE_URL}/opac/advanced?op_1=and&field_1=autha"
+           f"&value_1={quote_plus(val)}&lop_1=1&submit=Cerca&rows={rows}")
     html = curl_get(url)
-    if not html:
-        return []
-    pattern = r'href="opac/detail/view/test:catalog:(\d+)"[\s\S]{0,200}?title="([^"]{5,200})"'
-    visti = {}
-    for num, raw in re.findall(pattern, html):
-        if num not in visti:
-            t = strip_tags(raw)
-            if t and not t.lower().startswith("vai a"):
-                visti[num] = t
+    visti = _estrai_risultati(html) if html else {}
+
+    # 2) Fallback: campo "aut" (autori/responsabilità UNIMARC 700/701/702/
+    #    710/711/712/720/790), più ampio del solo "autha"
+    if not visti:
+        url2 = (f"{BASE_URL}/opac/advanced?op_1=and&field_1=aut"
+                f"&value_1={quote_plus(val)}&lop_1=1&submit=Cerca&rows={rows}")
+        html2 = curl_get(url2)
+        if html2:
+            visti = _estrai_risultati(html2)
+
+    # 3) Fallback finale: vecchia query Solr esplicita via solr=
+    if not visti:
+        solr_q = f'fldin_txt_author_main:"{val}" OR fldin_txt_author:"{val}"'
+        url3 = f"{BASE_URL}/opac/search?solr={quote_plus(solr_q)}&rows={rows}"
+        html3 = curl_get(url3)
+        if html3:
+            visti = _estrai_risultati(html3)
+
     return [{"titolo": tit, "url": f"{BASE_URL}/opac/detail/view/test:catalog:{num}"}
             for num, tit in list(visti.items())[:rows]]
 
