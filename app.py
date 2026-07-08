@@ -177,67 +177,79 @@ def _estrai_risultati(html):
 def cerca_autore(autore, rows=30):
     """Ricerca dedicata per autore.
 
+    STORIA DEL PROBLEMA (per chi legge in futuro):
     Il box di ricerca generico (q=) di DiscoveryNG interroga principalmente
-    titolo/soggetto/testo libero, NON il campo autore: per questo motivo
-    filtrare a posteriori i risultati di una ricerca per titolo produceva
-    pochissimi o nessun risultato per query come "Orwell".
+    titolo/soggetto/testo libero, e inizialmente sembrava non toccare affatto
+    il campo autore, dando pochi o nessun risultato per query come "Orwell".
+    Si è quindi passati a interrogare direttamente il campo dedicato
+    all'autore via Ricerca Avanzata (parametro field_1=autha, il campo "Nomi"
+    usato di default per l'autore in ricerca avanzata).
 
-    Il modo corretto e documentato per interrogare un singolo campo in
-    DiscoveryNG è la Ricerca Avanzata, che passa via URL i parametri
-    field_N / value_N (es. field_1=autha&value_1=Eco). Questo endpoint usa
-    lo stesso motore/template di rendering della ricerca semplice, quindi
-    l'estrazione dei risultati (regex su href/title) funziona allo stesso
-    modo. "autha" è il campo DNG dedicato all'autore ("Nomi", campo di
-    default per la ricerca dell'autore in ricerca avanzata).
+    Verificato però con dati reali che il campo "autha" da solo è troppo
+    RESTRITTIVO su questo catalogo specifico: per "Orwell" restituiva solo 4
+    notizie in tutto (nessuna delle quali era 1984 o La fattoria degli
+    animali), pur essendo opere sicuramente presenti e molto diffuse nella
+    rete. La causa esatta è lato server (probabile disallineamento tra le
+    forme di autorità indicizzate su record diversi) e non è verificabile da
+    qui; la soluzione pratica è non affidarsi a una sola fonte.
 
-    Come rete di sicurezza, se la ricerca avanzata non restituisce nulla
-    (es. per un cambio di configurazione lato server) si ripiega sulla
-    vecchia modalità con query Solr esplicita passata tramite `solr=`.
+    STRATEGIA ATTUALE: uniamo SEMPRE più fonti, così se una sotto-indicizza
+    non perdiamo comunque i risultati:
+      1. field=autha  → precisa, ma può mancare molte opere (vedi sopra)
+      2. field=aut    → più ampia (tutti i ruoli 700/701/702/710/711/712/
+                         720/790), ma può includere co-autori/curatori
+      3. q=<autore>   → ricerca "tutto testo": include anche l'autore (la
+                         doc DNG conferma che il boosting di default si
+                         applica "alla ricerca semplice ... es. per titolo o
+                         per autore"), quindi cattura casi che i campi
+                         strutturati sopra non trovano
+    I risultati vengono uniti e deduplicati per numero di notizia. Solo la
+    fonte 1 è considerata "affidabile" abbastanza da saltare il filtro a
+    valle sull'autore nella pagina di dettaglio (vedi api_search); per le
+    fonti 2 e 3 quel filtro resta attivo, perché più soggette a falsi
+    positivi (nome dell'autore citato ma non come autore principale, o come
+    soggetto/testo libero).
     """
     val = re.sub(r'"', ' ', autore or '').strip()
     if not val:
         return []
 
     sort = "&sort=mostborrowed"
+    combinati = {}   # num -> {"titolo":..., "affidabile": bool}
 
-    # 1) Ricerca avanzata sul campo "autha" (Nomi — default per ricerca autore).
-    #    Questo è il campo dedicato e più preciso: l'OPAC stesso garantisce
-    #    che il match sia sul nome dell'autore, quindi consideriamo questi
-    #    risultati "affidabili" e non li ri-filtriamo a valle sull'euristica
-    #    (fragile) di estrazione dell'autore dalla pagina di dettaglio.
-    url = (f"{BASE_URL}/opac/advanced?op_1=and&field_1=autha"
-           f"&value_1={quote_plus(val)}&lop_1=1&submit=Cerca&rows={rows}{sort}")
-    html = curl_get(url)
-    visti = _estrai_risultati(html) if html else {}
-    if visti:
-        return [{"titolo": tit, "url": f"{BASE_URL}/opac/detail/view/test:catalog:{num}",
-                  "affidabile": True}
-                for num, tit in list(visti.items())[:rows]]
+    def _aggiungi(html, affidabile):
+        if not html:
+            return
+        for num, tit in _estrai_risultati(html).items():
+            if num not in combinati or (affidabile and not combinati[num]["affidabile"]):
+                combinati[num] = {"titolo": tit, "affidabile": affidabile}
 
-    # 2) Fallback: campo "aut" (autori/responsabilità UNIMARC 700/701/702/
-    #    710/711/712/720/790), più ampio del solo "autha" ma anche più
-    #    soggetto a includere co-autori, curatori, ecc.: non affidabile al
-    #    100%, va ancora verificato a valle.
+    # 1) Campo "autha" (Nomi — dedicato, ma può sotto-indicizzare)
+    url1 = (f"{BASE_URL}/opac/advanced?op_1=and&field_1=autha"
+            f"&value_1={quote_plus(val)}&lop_1=1&submit=Cerca&rows={rows}{sort}")
+    _aggiungi(curl_get(url1), affidabile=True)
+
+    # 2) Campo "aut" (più ampio: tutti i ruoli di responsabilità)
     url2 = (f"{BASE_URL}/opac/advanced?op_1=and&field_1=aut"
             f"&value_1={quote_plus(val)}&lop_1=1&submit=Cerca&rows={rows}{sort}")
-    html2 = curl_get(url2)
-    if html2:
-        visti = _estrai_risultati(html2)
-    if visti:
-        return [{"titolo": tit, "url": f"{BASE_URL}/opac/detail/view/test:catalog:{num}",
-                  "affidabile": False}
-                for num, tit in list(visti.items())[:rows]]
+    _aggiungi(curl_get(url2), affidabile=False)
 
-    # 3) Fallback finale: vecchia query Solr esplicita via solr=
-    solr_q = f'fldin_txt_author_main:"{val}" OR fldin_txt_author:"{val}"'
-    url3 = f"{BASE_URL}/opac/search?solr={quote_plus(solr_q)}&rows={rows}{sort}"
-    html3 = curl_get(url3)
-    if html3:
-        visti = _estrai_risultati(html3)
+    # 3) Ricerca generica "tutto testo": rete di sicurezza più ampia,
+    #    fondamentale per catturare opere che i campi strutturati sopra
+    #    non trovano (es. 1984 di Orwell nei nostri test reali)
+    url3 = f"{BASE_URL}/opac/search?q={quote_plus(val)}&rows={max(rows, 50)}{sort}"
+    _aggiungi(curl_get(url3), affidabile=False)
 
-    return [{"titolo": tit, "url": f"{BASE_URL}/opac/detail/view/test:catalog:{num}",
-              "affidabile": False}
-            for num, tit in list(visti.items())[:rows]]
+    # 4) Ultima rete di sicurezza: vecchia query Solr esplicita via solr=
+    if not combinati:
+        solr_q = f'fldin_txt_author_main:"{val}" OR fldin_txt_author:"{val}"'
+        url4 = f"{BASE_URL}/opac/search?solr={quote_plus(solr_q)}&rows={rows}{sort}"
+        _aggiungi(curl_get(url4), affidabile=False)
+
+    return [{"titolo": info["titolo"],
+             "url": f"{BASE_URL}/opac/detail/view/test:catalog:{num}",
+             "affidabile": info["affidabile"]}
+            for num, info in combinati.items()]
 
 def cerca_titolo(titolo, rows=10):
     url  = f"{BASE_URL}/opac/search?q={quote_plus(titolo)}&rows={rows}"
