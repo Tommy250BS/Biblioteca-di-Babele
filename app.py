@@ -198,9 +198,19 @@ def cerca_autore(autore, rows=30):
     if not val:
         return []
 
+    # NOTA sull'ordinamento: senza un sort esplicito, DNG restituisce i
+    # risultati in un ordine che NON è per rilevanza/popolarità. Un autore
+    # prolifico può avere centinaia di edizioni/traduzioni/opere minori in
+    # catalogo, e le opere più celebri (es. "1984" per Orwell) possono
+    # restare fuori dalle prime `rows` righe. Ordiniamo quindi per
+    # "mostborrowed" (più prestati), che è un ottimo proxy per "più noti":
+    # in una biblioteca pubblica i classici più famosi sono quasi sempre
+    # anche i più presi in prestito.
+    sort = "&sort=mostborrowed"
+
     # 1) Ricerca avanzata sul campo "autha" (Nomi — default per ricerca autore)
     url = (f"{BASE_URL}/opac/advanced?op_1=and&field_1=autha"
-           f"&value_1={quote_plus(val)}&lop_1=1&submit=Cerca&rows={rows}")
+           f"&value_1={quote_plus(val)}&lop_1=1&submit=Cerca&rows={rows}{sort}")
     html = curl_get(url)
     visti = _estrai_risultati(html) if html else {}
 
@@ -208,7 +218,7 @@ def cerca_autore(autore, rows=30):
     #    710/711/712/720/790), più ampio del solo "autha"
     if not visti:
         url2 = (f"{BASE_URL}/opac/advanced?op_1=and&field_1=aut"
-                f"&value_1={quote_plus(val)}&lop_1=1&submit=Cerca&rows={rows}")
+                f"&value_1={quote_plus(val)}&lop_1=1&submit=Cerca&rows={rows}{sort}")
         html2 = curl_get(url2)
         if html2:
             visti = _estrai_risultati(html2)
@@ -216,7 +226,7 @@ def cerca_autore(autore, rows=30):
     # 3) Fallback finale: vecchia query Solr esplicita via solr=
     if not visti:
         solr_q = f'fldin_txt_author_main:"{val}" OR fldin_txt_author:"{val}"'
-        url3 = f"{BASE_URL}/opac/search?solr={quote_plus(solr_q)}&rows={rows}"
+        url3 = f"{BASE_URL}/opac/search?solr={quote_plus(solr_q)}&rows={rows}{sort}"
         html3 = curl_get(url3)
         if html3:
             visti = _estrai_risultati(html3)
