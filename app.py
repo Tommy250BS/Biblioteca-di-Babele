@@ -340,7 +340,7 @@ def aggiorna_profilo():
     get_db().commit()
     return jsonify({"ok": True, "nome": nome, "biblioteca": biblioteca})
 
-'''@app.route("/api/obiettivo", methods=["POST"])
+@app.route("/api/obiettivo", methods=["POST"])
 @login_richiesto
 def imposta_obiettivo():
     u = utente_corrente()
@@ -354,7 +354,7 @@ def imposta_obiettivo():
     get_db().execute("UPDATE utenti SET obiettivo_annuale=%s WHERE id=%s",
                      (obiettivo, u["id"]))
     get_db().commit()
-    return jsonify({"ok": True, "obiettivo_annuale": obiettivo}) '''
+    return jsonify({"ok": True, "obiettivo_annuale": obiettivo})
 
 #  API Ricerca 
 
