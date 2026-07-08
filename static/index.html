@@ -1174,6 +1174,17 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
   </div>
   <div class="pbody">
     <div class="psez">
+      <div class="sh3">🎯 Obiettivo di lettura <span id="obAnno"></span></div>
+      <div class="etimo" style="border-left-color:var(--bosco);margin-bottom:0">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px">
+          <div id="obTesto" style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;color:var(--ink)">—</div>
+          <button class="bg" style="padding:4px 0" onclick="apriObiettivoSheet()">Modifica</button>
+        </div>
+        <div class="cost-prog"><div class="cost-prog-inner" id="obBarra" style="width:0%"></div></div>
+        <div class="cost-prog-txt" id="obSotto" style="margin-top:7px"></div>
+      </div>
+    </div>
+    <div class="psez">
       <div class="sh3">La mia biblioteca</div>
       <p style="font-size:.74rem;color:#aaa;margin-bottom:10px;font-style:italic">I libri che hai letto</p>
       <div id="p-mialib"><div class="vp">Nessun libro segnato come letto.</div></div>
@@ -1240,6 +1251,13 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
   <div class="sh"><div class="shhnd"></div><div class="shtit">Cambia biblioteca</div>
     <div class="fi"><label>Biblioteca</label><div class="acw"><input type="text" id="pbi" placeholder="Es. Rezzato…" autocomplete="off"><div class="dd" id="ddpb"></div></div></div>
     <div style="display:flex;gap:10px"><button class="bsm bsmp" onclick="salvaLib()">Salva</button><button class="bsm bsmg" onclick="chiudiSh('shbib')">Annulla</button></div>
+  </div>
+</div>
+<div class="shovr" id="shobiettivo" onclick="chiudiSh('shobiettivo',event)">
+  <div class="sh"><div class="shhnd"></div><div class="shtit">Obiettivo di lettura annuale</div>
+    <p style="font-size:.78rem;color:var(--ink3);margin-bottom:14px;line-height:1.5">Quanti libri vuoi leggere entro la fine dell'anno? Conta i libri segnati come letti da gennaio a oggi.</p>
+    <div class="fi"><label>Numero di libri</label><input type="number" id="obInput" min="0" max="9999" step="1" placeholder="Es. 24" inputmode="numeric"></div>
+    <div style="display:flex;gap:10px"><button class="bsm bsmp" onclick="salvaObiettivo()">Salva</button><button class="bsm bsmg" onclick="chiudiSh('shobiettivo')">Annulla</button></div>
   </div>
 </div>
 
@@ -3779,6 +3797,51 @@ document.getElementById('mapFsOvr').addEventListener('touchstart',e=>{
   // swipe down to close: gestito dal bottone ✕, qui no-op
 },{passive:true});
 
+/* OBIETTIVO ANNUALE DI LETTURA */
+function lettiQuestAnno(){
+  if(!G.lettiData?.length)return 0;
+  const anno=new Date().getFullYear();
+  return G.lettiData.filter(l=>l.letto_il&&new Date(l.letto_il).getFullYear()===anno).length;
+}
+function renderObiettivo(){
+  const testo=document.getElementById('obTesto');
+  const barra=document.getElementById('obBarra');
+  const sotto=document.getElementById('obSotto');
+  const elAnno=document.getElementById('obAnno');
+  if(!testo||!barra||!sotto)return;
+  const anno=new Date().getFullYear();
+  if(elAnno)elAnno.textContent=anno;
+  const n=lettiQuestAnno();
+  const goal=G.u?.obiettivo_annuale||0;
+  if(!goal){
+    testo.textContent=`${n} ${n===1?'libro letto':'libri letti'} nel ${anno}`;
+    barra.style.width='0%';
+    sotto.textContent="Imposta un obiettivo per iniziare a tracciare i tuoi progressi.";
+    return;
+  }
+  const pct=Math.min(100,Math.round(n/goal*100));
+  testo.textContent=`${n} / ${goal} libri`;
+  barra.style.width=pct+'%';
+  sotto.textContent=n>=goal?'🎉 Obiettivo raggiunto! Complimenti.':`${goal-n} al traguardo · ${pct}%`;
+}
+function apriObiettivoSheet(){
+  if(!G.u){vai('sa','login');return;}
+  const inp=document.getElementById('obInput');
+  if(inp)inp.value=G.u.obiettivo_annuale||'';
+  apriSh('shobiettivo');
+}
+async function salvaObiettivo(){
+  const raw=document.getElementById('obInput').value;
+  const v=parseInt(raw,10);
+  if(isNaN(v)||v<0||v>9999)return;
+  tap('medium');
+  try{
+    const r=await fetch('/api/obiettivo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({obiettivo:v})});
+    const d=await r.json();
+    if(r.ok&&d.ok){G.u.obiettivo_annuale=d.obiettivo_annuale;chiudiSh('shobiettivo');renderObiettivo();}
+  }catch(e){console.error('salvaObiettivo',e);}
+}
+
 /* PROFILO */
 const LIBRI_PREVIEW=5;
 function renderLibriProf(lista,tutti){
@@ -3800,7 +3863,7 @@ function aggiornaUIProf(){
   const pbi=document.getElementById('pbi');if(pbi)pbi.value=G.bib||'';
 }
 async function caricaProf(){
-  if(!G.u)return;aggiornaUIProf();
+  if(!G.u)return;aggiornaUIProf();renderObiettivo();
   try{
     const rl=await fetch('/api/letti');
     const lett=await rl.json();
@@ -3810,6 +3873,7 @@ async function caricaProf(){
     window._mlLett=lett;
     if(lett.length)renderLibriProf(lett,false);
     else ml.innerHTML='<div class="vp">Nessun libro segnato come letto.</div>';
+    renderObiettivo();
     // avvia risoluzione nazioni in background
     migraNazioniEsistenti();
   }catch(e){console.error('caricaProf',e);}
