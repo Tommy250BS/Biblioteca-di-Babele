@@ -5,7 +5,7 @@ DB: PostgreSQL
 Auth: bcrypt + flask-login, cookie di sessione firmato
 """
 
-import subprocess, re, time, os, unicodedata
+import subprocess, re, time, os, unicodedata, tempfile, concurrent.futures
 from datetime import datetime
 from urllib.parse import quote_plus
 from flask import (Flask, request, jsonify, g,
@@ -21,7 +21,10 @@ app.secret_key = os.environ.get("SECRET_KEY", "cambia-questa-chiave-in-produzion
 CORS(app, supports_credentials=True)
 
 BASE_URL    = "https://opac.provincia.brescia.it"
-CURL_COOKIE = "/tmp/rbbc_opac.txt"
+# Nota: non esiste più un cookie-jar condiviso a livello di modulo (era
+# CURL_COOKIE = "/tmp/rbbc_opac.txt"). curl_get() ora crea un cookie-jar
+# temporaneo per ciascuna chiamata, necessario per poter eseguire più
+# richieste in parallelo senza race condition sullo stesso file.
 
 HEADERS = [
     "-H", "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -142,13 +145,55 @@ def login_richiesto(fn):
 
 #  curl + OPAC 
 
-def curl_get(url):
-    cmd = (["curl", "-s", "-L", "--compressed", "--max-time", "25",
-            "--cookie-jar", CURL_COOKIE, "--cookie", CURL_COOKIE]
+def curl_get(url, timeout=12):
+    # Cookie jar TEMPORANEO per singola chiamata (non più CURL_COOKIE
+    # condiviso): con l'introduzione delle richieste in parallelo
+    # (_fetch_parallel sotto), più curl in corsa contemporaneamente sullo
+    # stesso file di cookie causerebbero corruzione/race condition. Un
+    # file temporaneo per chiamata elimina il problema; viene rimosso
+    # subito dopo l'uso. Timeout ridotto rispetto a prima (25s → 12s di
+    # default) perché ora le richieste corrono in parallelo, quindi non
+    # serve più "risparmiare" un'unica chiamata lunga: è meglio fallire
+    # presto su una singola fonte piuttosto che bloccare tutto il worker.
+    fd, cookie_path = tempfile.mkstemp(prefix="rbbc_ck_", dir="/tmp")
+    os.close(fd)
+    cmd = (["curl", "-s", "-L", "--compressed", "--max-time", str(timeout),
+            "--cookie-jar", cookie_path, "--cookie", cookie_path]
            + HEADERS + [url])
-    r = subprocess.run(cmd, capture_output=True, text=True,
-                       encoding="utf-8", errors="replace")
-    return r.stdout
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True,
+                           encoding="utf-8", errors="replace",
+                           timeout=timeout + 5)
+        return r.stdout
+    except subprocess.TimeoutExpired:
+        return ""
+    finally:
+        try:
+            os.remove(cookie_path)
+        except OSError:
+            pass
+
+def _fetch_parallel(urls, timeout=12, max_workers=None):
+    """Esegue più curl_get in parallelo, mantenendo l'ordine dei risultati.
+
+    Usata ovunque si debbano interrogare più URL indipendenti tra loro
+    (es. le 3 fonti di cerca_autore, o le pagine di dettaglio di più
+    candidati): prima venivano scaricate una dopo l'altra, sommando i
+    tempi di rete e causando i timeout del worker su ricerche per autore.
+    """
+    if not urls:
+        return []
+    max_workers = max_workers or max(1, len(urls))
+    results = [""] * len(urls)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as ex:
+        futures = {ex.submit(curl_get, u, timeout): i for i, u in enumerate(urls)}
+        for fut in concurrent.futures.as_completed(futures):
+            i = futures[fut]
+            try:
+                results[i] = fut.result()
+            except Exception:
+                results[i] = ""
+    return results
 
 def strip_tags(h):
     t = re.sub(r'<[^>]+>', ' ', h)
@@ -227,24 +272,29 @@ def cerca_autore(autore, rows=30):
     # 1) Campo "autha" (Nomi — dedicato, ma può sotto-indicizzare)
     url1 = (f"{BASE_URL}/opac/advanced?op_1=and&field_1=autha"
             f"&value_1={quote_plus(val)}&lop_1=1&submit=Cerca&rows={rows}{sort}")
-    _aggiungi(curl_get(url1), affidabile=True)
 
     # 2) Campo "aut" (più ampio: tutti i ruoli di responsabilità)
     url2 = (f"{BASE_URL}/opac/advanced?op_1=and&field_1=aut"
             f"&value_1={quote_plus(val)}&lop_1=1&submit=Cerca&rows={rows}{sort}")
-    _aggiungi(curl_get(url2), affidabile=False)
 
     # 3) Ricerca generica "tutto testo": rete di sicurezza più ampia,
     #    fondamentale per catturare opere che i campi strutturati sopra
     #    non trovano (es. 1984 di Orwell nei nostri test reali)
     url3 = f"{BASE_URL}/opac/search?q={quote_plus(val)}&rows={max(rows, 30)}{sort}"
-    _aggiungi(curl_get(url3), affidabile=False)
+
+    # Le 3 fonti sono indipendenti tra loro: prima venivano scaricate una
+    # dopo l'altra (3 round-trip in sequenza), che da sola era una delle
+    # cause principali del timeout. Ora partono in parallelo.
+    html1, html2, html3 = _fetch_parallel([url1, url2, url3], timeout=12, max_workers=3)
+    _aggiungi(html1, affidabile=True)
+    _aggiungi(html2, affidabile=False)
+    _aggiungi(html3, affidabile=False)
 
     # 4) Ultima rete di sicurezza: vecchia query Solr esplicita via solr=
     if not combinati:
         solr_q = f'fldin_txt_author_main:"{val}" OR fldin_txt_author:"{val}"'
         url4 = f"{BASE_URL}/opac/search?solr={quote_plus(solr_q)}&rows={rows}{sort}"
-        _aggiungi(curl_get(url4), affidabile=False)
+        _aggiungi(curl_get(url4, timeout=12), affidabile=False)
 
     risultati = [{"titolo": info["titolo"],
                   "url": f"{BASE_URL}/opac/detail/view/test:catalog:{num}",
@@ -445,13 +495,37 @@ def api_search():
             risultati_base = cerca_titolo(q, rows=10)
             max_risultati = 10
 
+        # In modalità "autore" il filtro a valle (sotto) può scartare alcuni
+        # candidati non affidabili: scarichiamo qualche candidato in più
+        # della soglia finale per non rischiare di restare corti dopo il
+        # filtro. In modalità "titolo" non c'è filtro, quindi nessun margine.
+        cap = max_risultati * 2 if campo == "autore" else max_risultati
+        candidati = risultati_base[:cap]
+
+        # Le pagine di dettaglio di candidati diversi sono richieste
+        # indipendenti tra loro: prima venivano scaricate una alla volta con
+        # 0.5s di pausa fissa tra ciascuna (fino a 20 candidati = 10s di soli
+        # sleep, oltre al tempo di rete). Ora corrono in parallelo con un
+        # tetto di concorrenza per non sovraccaricare l'OPAC.
+        dettagli = [None] * len(candidati)
+        if candidati:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=6) as ex:
+                futures = {
+                    ex.submit(verifica_disponibilita, c["url"], biblioteca): i
+                    for i, c in enumerate(candidati)
+                }
+                for fut in concurrent.futures.as_completed(futures):
+                    i = futures[fut]
+                    try:
+                        dettagli[i] = fut.result()
+                    except Exception:
+                        dettagli[i] = {"titolo": "—", "autore": "—", "copie": []}
+
         output = []
         q_norm = _norm(q)
-        for libro in risultati_base:
+        for libro, det in zip(candidati, dettagli):
             if len(output) >= max_risultati:
                 break
-            time.sleep(0.5)
-            det = verifica_disponibilita(libro["url"], biblioteca)
             titolo_r = det["titolo"] if det["titolo"] not in ("—","") else libro["titolo"]
             autore_r = det["autore"]
             if autore_r in ("—","") and " - " in titolo_r:
@@ -774,4 +848,10 @@ def index():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    # threaded=True: senza questo, il server di sviluppo Flask gestisce una
+    # richiesta alla volta e il parallelismo interno introdotto sopra
+    # (ThreadPoolExecutor) non aiuterebbe comunque le altre richieste in
+    # coda. In produzione, se si usa gunicorn, ricordare di alzare anche il
+    # --timeout del worker (default 30s) per avere margine extra, es.:
+    #   gunicorn --timeout 60 --workers 3 --threads 4 app:app
+    app.run(host="0.0.0.0", port=port, threaded=True)
