@@ -159,8 +159,25 @@ def _norm(s):
     s = ''.join(c for c in s if unicodedata.category(c) != 'Mn')
     return s.lower().strip()
 
-def cerca_titolo(titolo):
-    url  = f"{BASE_URL}/opac/search?q={quote_plus(titolo)}"
+def cerca_autore(autore, rows=30):
+    """Ricerca dedicata per autore.
+
+    Il box di ricerca generico (q=) di DiscoveryNG interroga principalmente
+    titolo/soggetto/testo libero, NON il campo autore: per questo motivo
+    filtrare a posteriori i risultati di una ricerca per titolo produceva
+    pochissimi o nessun risultato per query come "Orwell".
+
+    DiscoveryNG espone però un parametro speciale `solr=` che permette di
+    interrogare direttamente i campi Solr indicizzati da ClavisNG. Il campo
+    DNG "autha" (usato dalla ricerca avanzata per "Autore") corrisponde a:
+        fldin_txt_author_main:{value}^1000 OR fldin_txt_author:{value}^10
+    Usiamo la stessa query per cercare esclusivamente nel campo autore.
+    """
+    val = re.sub(r'"', ' ', autore or '').strip()
+    if not val:
+        return []
+    solr_q = f'fldin_txt_author_main:"{val}" OR fldin_txt_author:"{val}"'
+    url = f"{BASE_URL}/opac/search?solr={quote_plus(solr_q)}&rows={rows}"
     html = curl_get(url)
     if not html:
         return []
@@ -172,7 +189,22 @@ def cerca_titolo(titolo):
             if t and not t.lower().startswith("vai a"):
                 visti[num] = t
     return [{"titolo": tit, "url": f"{BASE_URL}/opac/detail/view/test:catalog:{num}"}
-            for num, tit in list(visti.items())[:10]]
+            for num, tit in list(visti.items())[:rows]]
+
+def cerca_titolo(titolo, rows=10):
+    url  = f"{BASE_URL}/opac/search?q={quote_plus(titolo)}&rows={rows}"
+    html = curl_get(url)
+    if not html:
+        return []
+    pattern = r'href="opac/detail/view/test:catalog:(\d+)"[\s\S]{0,200}?title="([^"]{5,200})"'
+    visti = {}
+    for num, raw in re.findall(pattern, html):
+        if num not in visti:
+            t = strip_tags(raw)
+            if t and not t.lower().startswith("vai a"):
+                visti[num] = t
+    return [{"titolo": tit, "url": f"{BASE_URL}/opac/detail/view/test:catalog:{num}"}
+            for num, tit in list(visti.items())[:rows]]
 
 def verifica_disponibilita(url, biblioteca):
     html = curl_get(url)
@@ -313,10 +345,23 @@ def api_search():
     if not q or not biblioteca:
         return jsonify({"error": "Parametri mancanti"}), 400
 
-    risultati_base = cerca_titolo(q)
+    # In modalità "autore" la ricerca è delegata a cerca_autore(), che
+    # interroga direttamente i campi Solr dedicati all'autore invece del
+    # campo "tutto testo" (che indicizza soprattutto titolo/soggetto).
+    # Il filtro successivo sull'autore resta come rete di sicurezza, ma
+    # ora la maggior parte dei risultati grezzi sarà già pertinente.
+    if campo == "autore":
+        risultati_base = cerca_autore(q, rows=30)
+        max_risultati = 20
+    else:
+        risultati_base = cerca_titolo(q, rows=10)
+        max_risultati = 10
+
     output = []
     q_norm = _norm(q)
     for libro in risultati_base:
+        if len(output) >= max_risultati:
+            break
         time.sleep(0.5)
         det = verifica_disponibilita(libro["url"], biblioteca)
         titolo_r = det["titolo"] if det["titolo"] not in ("—","") else libro["titolo"]
@@ -326,9 +371,10 @@ def api_search():
             titolo_r, autore_r = parti[0].strip(), parti[1].strip()
 
         # In modalità "autore" scarta i risultati la cui pagina di dettaglio
-        # non riporta un autore che combacia con la query: la ricerca OPAC di
-        # base indicizza anche il titolo, quindi senza questo filtro
-        # comparirebbero falsi positivi (titoli che contengono la query).
+        # non riporta un autore che combacia con la query: la ricerca Solr
+        # sul campo autore può includere match parziali/analizzati, quindi
+        # questo filtro resta come ulteriore rete di sicurezza contro i
+        # falsi positivi.
         if campo == "autore" and (not autore_r or q_norm not in _norm(autore_r)):
             continue
 
