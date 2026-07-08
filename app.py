@@ -198,40 +198,45 @@ def cerca_autore(autore, rows=30):
     if not val:
         return []
 
-    # NOTA sull'ordinamento: senza un sort esplicito, DNG restituisce i
-    # risultati in un ordine che NON è per rilevanza/popolarità. Un autore
-    # prolifico può avere centinaia di edizioni/traduzioni/opere minori in
-    # catalogo, e le opere più celebri (es. "1984" per Orwell) possono
-    # restare fuori dalle prime `rows` righe. Ordiniamo quindi per
-    # "mostborrowed" (più prestati), che è un ottimo proxy per "più noti":
-    # in una biblioteca pubblica i classici più famosi sono quasi sempre
-    # anche i più presi in prestito.
     sort = "&sort=mostborrowed"
 
-    # 1) Ricerca avanzata sul campo "autha" (Nomi — default per ricerca autore)
+    # 1) Ricerca avanzata sul campo "autha" (Nomi — default per ricerca autore).
+    #    Questo è il campo dedicato e più preciso: l'OPAC stesso garantisce
+    #    che il match sia sul nome dell'autore, quindi consideriamo questi
+    #    risultati "affidabili" e non li ri-filtriamo a valle sull'euristica
+    #    (fragile) di estrazione dell'autore dalla pagina di dettaglio.
     url = (f"{BASE_URL}/opac/advanced?op_1=and&field_1=autha"
            f"&value_1={quote_plus(val)}&lop_1=1&submit=Cerca&rows={rows}{sort}")
     html = curl_get(url)
     visti = _estrai_risultati(html) if html else {}
+    if visti:
+        return [{"titolo": tit, "url": f"{BASE_URL}/opac/detail/view/test:catalog:{num}",
+                  "affidabile": True}
+                for num, tit in list(visti.items())[:rows]]
 
     # 2) Fallback: campo "aut" (autori/responsabilità UNIMARC 700/701/702/
-    #    710/711/712/720/790), più ampio del solo "autha"
-    if not visti:
-        url2 = (f"{BASE_URL}/opac/advanced?op_1=and&field_1=aut"
-                f"&value_1={quote_plus(val)}&lop_1=1&submit=Cerca&rows={rows}{sort}")
-        html2 = curl_get(url2)
-        if html2:
-            visti = _estrai_risultati(html2)
+    #    710/711/712/720/790), più ampio del solo "autha" ma anche più
+    #    soggetto a includere co-autori, curatori, ecc.: non affidabile al
+    #    100%, va ancora verificato a valle.
+    url2 = (f"{BASE_URL}/opac/advanced?op_1=and&field_1=aut"
+            f"&value_1={quote_plus(val)}&lop_1=1&submit=Cerca&rows={rows}{sort}")
+    html2 = curl_get(url2)
+    if html2:
+        visti = _estrai_risultati(html2)
+    if visti:
+        return [{"titolo": tit, "url": f"{BASE_URL}/opac/detail/view/test:catalog:{num}",
+                  "affidabile": False}
+                for num, tit in list(visti.items())[:rows]]
 
     # 3) Fallback finale: vecchia query Solr esplicita via solr=
-    if not visti:
-        solr_q = f'fldin_txt_author_main:"{val}" OR fldin_txt_author:"{val}"'
-        url3 = f"{BASE_URL}/opac/search?solr={quote_plus(solr_q)}&rows={rows}{sort}"
-        html3 = curl_get(url3)
-        if html3:
-            visti = _estrai_risultati(html3)
+    solr_q = f'fldin_txt_author_main:"{val}" OR fldin_txt_author:"{val}"'
+    url3 = f"{BASE_URL}/opac/search?solr={quote_plus(solr_q)}&rows={rows}{sort}"
+    html3 = curl_get(url3)
+    if html3:
+        visti = _estrai_risultati(html3)
 
-    return [{"titolo": tit, "url": f"{BASE_URL}/opac/detail/view/test:catalog:{num}"}
+    return [{"titolo": tit, "url": f"{BASE_URL}/opac/detail/view/test:catalog:{num}",
+              "affidabile": False}
             for num, tit in list(visti.items())[:rows]]
 
 def cerca_titolo(titolo, rows=10):
@@ -432,12 +437,17 @@ def api_search():
             parti = titolo_r.rsplit(" - ", 1)
             titolo_r, autore_r = parti[0].strip(), parti[1].strip()
 
-        # In modalità "autore" scarta i risultati la cui pagina di dettaglio
-        # non riporta un autore che combacia con la query: la ricerca Solr
-        # sul campo autore può includere match parziali/analizzati, quindi
-        # questo filtro resta come ulteriore rete di sicurezza contro i
-        # falsi positivi.
-        if campo == "autore" and (not autore_r or q_norm not in _norm(autore_r)):
+        # In modalità "autore": se il libro proviene dalla ricerca mirata sul
+        # campo "autha" (flag affidabile=True), l'OPAC stesso ha già
+        # verificato che l'autore combaci — NON lo ri-filtriamo qui.
+        # L'estrazione dell'autore dalla pagina di dettaglio (primo <h4> utile)
+        # è un'euristica fragile: le edizioni più catalogate/famose (es. 1984,
+        # La fattoria degli animali) spesso hanno più metadati (collana,
+        # curatore, traduttore) e l'euristica può pescare l'h4 sbagliato,
+        # facendo scartare a torto proprio le opere più note. Il filtro resta
+        # applicato solo ai risultati dei fallback meno precisi (aut/solr).
+        if campo == "autore" and not libro.get("affidabile") and \
+           (not autore_r or q_norm not in _norm(autore_r)):
             continue
 
         copie = det["copie"]
