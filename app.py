@@ -237,7 +237,7 @@ def cerca_autore(autore, rows=30):
     # 3) Ricerca generica "tutto testo": rete di sicurezza più ampia,
     #    fondamentale per catturare opere che i campi strutturati sopra
     #    non trovano (es. 1984 di Orwell nei nostri test reali)
-    url3 = f"{BASE_URL}/opac/search?q={quote_plus(val)}&rows={max(rows, 50)}{sort}"
+    url3 = f"{BASE_URL}/opac/search?q={quote_plus(val)}&rows={max(rows, 30)}{sort}"
     _aggiungi(curl_get(url3), affidabile=False)
 
     # 4) Ultima rete di sicurezza: vecchia query Solr esplicita via solr=
@@ -246,10 +246,19 @@ def cerca_autore(autore, rows=30):
         url4 = f"{BASE_URL}/opac/search?solr={quote_plus(solr_q)}&rows={rows}{sort}"
         _aggiungi(curl_get(url4), affidabile=False)
 
-    return [{"titolo": info["titolo"],
-             "url": f"{BASE_URL}/opac/detail/view/test:catalog:{num}",
-             "affidabile": info["affidabile"]}
-            for num, info in combinati.items()]
+    risultati = [{"titolo": info["titolo"],
+                  "url": f"{BASE_URL}/opac/detail/view/test:catalog:{num}",
+                  "affidabile": info["affidabile"]}
+                 for num, info in combinati.items()]
+
+    # Limite di sicurezza: senza un tetto massimo, unire più fonti può
+    # produrre decine di candidati grezzi. Il passo successivo (verifica
+    # disponibilità) fa una richiesta di rete + mezzo secondo di pausa per
+    # OGNI candidato finché non ne trova abbastanza di validi: se pochi
+    # combaciano davvero, il ciclo può scorrere l'intera lista e superare
+    # facilmente il timeout del server. I candidati "affidabili" restano
+    # sempre in testa (inseriti per primi), quindi il taglio non li penalizza.
+    return risultati[:40]
 
 def cerca_titolo(titolo, rows=10):
     url  = f"{BASE_URL}/opac/search?q={quote_plus(titolo)}&rows={rows}"
@@ -424,65 +433,72 @@ def api_search():
     if not q or not biblioteca:
         return jsonify({"error": "Parametri mancanti"}), 400
 
-    # In modalità "autore" la ricerca è delegata a cerca_autore(), che
-    # interroga direttamente i campi Solr dedicati all'autore invece del
-    # campo "tutto testo" (che indicizza soprattutto titolo/soggetto).
-    # Il filtro successivo sull'autore resta come rete di sicurezza, ma
-    # ora la maggior parte dei risultati grezzi sarà già pertinente.
-    if campo == "autore":
-        risultati_base = cerca_autore(q, rows=30)
-        max_risultati = 20
-    else:
-        risultati_base = cerca_titolo(q, rows=10)
-        max_risultati = 10
+    try:
+        # In modalità "autore" la ricerca è delegata a cerca_autore(), che
+        # combina più fonti (campo autore dedicato + campo più ampio +
+        # ricerca tutto testo) perché nessuna delle singole fonti da sola si
+        # è rivelata sufficientemente completa su questo catalogo.
+        if campo == "autore":
+            risultati_base = cerca_autore(q, rows=30)
+            max_risultati = 20
+        else:
+            risultati_base = cerca_titolo(q, rows=10)
+            max_risultati = 10
 
-    output = []
-    q_norm = _norm(q)
-    for libro in risultati_base:
-        if len(output) >= max_risultati:
-            break
-        time.sleep(0.5)
-        det = verifica_disponibilita(libro["url"], biblioteca)
-        titolo_r = det["titolo"] if det["titolo"] not in ("—","") else libro["titolo"]
-        autore_r = det["autore"]
-        if autore_r in ("—","") and " - " in titolo_r:
-            parti = titolo_r.rsplit(" - ", 1)
-            titolo_r, autore_r = parti[0].strip(), parti[1].strip()
+        output = []
+        q_norm = _norm(q)
+        for libro in risultati_base:
+            if len(output) >= max_risultati:
+                break
+            time.sleep(0.5)
+            det = verifica_disponibilita(libro["url"], biblioteca)
+            titolo_r = det["titolo"] if det["titolo"] not in ("—","") else libro["titolo"]
+            autore_r = det["autore"]
+            if autore_r in ("—","") and " - " in titolo_r:
+                parti = titolo_r.rsplit(" - ", 1)
+                titolo_r, autore_r = parti[0].strip(), parti[1].strip()
 
-        # In modalità "autore": se il libro proviene dalla ricerca mirata sul
-        # campo "autha" (flag affidabile=True), l'OPAC stesso ha già
-        # verificato che l'autore combaci — NON lo ri-filtriamo qui.
-        # L'estrazione dell'autore dalla pagina di dettaglio (primo <h4> utile)
-        # è un'euristica fragile: le edizioni più catalogate/famose (es. 1984,
-        # La fattoria degli animali) spesso hanno più metadati (collana,
-        # curatore, traduttore) e l'euristica può pescare l'h4 sbagliato,
-        # facendo scartare a torto proprio le opere più note. Il filtro resta
-        # applicato solo ai risultati dei fallback meno precisi (aut/solr).
-        if campo == "autore" and not libro.get("affidabile") and \
-           (not autore_r or q_norm not in _norm(autore_r)):
-            continue
+            # In modalità "autore": se il libro proviene dalla ricerca mirata sul
+            # campo "autha" (flag affidabile=True), l'OPAC stesso ha già
+            # verificato che l'autore combaci — NON lo ri-filtriamo qui.
+            # L'estrazione dell'autore dalla pagina di dettaglio (primo <h4> utile)
+            # è un'euristica fragile: le edizioni più catalogate/famose (es. 1984,
+            # La fattoria degli animali) spesso hanno più metadati (collana,
+            # curatore, traduttore) e l'euristica può pescare l'h4 sbagliato,
+            # facendo scartare a torto proprio le opere più note. Il filtro resta
+            # applicato solo ai risultati dei fallback meno precisi (aut/q=).
+            if campo == "autore" and not libro.get("affidabile") and \
+               (not autore_r or q_norm not in _norm(autore_r)):
+                continue
 
-        copie = det["copie"]
-        output.append({
-            "titolo":        titolo_r,
-            "autore":        autore_r,
-            "url":           libro["url"],
-            "copie_rezzato": copie,
-            "disponibile":   any(
-                "scaffale" in c["stato"].lower() or "disponib" in c["stato"].lower()
-                for c in copie),
-        })
+            copie = det["copie"]
+            output.append({
+                "titolo":        titolo_r,
+                "autore":        autore_r,
+                "url":           libro["url"],
+                "copie_rezzato": copie,
+                "disponibile":   any(
+                    "scaffale" in c["stato"].lower() or "disponib" in c["stato"].lower()
+                    for c in copie),
+            })
 
-    # Salva ricerca se loggato
-    u = utente_corrente()
-    if u and output:
-        a_bib = sum(1 for r in output if r["copie_rezzato"])
-        get_db().execute(
-            "INSERT INTO ricerche (utente_id,query,biblioteca,trovati,a_bib) VALUES (%s,%s,%s,%s,%s)",
-            (u["id"], q, biblioteca, len(output), a_bib))
-        get_db().commit()
+        # Salva ricerca se loggato
+        u = utente_corrente()
+        if u and output:
+            a_bib = sum(1 for r in output if r["copie_rezzato"])
+            get_db().execute(
+                "INSERT INTO ricerche (utente_id,query,biblioteca,trovati,a_bib) VALUES (%s,%s,%s,%s,%s)",
+                (u["id"], q, biblioteca, len(output), a_bib))
+            get_db().commit()
 
-    return jsonify({"query": q, "biblioteca": biblioteca, "campo": campo, "risultati": output})
+        return jsonify({"query": q, "biblioteca": biblioteca, "campo": campo, "risultati": output})
+
+    except Exception as e:
+        # Log completo lato server (visibile nei log del processo/host) +
+        # messaggio esplicito nella risposta, così un eventuale errore futuro
+        # è diagnosticabile subito invece di apparire come un 500 generico.
+        app.logger.exception("Errore in /api/search (q=%r, campo=%r)", q, campo)
+        return jsonify({"error": f"Errore interno: {e}"}), 500
 
 #  API Salvati
 
