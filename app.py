@@ -63,6 +63,10 @@ def init_db():
             """)
 
             cur.execute("""
+                ALTER TABLE utenti ADD COLUMN IF NOT EXISTS obiettivo_annuale INTEGER NOT NULL DEFAULT 0;
+            """)
+
+            cur.execute("""
                 CREATE TABLE IF NOT EXISTS ricerche (
                     id SERIAL PRIMARY KEY,
                     utente_id INTEGER NOT NULL REFERENCES utenti(id),
@@ -278,7 +282,8 @@ def registra():
         return jsonify({
             "ok": True,
             "nome": nome,
-            "biblioteca": biblioteca
+            "biblioteca": biblioteca,
+            "obiettivo_annuale": 0
         })
 
     except Exception as e:
@@ -300,7 +305,8 @@ def login():
         return jsonify({"error": "Email o password errati"}), 401
     session["uid"] = u["id"]
     session.permanent = True
-    return jsonify({"ok": True, "nome": u["nome"], "biblioteca": u["biblioteca"]})
+    return jsonify({"ok": True, "nome": u["nome"], "biblioteca": u["biblioteca"],
+                     "obiettivo_annuale": u.get("obiettivo_annuale", 0) or 0})
 
 @app.route("/api/auth/logout", methods=["POST"])
 def logout():
@@ -317,6 +323,7 @@ def me():
         "nome":        u["nome"],
         "email":       u["email"],
         "biblioteca":  u["biblioteca"],
+        "obiettivo_annuale": u.get("obiettivo_annuale", 0) or 0,
     })
 
 @app.route("/api/auth/aggiorna", methods=["POST"])
@@ -332,6 +339,22 @@ def aggiorna_profilo():
                      (nome, biblioteca, u["id"]))
     get_db().commit()
     return jsonify({"ok": True, "nome": nome, "biblioteca": biblioteca})
+
+'''@app.route("/api/obiettivo", methods=["POST"])
+@login_richiesto
+def imposta_obiettivo():
+    u = utente_corrente()
+    d = request.get_json() or {}
+    try:
+        obiettivo = int(d.get("obiettivo", 0))
+    except (TypeError, ValueError):
+        return jsonify({"error": "Valore non valido"}), 400
+    if obiettivo < 0 or obiettivo > 9999:
+        return jsonify({"error": "Valore non valido"}), 400
+    get_db().execute("UPDATE utenti SET obiettivo_annuale=%s WHERE id=%s",
+                     (obiettivo, u["id"]))
+    get_db().commit()
+    return jsonify({"ok": True, "obiettivo_annuale": obiettivo}) '''
 
 #  API Ricerca 
 
