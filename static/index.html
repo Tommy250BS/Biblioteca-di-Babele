@@ -59,10 +59,8 @@ body.dark .card,
 body.dark .cit,
 body.dark .sc,
 body.dark .bc,
-body.dark .stc,
 body.dark .imc,
 body.dark .etimo,
-body.dark .passc,
 body.dark .ec,
 body.dark .cost-info,
 body.dark .sh{background:#121f13;border-color:var(--av3)}
@@ -76,25 +74,25 @@ body.dark .ec{border-left-color:var(--oro)}
 body.dark .card.disp{border-left-color:var(--bosco-2)}
 body.dark .card.prest{border-left-color:var(--oro)}
 /* Testi chiari */
-body.dark .ctt,body.dark .sc-nome,body.dark .etn,body.dark .lapt,
-body.dark .wtt,body.dark .tqq,body.dark .riq,body.dark .opt,
-body.dark .ect,body.dark .pn,body.dark .autn,body.dark .cost-nome,
+body.dark .ctt,body.dark .sc-nome,body.dark .etn,
+body.dark .wtt,body.dark .opt,
+body.dark .pn,body.dark .autn,body.dark .cost-nome,
 body.dark .stitolo,body.dark .htit,body.dark .imlab{color:var(--ink)}
 body.dark .opo{color:var(--ink3)}
 body.dark .cta,body.dark .sc-desc,body.dark .etd,body.dark .eto,
-body.dark .citaut,body.dark .cs,body.dark .assl,body.dark .stl,
-body.dark .bbd,body.dark .bbn,body.dark .lapa,body.dark .lapan,
+body.dark .citaut,body.dark .cs,body.dark .assl,
+body.dark .bbd,body.dark .bbn,
 body.dark .cost-badge-hint,body.dark .ssub,body.dark .hsubt,
-body.dark .imval,body.dark .imarr,body.dark .cc,body.dark .eca,
-body.dark .atlt,body.dark .atlan,body.dark .bric,body.dark .auts,
-body.dark .tqn,body.dark .rim,body.dark .rib,body.dark .vp,
+body.dark .imval,body.dark .imarr,body.dark .cc,
+body.dark .bric,
+body.dark .vp,
 body.dark .dde,body.dark .ci,body.dark .cri,body.dark .adv span,
-body.dark .cost-info-a,body.dark .cost-prog-txt,body.dark .auts{color:var(--ink3)}
+body.dark .cost-info-a,body.dark .cost-prog-txt{color:var(--ink3)}
 body.dark .bric{border-color:var(--av3)}
 body.dark .bric:hover{border-color:var(--bosco-2);color:var(--oro-2)}
 body.dark .sh3{color:var(--oro-2);border-bottom-color:var(--av3)}
 /* Separatori */
-body.dark .lapi,body.dark .wi,body.dark .rci,body.dark .tqi,
+body.dark .wi,
 body.dark .opi,body.dark .copr,body.dark .imr{border-color:var(--av3)}
 /* Input */
 body.dark .fi input{background:#0f1a10;border-color:var(--av3);color:var(--ink)}
@@ -106,18 +104,14 @@ body.dark .ddi:hover,.dark .ddi.hl{background:var(--bosco);color:#fff}
 /* Sheet overlay */
 body.dark .shovr{background:rgba(0,0,0,.75)}
 /* Sezioni intro mantengono bosco-3, ok */
-/* cosae box già scuro, ok */
 /* mappa sfondo */
 body.dark .mapwrap{background:#0a1409}
 body.dark .map-fs-svg-wrap{background:#0a1409}
 body.dark .map-ocean{fill:#0a1409}
-body.dark .mapcont,body.dark .mn-naz{fill:#22392a;stroke:#0a1409}
+body.dark .mapcont{fill:#22392a;stroke:#0a1409}
 body.dark .mapnaz.attiva{fill:var(--oro);fill-opacity:.55}
 body.dark .mapnaz.attiva:hover{fill:var(--oro-2);fill-opacity:.85}
 body.dark .mapnaz.attiva.sel{fill:var(--oro-2);fill-opacity:1;stroke:#fff}
-body.dark .mn-naz.visitato{fill:var(--oro-2);fill-opacity:.85}
-body.dark .mn-naz.visitato:hover{fill:var(--oro-3)}
-body.dark .mn-naz.visitato.sel{fill:var(--oro-3);stroke:#fff}
 /* ctcop */
 body.dark .ctcop{background:#0f1a10;border-color:var(--av3)}
 body.dark .cln{background:#0f1a10;border-color:var(--av3);color:var(--bosco-2)}
@@ -149,8 +143,6 @@ body{font-family:'Inter',sans-serif;background:var(--av);color:var(--ink);min-he
 .ntab::after{content:'';position:absolute;inset:0;border-radius:10px;background:rgba(200,164,74,.0);transition:background .28s var(--ease-out-expo)}
 .ntab.on{color:var(--oro-2)}
 .ntab.on::after{background:rgba(200,164,74,.09)}
-.ntab-pip{position:absolute;top:6px;left:50%;transform:translateX(-50%);width:0;height:2px;background:linear-gradient(90deg,var(--oro),var(--oro-3));border-radius:0 0 3px 3px;opacity:0;transition:opacity .28s var(--ease-out-expo),width .32s var(--ease-spring)}
-.ntab.on .ntab-pip{opacity:1;width:28px}
 .nico{font-size:1.1rem;line-height:1;transition:transform .28s var(--ease-spring)}
 .ntab.on .nico{transform:translateY(-1px) scale(1.08)}
 
@@ -218,10 +210,7 @@ body{font-family:'Inter',sans-serif;background:var(--av);color:var(--ink);min-he
 .vuoto h2{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-style:italic;color:var(--ink2);margin-bottom:7px;animation:upSoft .55s .2s var(--ease-out-expo) both;opacity:0}
 .vuoto p{font-size:.82rem;color:#aaa;line-height:1.65;animation:upSoft .5s .32s var(--ease-out-expo) both;opacity:0}
 .vuoto p em{font-style:italic;color:var(--ink3)}
-.ld{text-align:center;padding:52px 20px}
-.sp{width:30px;height:30px;border:2px solid rgba(27,61,30,.1);border-top-color:var(--bosco);border-right-color:rgba(200,164,74,.4);border-radius:50%;animation:gira .9s cubic-bezier(.4,0,.2,1) infinite;margin:0 auto 14px}
 @keyframes gira{to{transform:rotate(360deg)}}
-.ld p{font-size:.78rem;color:#bbb;font-style:italic;letter-spacing:.04em}
 /* ── SKELETON ── */
 .skel-wrap{padding:0}
 .skel-card{background:#fff;border-radius:0 var(--r) var(--r) 0;margin-bottom:10px;border-left:3px solid var(--av3);overflow:hidden;animation:up .22s var(--ease-out-expo) both}
@@ -237,8 +226,6 @@ body.dark .skel-foot{background:#0f1a10;border-color:var(--av3)}
 .skel-foot-dot{width:8px;height:8px;border-radius:50%;background:linear-gradient(90deg,var(--av2) 25%,var(--av3) 50%,var(--av2) 75%);background-size:300% 100%;animation:skelShimmer 1.4s ease infinite}
 .skel-foot-line{height:9px;border-radius:3px;flex:1;background:linear-gradient(90deg,var(--av2) 25%,var(--av3) 50%,var(--av2) 75%);background-size:300% 100%;animation:skelShimmer 1.4s ease infinite}
 @keyframes skelShimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
-.skel-pill{height:28px;width:128px;border-radius:20px;background:linear-gradient(90deg,var(--av2) 25%,var(--av3) 50%,var(--av2) 75%);background-size:300% 100%;animation:skelShimmer 1.4s ease infinite}
-body.dark .skel-pill{background:linear-gradient(90deg,#1c2e1e 25%,#243426 50%,#1c2e1e 75%);background-size:300% 100%}
 /* ── MORPH EXPAND (card → schermata): la card si "trasforma" nel pannello a tutto schermo ── */
 .morph-ov{position:fixed;top:0;left:0;width:100vw;height:100dvh;z-index:600;background:#fff;pointer-events:none;transform-origin:top left;will-change:transform,border-radius,opacity;transition:transform .4s var(--ease-out-expo),border-radius .4s var(--ease-out-expo),opacity .4s ease}
 body.dark .morph-ov{background:#121f13}
@@ -266,9 +253,6 @@ body.dark .morph-ov{background:#121f13}
 .wbk::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:rgba(200,164,74,.15)}
 /* stelle decorative — size variabile */
 .wstar{position:absolute;border-radius:50%;background:var(--oro);animation:shimmer 3.5s ease-in-out infinite}
-.wstar.sm{width:1.5px;height:1.5px}
-.wstar.md{width:2.5px;height:2.5px;box-shadow:0 0 4px rgba(200,164,74,.5)}
-.wstar.lg{width:3px;height:3px;box-shadow:0 0 8px rgba(200,164,74,.6)}
 .wc{position:relative;z-index:10;padding:0 28px calc(52px + var(--sb))}
 /* logo animato */
 .wlogo{animation:floatLogo 5s ease-in-out infinite,glowPulse 5s ease-in-out infinite;display:block;margin-top:32px;filter:drop-shadow(0 4px 20px rgba(200,164,74,.12))}
@@ -345,10 +329,7 @@ body.dark .morph-ov{background:#121f13}
 /* ── BADGE UNLOCK CEREMONY ── */
 @keyframes badgeFlash{0%{box-shadow:0 0 0 0 rgba(200,164,74,0),var(--sh-s)}30%{box-shadow:0 0 0 8px rgba(200,164,74,.35),0 0 32px rgba(200,164,74,.2)}100%{box-shadow:0 0 0 0 rgba(200,164,74,0),var(--sh-s)}}
 @keyframes badgeBounce{0%{transform:scale(1)}18%{transform:scale(1.18)}36%{transform:scale(.94)}52%{transform:scale(1.07)}68%{transform:scale(.98)}84%{transform:scale(1.02)}100%{transform:scale(1)}}
-@keyframes burstRay{0%{opacity:.9;stroke-dashoffset:0}100%{opacity:0;stroke-dashoffset:-38}}
 .bc.ceremony{animation:badgeFlash .9s ease both,badgeBounce .7s .05s cubic-bezier(.22,.68,0,1.15) both}
-.burst-svg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;overflow:visible;z-index:10}
-.burst-ray{stroke-dasharray:22 16;stroke-linecap:round;animation:burstRay .65s var(--ease-out-expo) both}
 .bc{position:relative;overflow:visible}
 
 /* AUTH */
@@ -402,7 +383,6 @@ body.dark .morph-ov{background:#121f13}
 .sc:hover{box-shadow:var(--sh-m);transform:translateY(-2px)}
 .sc:hover::before{opacity:1}
 .sc:active{transform:scale(.95) translateY(0);box-shadow:var(--sh-s)}
-.sc.wide{grid-column:1/-1}
 .sc-ico{font-size:1.45rem;line-height:1;margin-bottom:2px}
 .sc-nome{font-family:'Cormorant Garamond',serif;font-size:1.04rem;font-weight:600;color:var(--ink);line-height:1.2}
 .sc-desc{font-size:.68rem;color:#aaa;line-height:1.5}
@@ -424,13 +404,6 @@ body.dark .morph-ov{background:#121f13}
 .sc:hover .sc-arr{transform:translateX(2px);color:var(--bosco)}
 .sc:active .sc-arr{transform:translateX(4px)}
 
-/* COS'E' BOX */
-.cosae{background:linear-gradient(135deg,var(--bosco) 0%,var(--bosco-4) 100%);border-radius:var(--r);padding:20px;margin-bottom:18px;color:#fff;position:relative;overflow:hidden;border:1px solid rgba(200,164,74,.08)}
-.cosae::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(200,164,74,.2),transparent)}
-.cosae h3{font-family:'Cormorant Garamond',serif;font-size:1.12rem;font-weight:600;color:var(--oro-2);margin-bottom:8px}
-.cosae p{font-size:.79rem;line-height:1.75;color:rgba(255,255,255,.52)}
-.cosaorn{position:absolute;right:-10px;bottom:-16px;font-size:5.8rem;opacity:.1;font-family:'Cormorant Garamond',serif;color:var(--oro)}
-
 /* SEZIONE INTRO (Clio, Mnem, ecc.) */
 .sint{background:var(--bosco-3);padding:calc(16px + var(--st)) 20px 0;position:relative;overflow:hidden}
 .sint::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 80% at 80% 50%,rgba(200,164,74,.05) 0%,transparent 70%);pointer-events:none}
@@ -450,14 +423,8 @@ body.dark .morph-ov{background:#121f13}
 .etd{font-size:.82rem;color:var(--ink2);line-height:1.72}
 .etd.ph{color:#ccc;font-style:italic}
 
-.inarr{background:var(--av2);border-radius:var(--r);padding:18px;text-align:center;margin-bottom:14px}
-.inarr p{font-size:.82rem;color:#bbb;font-style:italic}
-
 /* SEZIONE h3 */
 .sh3{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--bosco);margin-bottom:11px;padding-bottom:7px;border-bottom:1px solid var(--av3)}
-
-/* ACCADDE OGGI */
-.adata{font-size:.68rem;color:var(--oro);letter-spacing:.1em;text-transform:uppercase;margin-bottom:11px;font-weight:600}
 
 /* INFO QUERY */
 .iq{margin-bottom:14px;padding-bottom:11px;border-bottom:1px solid var(--av3);display:flex;align-items:baseline;justify-content:space-between;gap:8px}
@@ -493,13 +460,6 @@ body.dark .morph-ov{background:#121f13}
 .cln:hover{text-decoration:underline}
 
 /* ATLANTE MAPPA */
-.atla{display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid var(--av2)}
-.atla:last-child{border-bottom:none}
-.atln{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--av3);width:28px;flex-shrink:0;text-align:center;line-height:1.2}
-.atln{flex:1}
-.atlt{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--ink);line-height:1.3}
-.atlt{font-family:'Cormorant Garamond',serif;font-size:.85rem;color:#888;font-style:italic}
-.atlan{font-size:.68rem;color:#bbb;margin-top:1px}
 .mapwrap{background:#eef3f6;border-radius:var(--r);box-shadow:var(--sh-s);overflow:hidden;padding:8px;position:relative}
 .mapwrap svg{width:100%;height:auto;display:block}
 .map-ocean{fill:#eef3f6}
@@ -521,21 +481,8 @@ body.dark .morph-ov{background:#121f13}
 .mapnaz.attiva{fill:var(--bosco-2);cursor:pointer}
 .mapnaz.attiva:hover{fill:var(--bosco)}
 .mapnaz.attiva.sel{fill:var(--oro);stroke:var(--bosco);stroke-width:1.6}
-.mn-naz{stroke:#fff;stroke-width:1;fill:#d7dde0}
-.mn-naz.visitato{fill:var(--oro);cursor:pointer}
-.mn-naz.visitato:hover{fill:var(--oro-2)}
-.mn-naz.visitato.sel{fill:var(--bosco-2);stroke:var(--oro);stroke-width:1.6}
 .mapinfo{margin-top:14px}
 .maphint{font-size:.8rem;color:#aaa;font-style:italic;text-align:center;padding:8px 0}
-
-/* LAPIDES */
-.lapi{display:flex;align-items:flex-start;gap:12px;padding:13px 0;border-bottom:1px solid var(--av2)}
-.lapi:last-child{border-bottom:none}
-.lapn{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--av3);width:28px;flex-shrink:0;text-align:center;line-height:1.2}
-.lapb{flex:1}
-.lapt{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--ink);line-height:1.3}
-.lapa{font-family:'Cormorant Garamond',serif;font-size:.85rem;color:#888;font-style:italic}
-.lapan{font-size:.68rem;color:#bbb;margin-top:1px}
 
 /* PROFILO */
 .ph{background:var(--bosco-3);padding:calc(16px + var(--st)) 20px 0;position:relative;overflow:hidden}
@@ -547,12 +494,6 @@ body.dark .morph-ov{background:#121f13}
 .btag{display:inline-flex;align-items:center;gap:5px;background:var(--oro-s);border:1px solid rgba(201,168,76,.22);border-radius:20px;padding:3px 10px 3px 7px;font-size:.67rem;color:var(--oro);margin-top:8px}
 .pbody{background:var(--av);border-radius:var(--rl) var(--rl) 0 0;margin-top:-14px;position:relative;z-index:2;flex:1;padding:24px 16px}
 .psez{margin-bottom:24px}
-
-/* STATS */
-.stgr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.stc{background:#fff;border-radius:var(--r);padding:16px;box-shadow:var(--sh-s);text-align:center}
-.stn{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:600;color:var(--bosco);line-height:1}
-.stl{font-size:.67rem;color:#aaa;margin-top:3px;letter-spacing:.06em;text-transform:uppercase}
 
 /* WISH ITEM */
 .wi{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid var(--av2)}
@@ -778,12 +719,8 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
 .cost-info.on{display:block;animation:up .2s ease both}
 .cost-info-t{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--ink);line-height:1.3}
 .cost-info-a{font-size:.78rem;color:#888;font-style:italic;font-family:'Cormorant Garamond',serif}
-.cost-info-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:7px;flex-wrap:wrap}
 .cost-info-url{font-size:.7rem;color:var(--bosco-2);text-decoration:none;letter-spacing:.03em}
 .cost-info-url:hover{text-decoration:underline}
-.cost-info-letto{font-size:.69rem;font-weight:600;padding:4px 10px;border-radius:20px;border:none;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s}
-.cost-info-letto.off{background:var(--av2);color:var(--ink3)}
-.cost-info-letto.on{background:var(--bosco);color:var(--oro)}
 /* barra progresso */
 .cost-stato{display:flex;align-items:center;gap:8px;margin-top:9px}
 .cost-prog{flex:1;height:3px;background:rgba(201,168,76,.15);border-radius:2px;overflow:hidden}
@@ -792,20 +729,6 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
 .cost-badge-earned{display:inline-flex;align-items:center;gap:7px;background:var(--bosco);border-radius:20px;padding:5px 12px 5px 8px;font-size:.72rem;color:var(--oro);font-weight:600;margin-top:9px;animation:badgePop .5s cubic-bezier(.18,.89,.32,1.28) both}
 @keyframes badgePop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
 
-/* PANTHEON schermata */
-.pant-section{margin-bottom:28px}
-.pant-sh3{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:var(--bosco);margin-bottom:12px;padding-bottom:7px;border-bottom:1px solid var(--av3)}
-
-.rci{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--av2)}
-.rci:last-child{border-bottom:none}
-.riq{font-size:.87rem;font-weight:500;flex:1}
-.rim{font-size:.7rem;color:#bbb;text-align:right;white-space:nowrap}
-.rib{font-size:.7rem;color:#aaa}
-.tqi{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--av2)}
-.tqi:last-child{border-bottom:none}
-.tqr{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:var(--av4);width:20px;text-align:center;flex-shrink:0}
-.tqq{font-size:.87rem;flex:1}
-.tqn{font-size:.72rem;color:#bbb;white-space:nowrap}
 .vp{text-align:center;padding:16px;color:#bbb;font-size:.8rem;font-style:italic}
 
 /* IMPOSTAZIONI */
@@ -828,19 +751,10 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
 .ec{background:#fff;border-radius:0 var(--r) var(--r) 0;border-left:3px solid var(--oro);box-shadow:var(--sh-m);overflow:hidden;margin-bottom:16px;animation:up .3s ease both}
 .ech{padding:16px 16px 12px}
 .ecl{font-size:.61rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--oro);margin-bottom:7px}
-.ect{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:700;line-height:1.3;color:var(--ink);margin-bottom:4px}
-.eca{font-family:'Cormorant Garamond',serif;font-size:.92rem;font-style:italic;color:#777}
-.ecact{display:flex;gap:8px;padding:0 16px 14px;flex-wrap:wrap;align-items:center}
-.bopac{font-size:.73rem;font-weight:600;padding:7px 14px;border-radius:20px;background:var(--bosco);color:var(--oro);text-decoration:none;white-space:nowrap}
-.besalv{font-size:.73rem;font-weight:600;padding:6px 13px;border-radius:20px;background:transparent;color:var(--bosco);border:1.5px solid var(--bosco);cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif}
-.besalv.on{background:var(--bosco);color:var(--oro);border-color:var(--bosco)}
-.besalv.bletto{border-color:var(--av3);color:#aaa}
-.besalv.bletto.on{border-color:var(--oro);background:var(--oro-s);color:var(--bosco)}
 .bric{display:inline-flex;align-items:center;gap:6px;background:none;border:1.5px solid var(--av3);border-radius:20px;color:#aaa;font-size:.73rem;font-weight:600;padding:6px 14px;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;margin-bottom:16px}
 .bric:hover{border-color:var(--bosco);color:var(--bosco)}
 .bric:disabled{opacity:.5;cursor:default}
 .autn{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:600;color:var(--bosco);line-height:1.2;margin-bottom:2px}
-.auts{font-size:.73rem;color:#aaa}
 .oplist{padding:4px 16px 14px}
 .opi{display:flex;align-items:baseline;gap:10px;padding:9px 0;border-bottom:1px solid var(--av2)}
 .opi:last-child{border-bottom:none}
@@ -1096,6 +1010,10 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
     </div>
     <div class="psez">
       <div class="sh3">🗺️ Mappa del mondo letterario</div>
+      <div class="cost-stato" style="margin-bottom:14px">
+        <div class="cost-prog"><div class="cost-prog-inner" id="atlProgBar" style="width:0%"></div></div>
+        <div class="cost-prog-txt" id="atlProgTxt">0/0 nazioni scoperte</div>
+      </div>
       <div class="mapwrap">
         <button class="map-expand" onclick="apriMappaFS('atlante')" title="Schermo intero">⤢</button>
         <svg id="mapsvg" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"></svg>
@@ -1148,6 +1066,7 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
       <div class="etn">Lapides Miliarii</div><div class="eto">Dal latino · Pietre miliari</div>
       <p class="etd">Come le stelle formano costellazioni, i grandi classici disegnano la mappa della letteratura universale. Ogni opera letta illumina una stella; quando due stelle vicine brillano insieme, si accende il legame tra loro. Completa una costellazione per ottenere il badge dell'epoca.</p>
     </div>
+    <button class="bsm bsmp" style="margin-bottom:20px" onclick="apriLetturaManuale()">+ Aggiungi lettura passata</button>
     <div id="cost-container"><!-- costellazioni renderizzate da JS --></div>
   </div>
 </div>
@@ -1164,6 +1083,17 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
     </div>
   </div>
   <div class="pbody">
+    <div class="psez">
+      <div class="sh3">🎯 Obiettivo di lettura <span id="obAnno"></span></div>
+      <div class="etimo" style="border-left-color:var(--bosco);margin-bottom:0">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px">
+          <div id="obTesto" style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;color:var(--ink)">—</div>
+          <button class="bg" style="padding:4px 0" onclick="apriObiettivoSheet()">Modifica</button>
+        </div>
+        <div class="cost-prog"><div class="cost-prog-inner" id="obBarra" style="width:0%"></div></div>
+        <div class="cost-prog-txt" id="obSotto" style="margin-top:7px"></div>
+      </div>
+    </div>
     <div class="psez">
       <div class="sh3">La mia biblioteca</div>
       <p style="font-size:.74rem;color:#aaa;margin-bottom:10px;font-style:italic">I libri che hai letto</p>
@@ -1216,10 +1146,28 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
     <div style="display:flex;gap:10px"><button class="bsm bsmp" onclick="salvaProfilo()">Salva</button><button class="bsm bsmg" onclick="chiudiSh('shprof')">Annulla</button></div>
   </div>
 </div>
+<div class="shovr" id="shlett" onclick="chiudiSh('shlett',event)">
+  <div class="sh"><div class="shhnd"></div><div class="shtit">Aggiungi lettura passata</div>
+    <div class="aerr" id="mlerr"></div>
+    <div class="fi"><label>Titolo</label><input type="text" id="mlt" placeholder="Es. Cent'anni di solitudine"></div>
+    <div class="fi"><label>Autore</label><input type="text" id="mla" placeholder="Es. Gabriel García Márquez"></div>
+    <div style="display:flex;gap:10px">
+      <button class="bsm bsmp" onclick="aggiungiLetturaManuale()">Aggiungi</button>
+      <button class="bsm bsmg" onclick="chiudiSh('shlett')">Annulla</button>
+    </div>
+  </div>
+</div>
 <div class="shovr" id="shbib" onclick="chiudiSh('shbib',event)">
   <div class="sh"><div class="shhnd"></div><div class="shtit">Cambia biblioteca</div>
     <div class="fi"><label>Biblioteca</label><div class="acw"><input type="text" id="pbi" placeholder="Es. Rezzato…" autocomplete="off"><div class="dd" id="ddpb"></div></div></div>
     <div style="display:flex;gap:10px"><button class="bsm bsmp" onclick="salvaLib()">Salva</button><button class="bsm bsmg" onclick="chiudiSh('shbib')">Annulla</button></div>
+  </div>
+</div>
+<div class="shovr" id="shobiettivo" onclick="chiudiSh('shobiettivo',event)">
+  <div class="sh"><div class="shhnd"></div><div class="shtit">Obiettivo di lettura annuale</div>
+    <p style="font-size:.78rem;color:var(--ink3);margin-bottom:14px;line-height:1.5">Quanti libri vuoi leggere entro la fine dell'anno? Conta i libri segnati come letti da gennaio a oggi.</p>
+    <div class="fi"><label>Numero di libri</label><input type="number" id="obInput" min="0" max="9999" step="1" placeholder="Es. 24" inputmode="numeric"></div>
+    <div style="display:flex;gap:10px"><button class="bsm bsmp" onclick="salvaObiettivo()">Salva</button><button class="bsm bsmg" onclick="chiudiSh('shobiettivo')">Annulla</button></div>
   </div>
 </div>
 
@@ -1296,7 +1244,7 @@ let G={u:null,bib:'',letti:new Set(),lettiData:[]};
 
 const BIBS=["Acquafredda","Adro","Agnadello","Agnosine","Anfo","Angolo Terme","Annicco","Artogne","Azzano Mella","Bagnolo Cremasco","Bagnolo Mella","Bagolino","Barbariga","Barghe","Bassano Bresciano","Bedizzole","Berlingo","Berzo Demo","Berzo Inferiore","Bienno","Bione","Bonemerse","Borgo San Giacomo","Borgosatollo","Borno","Botticino","Bovegno","Bovezzo","Brandico","Braone","Breno","Brescia - Abba-Ballini","Brescia - Archivio Storico","Brescia - Arnaldo","Brescia - Bibliobus","Brescia - Buffalora","Brescia - Canton Mombello","Brescia - Casazza","Brescia - Centro Casa Severino","Brescia - Emeroteca Queriniana","Brescia - Fondazione Trebeschi","Brescia - Gambara","Brescia - Ghetti","Brescia - Golgi","Brescia - La Vetrina","Brescia - Largo Torrelunga","Brescia - Mediateca Queriniana","Brescia - Museo Scienze Naturali","Brescia - Parco Gallo","Brescia - Prealpino","Brescia - Queriniana","Brescia - San Polo","Brescia - SBU","Brescia - Sereno","Brescia - UAU","Brione","Caino","Calcinato","Calvagese D-R","Calvatone","Calvisano","Camisano","Capergnanica","Capo Di Ponte","Capovalle","Capralba","Capriano Del Colle","Capriolo","Carpenedolo","Casalbuttano","Casale Cremasco Vidolasco","Casaletto Ceredano","Casaletto Vaprio","Casalmaggiore","Casalpusterlengo","Castegnato","Castel Mella","Castelcovati","Castelleone","Castello Di Padernello","Castelverde","Castenedolo","Casto","Castrezzato","Cazzago SM","Cedegolo","Cellatica","Centro Fumetto A. Pazienza","Centro Studi RSI Salò","Cerveno","Ceto","Cevo","Chiari","Chieve","Cigole","Cimbergo","Cingia De' Botti","Cividate Camuno","Clusane","Coccaglio","Collebeato","Collio","Cologne","Comezzano - Cizzago","Concesio","Corte De' Frati","Corte Franca","Corteno Golgi","Corzano","Credera Rubbiano","Crema","Crema - Museo","Cremona - Anguissola","Cremona - CDA","Cremona - Manin","Darfo Boario Terme","Dello","Desenzano","Dovera","Edolo","Elnos","Erbusco","Esine","Fiesco","Fiesse","Flero","Gadesco Pieve Delmona","Gambara","Gardone Riviera","Gardone Val Trompia","Gargnano","Gavardo","Genivolta","Ghedi","Gianico","Gottolengo","Grontardo","Grumello Cremonese","Gussago","Gussola","Idro","Incudine","Irma","Iseo","Isola Dovarese","Isorella","Izano","Lavenone","Leno","Limone Sul Garda","Lodrino","Lograto","Lonato Del Garda","Longhena","Losine","Lozio","Lumezzane","Maclodio","Madignano","Magasa","Mairano","Malegno","Malonno","Manerba Del Garda","Manerbio","Marcheno","Marmentino","Marone","Martignana Di Po","Mazzano","Milzano","Moniga Del Garda","Monno","Monte Cremasco","Monte Isola","Monticelli Brusati","Montichiari","Montirone","Montodine","Mura","Muscoline","Nave","Niardo","Nuvolento","Nuvolera","Odolo","Offanengo","Offlaga","Ome","Ono San Pietro","Orzinuovi","Orzivecchi","Ospitaletto","Ostiano","Padenghe Sul Garda","Paderno FC","Paderno Ponchielli","Paitone","Palazzo Pignano","Palazzolo Sull'Oglio","Pandino","Paratico","Passirano","Pavone Del Mella","Persico Dosimo","Pertica Alta","Pertica Bassa","Pescarolo Ed Uniti","Pezzaze","Piadena Drizzona","Pian Camuno","Piancogno","Pianengo","Pisogne","Pizzighettone","Polaveno","Polpenazze Del Garda","Pompiano","Poncarale","Ponte Di Legno","Pontevico","Pontoglio","Pozzolengo","Pralboino","Preseglie","Prestine","Prevalle","Provaglio D'Iseo","Provaglio VS","Puegnago Del Garda","Quinzano D'Oglio","Remedello","Rezzato","Ricengo","Ripalta Cremasca","Rivarolo Del Re","Rivolta D'Adda","Roccafranca","Rodengo Saiano","Roè Volciano","Romanengo","Roncadelle","Rovato","Rudiano","Sabbio Chiese","Sale Marasino","Salò","San Bassano","San Daniele Po","San Felice Del Benaco","San Gervasio Bresciano","San Giovanni In Croce","San Paolo","San Zeno Naviglio","Sarezzo","Saviore Dell'Adamello","Sellero","Seniga","Sergnano","Serle","Sesto Ed Uniti","Sirmione","Soiano Del Lago","Solarolo Rainerio","Soncino","Sonico","Soresina","Sospiro","Spino D'Adda","Sulzano","Tavernole Sul Mella","Temù","Tignale","Torbole Casaglia","Tornata","Torre De' Picenardi","Torricella Del Pizzo","Toscolano Maderno","Travagliato","Tremosine","Trenzano","Trescore Balneario","Trescore Cremasco","Treviso Bresciano","Urago D'Oglio","Vallio Terme","Valvestino","Verolanuova","Verolavecchia","Vestone","Vezza D'Oglio","Villa Carcina","Villanuova Sul Clisi","Visano","Vobarno","Zone"];
 
-const CNV=['shome','salex','satlante','smnem','slap','sprof','spant'];
+const CNV=['shome','salex','satlante','slap','sprof','spant'];
 let _atlAvv=false;
 
 /* --- HAPTIC --- */
@@ -1339,10 +1287,9 @@ function vai(id,sub,noAnim){
   if(id==='sa')mostraForm(sub||'login');
   if(id==='shome')aggHome();
   if(id==='sprof')caricaProf();
-  if(id==='smnem')caricaMnem();
   if(id==='slap')renderCostellazioni();
   if(id==='spant'){renderPantheon();}
-  if(id==='satlante'){incAtlanteVisits();if(!_atlAvv){_atlAvv=true;initMappa();}}
+  if(id==='satlante'){incAtlanteVisits();aggiornaProgressoAtlante();if(!_atlAvv){_atlAvv=true;initMappa();}}
   window.scrollTo(0,0);
 }
 function switchTab(id){document.querySelectorAll('.ntab').forEach(t=>t.classList.toggle('on',t.dataset.s===id));tap('light');vai(id);}
@@ -1764,11 +1711,9 @@ async function togLetto(btn,libro){
       if(!r.ok){const e=await r.json();throw new Error(e.error);}
       G.letti.add(url);G.lettiData.push({titolo:libro.titolo,autore:libro.autore||'',url_opac:url,biblioteca:G.bib});
       btn.textContent='✓ Letto';btn.classList.add('on');
-      // Risolvi subito la nazione in background per il nuovo libro
+      // Risolvi subito la nazione in background per il nuovo libro (serve ai badge geografici del Pantheon)
       if(libro.autore){
-        fetchNazioneWikidata(libro.autore).then(()=>{
-          renderMnemoMappa();renderPassaporto();
-        });
+        fetchNazioneWikidata(libro.autore).then(()=>renderPantheon());
       }
     }else{
       const r=await fetch(`/api/letti/${encodeURIComponent(url)}`,{method:'DELETE'});
@@ -1776,8 +1721,31 @@ async function togLetto(btn,libro){
       G.letti.delete(url);G.lettiData=G.lettiData.filter(l=>l.url_opac!==url);
       btn.textContent='○ Segna come letto';btn.classList.remove('on');
     }
-    renderCostellazioni();renderPantheon();renderMnemoMappa();renderPassaporto();
+    renderCostellazioni();renderPantheon();
   }catch(e){console.error('togLetto',e);}
+}
+function apriLetturaManuale(){
+  if(!G.u){vai('sa','login');return;}
+  document.getElementById('mlerr').style.display='none';
+  apriSh('shlett');
+}
+async function aggiungiLetturaManuale(){
+  const t=document.getElementById('mlt').value.trim();
+  const a=document.getElementById('mla').value.trim();
+  const err=document.getElementById('mlerr');
+  err.style.display='none';
+  if(!t){err.textContent='Inserisci almeno il titolo.';err.style.display='block';return;}
+  tap('medium');
+  try{
+    const r=await fetch('/api/letti',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({titolo:t,autore:a,biblioteca:G.bib||'',manuale:true})});
+    if(!r.ok){const e=await r.json();throw new Error(e.error||'Errore');}
+    await caricaSalv();
+    document.getElementById('mlt').value='';document.getElementById('mla').value='';
+    chiudiSh('shlett');
+    renderCostellazioni();renderPantheon();
+    if(a)fetchNazioneWikidata(a).then(()=>renderPantheon());
+  }catch(e){err.textContent=e.message;err.style.display='block';}
 }
 function renderRis(data){
   const{query,biblioteca,risultati}=data;
@@ -1991,9 +1959,25 @@ function fmtOpere(o){
   return o;
 }
 
+function marcaNazioneScoperta(name){
+  let s;try{s=new Set(JSON.parse(localStorage.getItem('rbbc_atlante_scoperte')||'[]'));}catch{s=new Set();}
+  if(!s.has(name)){s.add(name);localStorage.setItem('rbbc_atlante_scoperte',JSON.stringify([...s]));}
+  aggiornaProgressoAtlante();
+}
+function aggiornaProgressoAtlante(){
+  const bar=document.getElementById('atlProgBar'),txt=document.getElementById('atlProgTxt');
+  if(!bar||!txt)return;
+  let s;try{s=new Set(JSON.parse(localStorage.getItem('rbbc_atlante_scoperte')||'[]'));}catch{s=new Set();}
+  const tot=Object.keys(NAZIONI).length;
+  const n=[...s].filter(k=>NAZIONI[k]).length;
+  const pct=tot?Math.round(n/tot*100):0;
+  bar.style.width=pct+'%';
+  txt.textContent=`${n}/${tot} nazioni scoperte`;
+}
 function selNazione(name,info,el){
   document.querySelectorAll('.mapnaz').forEach(p=>p.classList.remove('sel'));
   if(el)el.classList.add('sel');
+  marcaNazioneScoperta(name);
   const box=document.getElementById('mapinfo');
   const nome=info.nome||name;
   const ops=info.autori.map(a=>`<div class="opi"><div class="opb"><div class="opt">${a.a}</div><div class="opo">${fmtOpere(a.o)}</div></div></div>`).join('');
@@ -2858,28 +2842,7 @@ function showBadgeToast(badge){
   ovr._autoClose=setTimeout(()=>{
     if(ovr.classList.contains('active'))chiudiBadgeCeremony();
   }, 6000);
-}
-
-
-
-/* MNEMOSINE */
-async function caricaMnem(){
-  if(!G.u){document.getElementById('mn-noauth').style.display='';document.getElementById('mn-auth').style.display='none';return;}
-  document.getElementById('mn-noauth').style.display='none';document.getElementById('mn-auth').style.display='';
-  try{
-    const stR=await fetch('/api/storico');
-    const st=await stR.json();
-    const mnrEl=document.getElementById('mnr');if(mnrEl)mnrEl.textContent=st.tot_ricerche||0;
-    const mntqEl=document.getElementById('mntq');if(mntqEl)mntqEl.innerHTML=st.top_query?.length?st.top_query.map((q,i)=>`<div class="tqi"><span class="tqr">${i+1}</span><span class="tqq">${q.query}</span><span class="tqn">${q.n}×</span></div>`).join(''):'<div class="vp">Nessuna ricerca ancora.</div>';
-    const mnstEl=document.getElementById('mnst');if(mnstEl)mnstEl.innerHTML=st.ricerche?.length?st.ricerche.map(r=>`<div class="rci"><div><div class="riq">${r.query}</div><div class="rib">${r.biblioteca}</div></div><div class="rim">${r.a_bib}/${r.trovati}<br>${r.cercato_il.slice(0,10)}</div></div>`).join(''):'<div class="vp">Nessuna ricerca ancora.</div>';
-  }catch(e){console.error(e);}
-  renderMnemoMappa();
-  renderPassaporto();
-  // Risolve in background le nazioni dei libri già letti
-  migraNazioniEsistenti();
-}
-
-/* ── WIKIPEDIA NATIONALITY RESOLVER ──────────────────────────────────────
+}/* ── WIKIPEDIA NATIONALITY RESOLVER ──────────────────────────────────────
    Dato un nome autore, cerca su Wikipedia (EN) e tenta di estrarre il paese
    dalla description (es. "French novelist" → "France").
    Usa una cache localStorage per non rifare le stesse fetch.
@@ -3474,8 +3437,7 @@ async function migraNazioniEsistenti(){
   for(let i=0;i<autoriDaRisolvere.length;i+=2){
     const batch=autoriDaRisolvere.slice(i,i+2);
     await Promise.all(batch.map(a=>fetchNazioneWikidata(a)));
-    renderMnemoMappa();
-    renderPassaporto();
+    renderPantheon();
     await new Promise(r=>setTimeout(r,500));
   }
 }
@@ -3508,119 +3470,6 @@ function getLettiPerNazione(){
   return out;
 }
 
-let _mnMapInit=false;
-function renderMnemoMappa(){
-  const svg=document.getElementById('mnmapsvg');
-  if(!svg||typeof d3==='undefined'||typeof topojson==='undefined'){
-    const wrap=svg?.closest('.mapwrap');
-    if(wrap)wrap.innerHTML='<p class="maphint">Libreria mappa non caricata (D3/TopoJSON).</p><button class="bric" style="display:block;margin:8px auto 0" onclick="_mnMapInit=false;renderMnemoMappa()">↻ Riprova</button>';
-    return;
-  }
-  const letti=getLettiPerNazione();
-  if(_mnMapInit){
-    // mappa già disegnata: aggiorna solo i colori
-    d3.select(svg).selectAll('path.mn-naz').each(function(d){
-      const visitato=!!letti[d.properties.name];
-      d3.select(this).classed('visitato',visitato);
-      if(!visitato)d3.select(this).classed('sel',false);
-    });
-    return;
-  }
-  _mnMapInit=true;
-  const W=1000,H=500;
-  const projection=d3.geoNaturalEarth1().scale(165).translate([W/2,H/2-10]);
-  const path=d3.geoPath(projection);
-  const s=d3.select(svg).attr('viewBox',`0 0 ${W} ${H}`);
-  s.append('rect').attr('width',W).attr('height',H).attr('class','map-ocean');
-  const g=s.append('g');
-
-  d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world=>{
-    const countries=topojson.feature(world,world.objects.countries).features;
-    g.selectAll('path.mapcont')
-      .data(countries)
-      .join('path')
-      .attr('class','mapcont')
-      .attr('d',path);
-
-    countries.forEach(f=>{
-      const info=NAZIONI[f.properties.name];
-      const visitato=!!letti[f.properties.name];
-      if(!info&&!visitato)return; // nazione non in NAZIONI e non visitata: salta
-      const p=g.append('path')
-        .datum(f)
-        .attr('class',`mn-naz${visitato?' visitato':''}`)
-        .attr('d',path)
-        .on('click',()=>{
-          if(!letti[f.properties.name])return;
-          selNazioneMnemo(f.properties.name,info||null,letti[f.properties.name],p.node());
-        });
-    });
-  }).catch(e=>{
-    console.error('Mappa Mnemosine: errore caricamento dati geografici',e);
-    _mnMapInit=false;
-    const wrap=svg.closest('.mapwrap');
-    if(wrap)wrap.innerHTML='<p class="maphint">Impossibile caricare i dati geografici.</p><button class="bric" style="display:block;margin:8px auto 0" onclick="renderMnemoMappa()">↻ Riprova</button>';
-  });
-}
-function selNazioneMnemo(name,info,libri,el){
-  document.querySelectorAll('#mnmapsvg .mn-naz').forEach(p=>p.classList.remove('sel'));
-  if(el)el.classList.add('sel');
-  const box=document.getElementById('mnmapinfo');
-  const nome=(info&&(info.nome||name))||name;
-  const ops=libri.map(l=>`<div class="opi"><div class="opb"><div class="opt">${l.titolo}</div><div class="opo">${l.autore||''}</div></div></div>`).join('');
-  box.innerHTML=`<div class="ec"><div class="ech"><div class="ecl">📍 ${nome}</div><div class="autn" style="font-size:1.1rem">Libri letti da qui</div></div><div class="oplist">${ops}</div></div>`;
-}
-
-function renderPassaporto(){
-  const cont=document.getElementById('mnpass');if(!cont)return;
-  const letti=getLettiPerNazione();
-  const entries=Object.entries(letti);
-
-  // Libri senza nazione ancora risolta
-  const cache=_getNazCache();
-  const nonClassificati=G.lettiData?.filter(l=>{
-    if(!l.autore)return false; // autore vuoto: non mostrare
-    const key=l.autore.trim().toLowerCase();
-    if(cache[key])return false; // trovato in cache Wikidata
-    for(const info of Object.values(NAZIONI)){if(info.autori.some(a=>autMatch(a.a,l.autore)))return false;} // match hardcoded
-    return true; // non ancora risolto da Wikidata
-  })||[];
-
-  if(!entries.length&&!nonClassificati.length){
-    cont.innerHTML='<div class="vp">Nessun timbro ancora: leggi un libro per iniziare il tuo viaggio.</div>';return;
-  }
-
-  let html=`<div class="passgr">${entries.map(([key,libri])=>{
-    const nome=NAZIONI[key]?.nome||key;
-    return`<div class="passc"><div class="passorn">✦</div><div class="passn">${nome}</div><div class="passd">${libri.length} ${libri.length>1?'libri letti':'libro letto'}</div></div>`;
-  }).join('')}</div>`;
-
-  if(nonClassificati.length){
-    html+=`<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--av3)">
-      <div style="font-size:.63rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#bbb;margin-bottom:6px">⏳ Nazionalità non trovata (${nonClassificati.length})</div>
-      <div style="font-size:.75rem;color:#aaa;font-style:italic;margin-bottom:10px">Wikidata non ha restituito risultati per questi autori.</div>
-      <button class="bric" onclick="riprovaNazioni()" style="margin-bottom:12px">↻ Riprova ricerca</button>
-      <div class="passgr">${nonClassificati.map(l=>`<div class="passc" style="opacity:.45"><div class="passorn">?</div><div class="passn" style="font-size:.85rem">${l.titolo}</div><div class="passd">${l.autore||'Autore sconosciuto'}</div></div>`).join('')}</div>
-    </div>`;
-  }
-
-  cont.innerHTML=html;
-}
-
-/* Svuota le entry null dalla cache e rilancia la risoluzione. */
-async function riprovaNazioni(){
-  const cache=_getNazCache();
-  // Rimuove solo i null: le nazioni già trovate restano
-  let rimossi=0;
-  for(const k of Object.keys(cache)){
-    if(cache[k]===null){delete cache[k];rimossi++;}
-  }
-  _nazioneCache=cache;
-  _saveNazCache();
-  renderPassaporto();
-  await migraNazioniEsistenti();
-}
-
 /* MAPPA FULLSCREEN */
 let _fsType=null;
 function apriMappaFS(tipo){
@@ -3633,27 +3482,20 @@ function apriMappaFS(tipo){
   ovr.classList.add('on');
   info.innerHTML='<p class="map-fs-hint">Tocca una nazione evidenziata per scoprire autori e libri.</p>';
 
-  if(tipo==='atlante'){
-    title.textContent='Atlante — Mappa letteraria';
-    wrap.innerHTML='<svg id="mapsvg-fs" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%"></svg>';
-    _disegnaMappFS('mapsvg-fs',false,info);
-  }else{
-    title.textContent='Mnemosine — Le mie letture';
-    wrap.innerHTML='<svg id="mnmapsvg-fs" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%"></svg>';
-    _disegnaMappFS('mnmapsvg-fs',true,info);
-  }
+  title.textContent='Atlante — Mappa letteraria';
+  wrap.innerHTML='<svg id="mapsvg-fs" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%"></svg>';
+  _disegnaMappFS('mapsvg-fs',info);
 }
 function chiudiMappaFS(){
   document.getElementById('mapFsOvr').classList.remove('on');
   document.getElementById('mapFsSvgWrap').innerHTML='';
   _fsType=null;
 }
-function _disegnaMappFS(svgId,isMnem,infoEl){
+function _disegnaMappFS(svgId,infoEl){
   const svg=document.getElementById(svgId);
   if(!svg||typeof d3==='undefined'||typeof topojson==='undefined'){
     if(infoEl)infoEl.innerHTML='<p class="map-fs-hint">Libreria mappa non disponibile.</p>';return;
   }
-  const letti=isMnem?getLettiPerNazione():{};
   const W=1000,H=500;
   const projection=d3.geoNaturalEarth1().scale(165).translate([W/2,H/2-10]);
   const path=d3.geoPath(projection);
@@ -3661,33 +3503,21 @@ function _disegnaMappFS(svgId,isMnem,infoEl){
   s.append('rect').attr('width',W).attr('height',H).attr('class','map-ocean');
   const g=s.append('g');
 
-  const cached=d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
-  cached.then(world=>{
+  d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world=>{
     const countries=topojson.feature(world,world.objects.countries).features;
     g.selectAll('path.mapcont-fs').data(countries).join('path')
       .attr('class','mapcont').attr('d',path);
     countries.forEach(f=>{
       const info=NAZIONI[f.properties.name];if(!info)return;
-      const visitato=isMnem?!!letti[f.properties.name]:true;
-      if(!visitato)return;
-      const cls=isMnem?`mn-naz visitato`:`mapnaz attiva`;
-      const pathEl=g.append('path').datum(f).attr('class',cls).attr('d',path);
+      const pathEl=g.append('path').datum(f).attr('class','mapnaz attiva').attr('d',path);
       pathEl.on('click',()=>{
           g.selectAll('.sel').classed('sel',false);
           pathEl.classed('sel',true);
-          // seleziona visivamente
-          if(isMnem){
-            if(!letti[f.properties.name])return;
-            const libri=letti[f.properties.name];
-            const nome=NAZIONI[f.properties.name]?.nome||f.properties.name;
-            const ops=libri.map(l=>`<div class="opi"><div class="opb"><div class="opt">${l.titolo}</div><div class="opo">${l.autore||''}</div></div></div>`).join('');
-            infoEl.innerHTML=`<div class="ech"><div class="ecl">📍 ${nome}</div><div class="autn" style="font-size:1rem">Libri letti da qui</div></div><div class="oplist">${ops}</div>`;
-          }else{
-            const ninfo=NAZIONI[f.properties.name];
-            const nome=ninfo?.nome||f.properties.name;
-            const ops=(ninfo?.autori||[]).map(a=>`<div class="opi"><div class="opb"><div class="opt">${a.a}</div><div class="opo">${a.o}</div></div></div>`).join('');
-            infoEl.innerHTML=`<div class="ech"><div class="ecl">📍 ${nome}</div><div class="autn" style="font-size:1rem">Autori da scoprire</div></div><div class="oplist">${ops}</div>`;
-          }
+          marcaNazioneScoperta(f.properties.name);
+          const ninfo=NAZIONI[f.properties.name];
+          const nome=ninfo?.nome||f.properties.name;
+          const ops=(ninfo?.autori||[]).map(a=>`<div class="opi"><div class="opb"><div class="opt">${a.a}</div><div class="opo">${fmtOpere(a.o)}</div></div></div>`).join('');
+          infoEl.innerHTML=`<div class="ech"><div class="ecl">📍 ${nome}</div><div class="autn" style="font-size:1rem">Autori da scoprire</div></div><div class="oplist">${ops}</div>`;
         });
     });
   }).catch(()=>{if(infoEl)infoEl.innerHTML='<p class="map-fs-hint">Impossibile caricare i dati geografici.</p>';});
@@ -3697,6 +3527,51 @@ window.addEventListener('popstate',()=>{if(_fsType)chiudiMappaFS();});
 document.getElementById('mapFsOvr').addEventListener('touchstart',e=>{
   // swipe down to close: gestito dal bottone ✕, qui no-op
 },{passive:true});
+
+/* OBIETTIVO ANNUALE DI LETTURA */
+function lettiQuestAnno(){
+  if(!G.lettiData?.length)return 0;
+  const anno=new Date().getFullYear();
+  return G.lettiData.filter(l=>l.letto_il&&new Date(l.letto_il).getFullYear()===anno).length;
+}
+function renderObiettivo(){
+  const testo=document.getElementById('obTesto');
+  const barra=document.getElementById('obBarra');
+  const sotto=document.getElementById('obSotto');
+  const elAnno=document.getElementById('obAnno');
+  if(!testo||!barra||!sotto)return;
+  const anno=new Date().getFullYear();
+  if(elAnno)elAnno.textContent=anno;
+  const n=lettiQuestAnno();
+  const goal=G.u?.obiettivo_annuale||0;
+  if(!goal){
+    testo.textContent=`${n} ${n===1?'libro letto':'libri letti'} nel ${anno}`;
+    barra.style.width='0%';
+    sotto.textContent="Imposta un obiettivo per iniziare a tracciare i tuoi progressi.";
+    return;
+  }
+  const pct=Math.min(100,Math.round(n/goal*100));
+  testo.textContent=`${n} / ${goal} libri`;
+  barra.style.width=pct+'%';
+  sotto.textContent=n>=goal?'🎉 Obiettivo raggiunto! Complimenti.':`${goal-n} al traguardo · ${pct}%`;
+}
+function apriObiettivoSheet(){
+  if(!G.u){vai('sa','login');return;}
+  const inp=document.getElementById('obInput');
+  if(inp)inp.value=G.u.obiettivo_annuale||'';
+  apriSh('shobiettivo');
+}
+async function salvaObiettivo(){
+  const raw=document.getElementById('obInput').value;
+  const v=parseInt(raw,10);
+  if(isNaN(v)||v<0||v>9999)return;
+  tap('medium');
+  try{
+    const r=await fetch('/api/obiettivo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({obiettivo:v})});
+    const d=await r.json();
+    if(r.ok&&d.ok){G.u.obiettivo_annuale=d.obiettivo_annuale;chiudiSh('shobiettivo');renderObiettivo();}
+  }catch(e){console.error('salvaObiettivo',e);}
+}
 
 /* PROFILO */
 const LIBRI_PREVIEW=5;
@@ -3719,7 +3594,7 @@ function aggiornaUIProf(){
   const pbi=document.getElementById('pbi');if(pbi)pbi.value=G.bib||'';
 }
 async function caricaProf(){
-  if(!G.u)return;aggiornaUIProf();
+  if(!G.u)return;aggiornaUIProf();renderObiettivo();
   try{
     const rl=await fetch('/api/letti');
     const lett=await rl.json();
@@ -3729,6 +3604,7 @@ async function caricaProf(){
     window._mlLett=lett;
     if(lett.length)renderLibriProf(lett,false);
     else ml.innerHTML='<div class="vp">Nessun libro segnato come letto.</div>';
+    renderObiettivo();
     // avvia risoluzione nazioni in background
     migraNazioniEsistenti();
   }catch(e){console.error('caricaProf',e);}

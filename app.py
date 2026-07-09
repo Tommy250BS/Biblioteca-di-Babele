@@ -5,14 +5,11 @@ DB: PostgreSQL
 Auth: bcrypt + flask-login, cookie di sessione firmato
 """
 
-import subprocess, re, time, os
-from datetime import datetime
+import subprocess, re, os, unicodedata, tempfile, concurrent.futures
 from urllib.parse import quote_plus
-from flask import (Flask, request, jsonify, g,
-                   session, redirect, url_for)
+from flask import Flask, request, jsonify, g, session
 from flask_cors import CORS
 from psycopg.rows import dict_row
-from psycopg import errors
 import bcrypt
 import psycopg
 
@@ -21,7 +18,10 @@ app.secret_key = os.environ.get("SECRET_KEY", "cambia-questa-chiave-in-produzion
 CORS(app, supports_credentials=True)
 
 BASE_URL    = "https://opac.provincia.brescia.it"
-CURL_COOKIE = "/tmp/rbbc_opac.txt"
+# Nota: non esiste più un cookie-jar condiviso a livello di modulo (era
+# CURL_COOKIE = "/tmp/rbbc_opac.txt"). curl_get() ora crea un cookie-jar
+# temporaneo per ciascuna chiamata, necessario per poter eseguire più
+# richieste in parallelo senza race condition sullo stesso file.
 
 HEADERS = [
     "-H", "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -60,6 +60,10 @@ def init_db():
                     biblioteca VARCHAR(255) NOT NULL DEFAULT '',
                     creato_il TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
+            """)
+
+            cur.execute("""
+                ALTER TABLE utenti ADD COLUMN IF NOT EXISTS obiettivo_annuale INTEGER NOT NULL DEFAULT 0;
             """)
 
             cur.execute("""
@@ -138,13 +142,34 @@ def login_richiesto(fn):
 
 #  curl + OPAC 
 
-def curl_get(url):
-    cmd = (["curl", "-s", "-L", "--compressed", "--max-time", "25",
-            "--cookie-jar", CURL_COOKIE, "--cookie", CURL_COOKIE]
+def curl_get(url, timeout=12):
+    # Cookie jar TEMPORANEO per singola chiamata (non più CURL_COOKIE
+    # condiviso): con l'introduzione delle richieste in parallelo
+    # (vedi ThreadPoolExecutor in /api/search), più curl in corsa
+    # contemporaneamente sullo stesso file di cookie causerebbero
+    # corruzione/race condition. Un file temporaneo per chiamata elimina
+    # il problema; viene rimosso subito dopo l'uso. Timeout ridotto
+    # rispetto a prima (25s → 12s di default) perché ora le richieste
+    # corrono in parallelo, quindi non serve più "risparmiare" un'unica
+    # chiamata lunga: è meglio fallire presto su una singola fonte
+    # piuttosto che bloccare tutto il worker.
+    fd, cookie_path = tempfile.mkstemp(prefix="rbbc_ck_", dir="/tmp")
+    os.close(fd)
+    cmd = (["curl", "-s", "-L", "--compressed", "--max-time", str(timeout),
+            "--cookie-jar", cookie_path, "--cookie", cookie_path]
            + HEADERS + [url])
-    r = subprocess.run(cmd, capture_output=True, text=True,
-                       encoding="utf-8", errors="replace")
-    return r.stdout
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True,
+                           encoding="utf-8", errors="replace",
+                           timeout=timeout + 5)
+        return r.stdout
+    except subprocess.TimeoutExpired:
+        return ""
+    finally:
+        try:
+            os.remove(cookie_path)
+        except OSError:
+            pass
 
 def strip_tags(h):
     t = re.sub(r'<[^>]+>', ' ', h)
@@ -153,8 +178,25 @@ def strip_tags(h):
         t = t.replace(a, b)
     return re.sub(r'\s+', ' ', t).strip()
 
-def cerca_titolo(titolo):
-    url  = f"{BASE_URL}/opac/search?q={quote_plus(titolo)}"
+def _norm(s):
+    """Normalizza per confronto: minuscolo, senza accenti."""
+    s = unicodedata.normalize('NFD', s or '')
+    s = ''.join(c for c in s if unicodedata.category(c) != 'Mn')
+    return s.lower().strip()
+
+def _estrai_risultati(html):
+    """Estrae (numero_notizia, titolo) dai risultati di una pagina OPAC."""
+    pattern = r'href="opac/detail/view/test:catalog:(\d+)"[\s\S]{0,200}?title="([^"]{5,200})"'
+    visti = {}
+    for num, raw in re.findall(pattern, html):
+        if num not in visti:
+            t = strip_tags(raw)
+            if t and not t.lower().startswith("vai a"):
+                visti[num] = t
+    return visti
+
+def cerca_titolo(titolo, rows=10):
+    url  = f"{BASE_URL}/opac/search?q={quote_plus(titolo)}&rows={rows}"
     html = curl_get(url)
     if not html:
         return []
@@ -166,7 +208,7 @@ def cerca_titolo(titolo):
             if t and not t.lower().startswith("vai a"):
                 visti[num] = t
     return [{"titolo": tit, "url": f"{BASE_URL}/opac/detail/view/test:catalog:{num}"}
-            for num, tit in list(visti.items())[:10]]
+            for num, tit in list(visti.items())[:rows]]
 
 def verifica_disponibilita(url, biblioteca):
     html = curl_get(url)
@@ -240,7 +282,8 @@ def registra():
         return jsonify({
             "ok": True,
             "nome": nome,
-            "biblioteca": biblioteca
+            "biblioteca": biblioteca,
+            "obiettivo_annuale": 0
         })
 
     except Exception as e:
@@ -262,7 +305,8 @@ def login():
         return jsonify({"error": "Email o password errati"}), 401
     session["uid"] = u["id"]
     session.permanent = True
-    return jsonify({"ok": True, "nome": u["nome"], "biblioteca": u["biblioteca"]})
+    return jsonify({"ok": True, "nome": u["nome"], "biblioteca": u["biblioteca"],
+                     "obiettivo_annuale": u.get("obiettivo_annuale", 0) or 0})
 
 @app.route("/api/auth/logout", methods=["POST"])
 def logout():
@@ -279,6 +323,7 @@ def me():
         "nome":        u["nome"],
         "email":       u["email"],
         "biblioteca":  u["biblioteca"],
+        "obiettivo_annuale": u.get("obiettivo_annuale", 0) or 0,
     })
 
 @app.route("/api/auth/aggiorna", methods=["POST"])
@@ -295,6 +340,22 @@ def aggiorna_profilo():
     get_db().commit()
     return jsonify({"ok": True, "nome": nome, "biblioteca": biblioteca})
 
+@app.route("/api/obiettivo", methods=["POST"])
+@login_richiesto
+def imposta_obiettivo():
+    u = utente_corrente()
+    d = request.get_json() or {}
+    try:
+        obiettivo = int(d.get("obiettivo", 0))
+    except (TypeError, ValueError):
+        return jsonify({"error": "Valore non valido"}), 400
+    if obiettivo < 0 or obiettivo > 9999:
+        return jsonify({"error": "Valore non valido"}), 400
+    get_db().execute("UPDATE utenti SET obiettivo_annuale=%s WHERE id=%s",
+                     (obiettivo, u["id"]))
+    get_db().commit()
+    return jsonify({"ok": True, "obiettivo_annuale": obiettivo})
+
 #  API Ricerca 
 
 @app.route("/api/search")
@@ -304,87 +365,68 @@ def api_search():
     if not q or not biblioteca:
         return jsonify({"error": "Parametri mancanti"}), 400
 
-    risultati_base = cerca_titolo(q)
-    output = []
-    for libro in risultati_base:
-        time.sleep(0.5)
-        det = verifica_disponibilita(libro["url"], biblioteca)
-        titolo_r = det["titolo"] if det["titolo"] not in ("—","") else libro["titolo"]
-        autore_r = det["autore"]
-        if autore_r in ("—","") and " - " in titolo_r:
-            parti = titolo_r.rsplit(" - ", 1)
-            titolo_r, autore_r = parti[0].strip(), parti[1].strip()
-        copie = det["copie"]
-        output.append({
-            "titolo":        titolo_r,
-            "autore":        autore_r,
-            "url":           libro["url"],
-            "copie_rezzato": copie,
-            "disponibile":   any(
-                "scaffale" in c["stato"].lower() or "disponib" in c["stato"].lower()
-                for c in copie),
-        })
-
-    # Salva ricerca se loggato
-    u = utente_corrente()
-    if u and output:
-        a_bib = sum(1 for r in output if r["copie_rezzato"])
-        get_db().execute(
-            "INSERT INTO ricerche (utente_id,query,biblioteca,trovati,a_bib) VALUES (%s,%s,%s,%s,%s)",
-            (u["id"], q, biblioteca, len(output), a_bib))
-        get_db().commit()
-
-    return jsonify({"query": q, "biblioteca": biblioteca, "risultati": output})
-
-#  API Salvati
-
-@app.route("/api/salvati", methods=["GET"])
-@login_richiesto
-def get_salvati():
-    u = utente_corrente()
-    db = get_db()
-    rows = db.execute(
-        "SELECT * FROM salvati WHERE utente_id=%s ORDER BY salvato_il DESC",
-        (u["id"],)).fetchall()
-    return jsonify([dict(r) for r in rows])
-
-@app.route("/api/salvati", methods=["POST"])
-@login_richiesto
-def aggiungi_salvato():
-    u = utente_corrente()
-    d = request.get_json() or {}
-    url_opac = (d.get("url_opac") or "").strip()
-    if not url_opac:
-        return jsonify({"error": "url_opac mancante"}), 400
-    db = get_db()
     try:
-        db.execute(
-            """
-            INSERT INTO salvati (utente_id, titolo, autore, url_opac, biblioteca, disponibile)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            ON CONFLICT (utente_id, url_opac) DO UPDATE SET
-                titolo      = EXCLUDED.titolo,
-                autore      = EXCLUDED.autore,
-                biblioteca  = EXCLUDED.biblioteca,
-                disponibile = EXCLUDED.disponibile
-            """,
-            (u["id"], d.get("titolo",""), d.get("autore",""),
-             url_opac, d.get("biblioteca",""), bool(d.get("disponibile")))
-        )
-        db.commit()
-        return jsonify({"ok": True})
-    except Exception as e:
-        db.rollback()
-        return jsonify({"error": str(e)}), 400
+        risultati_base = cerca_titolo(q, rows=10)
+        max_risultati = 10
+        candidati = risultati_base[:max_risultati]
 
-@app.route("/api/salvati/<int:sid>", methods=["DELETE"])
-@login_richiesto
-def rimuovi_salvato(sid):
-    u = utente_corrente()
-    db = get_db()
-    db.execute("DELETE FROM salvati WHERE id=%s AND utente_id=%s", (sid, u["id"]))
-    db.commit()
-    return jsonify({"ok": True})
+        # Le pagine di dettaglio di candidati diversi sono richieste
+        # indipendenti tra loro: prima venivano scaricate una alla volta con
+        # 0.5s di pausa fissa tra ciascuna (fino a 20 candidati = 10s di soli
+        # sleep, oltre al tempo di rete). Ora corrono in parallelo con un
+        # tetto di concorrenza per non sovraccaricare l'OPAC.
+        dettagli = [None] * len(candidati)
+        if candidati:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=6) as ex:
+                futures = {
+                    ex.submit(verifica_disponibilita, c["url"], biblioteca): i
+                    for i, c in enumerate(candidati)
+                }
+                for fut in concurrent.futures.as_completed(futures):
+                    i = futures[fut]
+                    try:
+                        dettagli[i] = fut.result()
+                    except Exception:
+                        dettagli[i] = {"titolo": "—", "autore": "—", "copie": []}
+
+        output = []
+        for libro, det in zip(candidati, dettagli):
+            if len(output) >= max_risultati:
+                break
+            titolo_r = det["titolo"] if det["titolo"] not in ("—","") else libro["titolo"]
+            autore_r = det["autore"]
+            if autore_r in ("—","") and " - " in titolo_r:
+                parti = titolo_r.rsplit(" - ", 1)
+                titolo_r, autore_r = parti[0].strip(), parti[1].strip()
+
+            copie = det["copie"]
+            output.append({
+                "titolo":        titolo_r,
+                "autore":        autore_r,
+                "url":           libro["url"],
+                "copie_rezzato": copie,
+                "disponibile":   any(
+                    "scaffale" in c["stato"].lower() or "disponib" in c["stato"].lower()
+                    for c in copie),
+            })
+
+        # Salva ricerca se loggato
+        u = utente_corrente()
+        if u and output:
+            a_bib = sum(1 for r in output if r["copie_rezzato"])
+            get_db().execute(
+                "INSERT INTO ricerche (utente_id,query,biblioteca,trovati,a_bib) VALUES (%s,%s,%s,%s,%s)",
+                (u["id"], q, biblioteca, len(output), a_bib))
+            get_db().commit()
+
+        return jsonify({"query": q, "biblioteca": biblioteca, "risultati": output})
+
+    except Exception as e:
+        # Log completo lato server (visibile nei log del processo/host) +
+        # messaggio esplicito nella risposta, così un eventuale errore futuro
+        # è diagnosticabile subito invece di apparire come un 500 generico.
+        app.logger.exception("Errore in /api/search (q=%r)", q)
+        return jsonify({"error": f"Errore interno: {e}"}), 500
 
 #  API Letti
 
@@ -510,104 +552,10 @@ def aggiungi_badge():
         db.rollback()
         return jsonify({"error": str(e)}), 400
 
-# ── Esplorazione casuale ─────────────────────────────────────────────────────
-
-def _parse_esplora(html):
-    """
-    Estrae libri da una pagina risultati OPAC.
-    Usa il pattern href+title confermato funzionante.
-    Restituisce lista di {titolo, autore, abstract, url}.
-    """
-    pattern = r'href="opac/detail/view/test:catalog:(\d+)"[\s\S]{0,200}?title="([^"]{5,200})"'
-    visti = {}
-    for num, raw in re.findall(pattern, html):
-        if num not in visti:
-            t = strip_tags(raw)
-            if t and not t.lower().startswith("vai a"):
-                visti[num] = t
-
-    libri = []
-    for num, titolo_raw in list(visti.items())[:20]:
-        titolo, autore = titolo_raw, ""
-        if " - " in titolo_raw:
-            parti = titolo_raw.rsplit(" - ", 1)
-            titolo, autore = parti[0].strip(), strip_tags(parti[1]).strip()
-        # Rimuove anni tipo <1908-1950> dall'autore
-        autore = re.sub(r'\s*<[^>]+>\s*', '', autore).strip()
-        if not titolo or len(titolo) < 3:
-            continue
-        libri.append({
-            "titolo":   strip_tags(titolo),
-            "autore":   autore,
-            "abstract": "",
-            "url":      f"{BASE_URL}/opac/detail/view/test:catalog:{num}",
-        })
-    return libri
-
-
-def _libro_random(sort="newest", seed=None):
-    import random
-    rng = random.Random(seed) if seed is not None else random.Random()
-    max_start = 8000 if sort == "newest" else 4000
-    start = rng.randint(0, max_start // 20) * 20
-    html = curl_get(f"{BASE_URL}/opac/search?sort={sort}&rows=20&start={start}")
-    if not html:
-        return None
-    libri = [l for l in _parse_esplora(html) if l["autore"]]
-    if not libri:
-        return None
-    return rng.choice(libri)
-
-
-@app.route("/api/esplora/casuale")
-def esplora_casuale():
-    libro = _libro_random(sort="newest")
-    if not libro:
-        return jsonify({"error": "Nessun risultato"}), 503
-    return jsonify(libro)
-
-
-@app.route("/api/esplora/giorno")
-def esplora_giorno():
-    from datetime import date
-    seed = date.today().isoformat()
-    libro = _libro_random(sort="mostborrowed", seed=seed)
-    if not libro:
-        return jsonify({"error": "Nessun risultato"}), 503
-    return jsonify({**libro, "data": seed})
-
-
-@app.route("/api/esplora/autore")
-def esplora_autore():
-    import random
-    start = random.randint(0, 150) * 20
-    html = curl_get(f"{BASE_URL}/opac/search?sort=mostborrowed&rows=20&start={start}")
-    if not html:
-        return jsonify({"error": "Nessun risultato"}), 503
-
-    libri = [l for l in _parse_esplora(html) if l["autore"] and len(l["autore"]) > 3]
-    if not libri:
-        return jsonify({"error": "Nessun autore trovato"}), 503
-
-    autore = random.choice(libri)["autore"]
-    # Cerca opere di quell'autore
-    time.sleep(0.4)
-    html2 = curl_get(f"{BASE_URL}/opac/search?q={quote_plus(autore)}&sort=mostborrowed&rows=10")
-    opere = []
-    if html2:
-        tutti = _parse_esplora(html2)
-        # Tieni solo opere con lo stesso autore (confronto case-insensitive)
-        autore_norm = autore.lower().split("<")[0].strip()
-        opere = [o for o in tutti
-                 if autore_norm in o["autore"].lower()][:6]
-
-    return jsonify({"autore": autore, "opere": opere})
-
-
 @app.route("/")
 def index():
     return app.send_static_file("index.html")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port, threaded=True)
