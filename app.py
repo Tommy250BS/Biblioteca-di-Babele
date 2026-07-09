@@ -145,13 +145,14 @@ def login_richiesto(fn):
 def curl_get(url, timeout=12):
     # Cookie jar TEMPORANEO per singola chiamata (non più CURL_COOKIE
     # condiviso): con l'introduzione delle richieste in parallelo
-    # (_fetch_parallel sotto), più curl in corsa contemporaneamente sullo
-    # stesso file di cookie causerebbero corruzione/race condition. Un
-    # file temporaneo per chiamata elimina il problema; viene rimosso
-    # subito dopo l'uso. Timeout ridotto rispetto a prima (25s → 12s di
-    # default) perché ora le richieste corrono in parallelo, quindi non
-    # serve più "risparmiare" un'unica chiamata lunga: è meglio fallire
-    # presto su una singola fonte piuttosto che bloccare tutto il worker.
+    # (vedi ThreadPoolExecutor in /api/search), più curl in corsa
+    # contemporaneamente sullo stesso file di cookie causerebbero
+    # corruzione/race condition. Un file temporaneo per chiamata elimina
+    # il problema; viene rimosso subito dopo l'uso. Timeout ridotto
+    # rispetto a prima (25s → 12s di default) perché ora le richieste
+    # corrono in parallelo, quindi non serve più "risparmiare" un'unica
+    # chiamata lunga: è meglio fallire presto su una singola fonte
+    # piuttosto che bloccare tutto il worker.
     fd, cookie_path = tempfile.mkstemp(prefix="rbbc_ck_", dir="/tmp")
     os.close(fd)
     cmd = (["curl", "-s", "-L", "--compressed", "--max-time", str(timeout),
@@ -169,27 +170,6 @@ def curl_get(url, timeout=12):
             os.remove(cookie_path)
         except OSError:
             pass
-
-def _fetch_parallel(urls, timeout=12, max_workers=None):
-    """Esegue più curl_get in parallelo, mantenendo l'ordine dei risultati.
-
-    Usata ovunque si debbano interrogare più URL indipendenti tra loro
-    (es. le pagine di dettaglio di più candidati): prima venivano scaricate
-    una dopo l'altra, sommando i tempi di rete e causando timeout del worker.
-    """
-    if not urls:
-        return []
-    max_workers = max_workers or max(1, len(urls))
-    results = [""] * len(urls)
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as ex:
-        futures = {ex.submit(curl_get, u, timeout): i for i, u in enumerate(urls)}
-        for fut in concurrent.futures.as_completed(futures):
-            i = futures[fut]
-            try:
-                results[i] = fut.result()
-            except Exception:
-                results[i] = ""
-    return results
 
 def strip_tags(h):
     t = re.sub(r'<[^>]+>', ' ', h)
@@ -578,10 +558,4 @@ def index():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    # threaded=True: senza questo, il server di sviluppo Flask gestisce una
-    # richiesta alla volta e il parallelismo interno introdotto sopra
-    # (ThreadPoolExecutor) non aiuterebbe comunque le altre richieste in
-    # coda. In produzione, se si usa gunicorn, ricordare di alzare anche il
-    # --timeout del worker (default 30s) per avere margine extra, es.:
-    #   gunicorn --timeout 60 --workers 3 --threads 4 app:app
     app.run(host="0.0.0.0", port=port, threaded=True)
