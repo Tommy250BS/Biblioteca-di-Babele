@@ -5,14 +5,11 @@ DB: PostgreSQL
 Auth: bcrypt + flask-login, cookie di sessione firmato
 """
 
-import subprocess, re, time, os, unicodedata, tempfile, concurrent.futures
-from datetime import datetime
+import subprocess, re, os, unicodedata, tempfile, concurrent.futures
 from urllib.parse import quote_plus
-from flask import (Flask, request, jsonify, g,
-                   session, redirect, url_for)
+from flask import Flask, request, jsonify, g, session
 from flask_cors import CORS
 from psycopg.rows import dict_row
-from psycopg import errors
 import bcrypt
 import psycopg
 
@@ -574,56 +571,6 @@ def api_search():
         app.logger.exception("Errore in /api/search (q=%r, campo=%r)", q, campo)
         return jsonify({"error": f"Errore interno: {e}"}), 500
 
-#  API Salvati
-
-@app.route("/api/salvati", methods=["GET"])
-@login_richiesto
-def get_salvati():
-    u = utente_corrente()
-    db = get_db()
-    rows = db.execute(
-        "SELECT * FROM salvati WHERE utente_id=%s ORDER BY salvato_il DESC",
-        (u["id"],)).fetchall()
-    return jsonify([dict(r) for r in rows])
-
-@app.route("/api/salvati", methods=["POST"])
-@login_richiesto
-def aggiungi_salvato():
-    u = utente_corrente()
-    d = request.get_json() or {}
-    url_opac = (d.get("url_opac") or "").strip()
-    if not url_opac:
-        return jsonify({"error": "url_opac mancante"}), 400
-    db = get_db()
-    try:
-        db.execute(
-            """
-            INSERT INTO salvati (utente_id, titolo, autore, url_opac, biblioteca, disponibile)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            ON CONFLICT (utente_id, url_opac) DO UPDATE SET
-                titolo      = EXCLUDED.titolo,
-                autore      = EXCLUDED.autore,
-                biblioteca  = EXCLUDED.biblioteca,
-                disponibile = EXCLUDED.disponibile
-            """,
-            (u["id"], d.get("titolo",""), d.get("autore",""),
-             url_opac, d.get("biblioteca",""), bool(d.get("disponibile")))
-        )
-        db.commit()
-        return jsonify({"ok": True})
-    except Exception as e:
-        db.rollback()
-        return jsonify({"error": str(e)}), 400
-
-@app.route("/api/salvati/<int:sid>", methods=["DELETE"])
-@login_richiesto
-def rimuovi_salvato(sid):
-    u = utente_corrente()
-    db = get_db()
-    db.execute("DELETE FROM salvati WHERE id=%s AND utente_id=%s", (sid, u["id"]))
-    db.commit()
-    return jsonify({"ok": True})
-
 #  API Letti
 
 @app.route("/api/letti", methods=["GET"])
@@ -747,100 +694,6 @@ def aggiungi_badge():
     except Exception as e:
         db.rollback()
         return jsonify({"error": str(e)}), 400
-
-# ── Esplorazione casuale ─────────────────────────────────────────────────────
-
-def _parse_esplora(html):
-    """
-    Estrae libri da una pagina risultati OPAC.
-    Usa il pattern href+title confermato funzionante.
-    Restituisce lista di {titolo, autore, abstract, url}.
-    """
-    pattern = r'href="opac/detail/view/test:catalog:(\d+)"[\s\S]{0,200}?title="([^"]{5,200})"'
-    visti = {}
-    for num, raw in re.findall(pattern, html):
-        if num not in visti:
-            t = strip_tags(raw)
-            if t and not t.lower().startswith("vai a"):
-                visti[num] = t
-
-    libri = []
-    for num, titolo_raw in list(visti.items())[:20]:
-        titolo, autore = titolo_raw, ""
-        if " - " in titolo_raw:
-            parti = titolo_raw.rsplit(" - ", 1)
-            titolo, autore = parti[0].strip(), strip_tags(parti[1]).strip()
-        # Rimuove anni tipo <1908-1950> dall'autore
-        autore = re.sub(r'\s*<[^>]+>\s*', '', autore).strip()
-        if not titolo or len(titolo) < 3:
-            continue
-        libri.append({
-            "titolo":   strip_tags(titolo),
-            "autore":   autore,
-            "abstract": "",
-            "url":      f"{BASE_URL}/opac/detail/view/test:catalog:{num}",
-        })
-    return libri
-
-
-def _libro_random(sort="newest", seed=None):
-    import random
-    rng = random.Random(seed) if seed is not None else random.Random()
-    max_start = 8000 if sort == "newest" else 4000
-    start = rng.randint(0, max_start // 20) * 20
-    html = curl_get(f"{BASE_URL}/opac/search?sort={sort}&rows=20&start={start}")
-    if not html:
-        return None
-    libri = [l for l in _parse_esplora(html) if l["autore"]]
-    if not libri:
-        return None
-    return rng.choice(libri)
-
-
-@app.route("/api/esplora/casuale")
-def esplora_casuale():
-    libro = _libro_random(sort="newest")
-    if not libro:
-        return jsonify({"error": "Nessun risultato"}), 503
-    return jsonify(libro)
-
-
-@app.route("/api/esplora/giorno")
-def esplora_giorno():
-    from datetime import date
-    seed = date.today().isoformat()
-    libro = _libro_random(sort="mostborrowed", seed=seed)
-    if not libro:
-        return jsonify({"error": "Nessun risultato"}), 503
-    return jsonify({**libro, "data": seed})
-
-
-@app.route("/api/esplora/autore")
-def esplora_autore():
-    import random
-    start = random.randint(0, 150) * 20
-    html = curl_get(f"{BASE_URL}/opac/search?sort=mostborrowed&rows=20&start={start}")
-    if not html:
-        return jsonify({"error": "Nessun risultato"}), 503
-
-    libri = [l for l in _parse_esplora(html) if l["autore"] and len(l["autore"]) > 3]
-    if not libri:
-        return jsonify({"error": "Nessun autore trovato"}), 503
-
-    autore = random.choice(libri)["autore"]
-    # Cerca opere di quell'autore
-    time.sleep(0.4)
-    html2 = curl_get(f"{BASE_URL}/opac/search?q={quote_plus(autore)}&sort=mostborrowed&rows=10")
-    opere = []
-    if html2:
-        tutti = _parse_esplora(html2)
-        # Tieni solo opere con lo stesso autore (confronto case-insensitive)
-        autore_norm = autore.lower().split("<")[0].strip()
-        opere = [o for o in tutti
-                 if autore_norm in o["autore"].lower()][:6]
-
-    return jsonify({"autore": autore, "opere": opere})
-
 
 @app.route("/")
 def index():
