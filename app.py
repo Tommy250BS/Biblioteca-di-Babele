@@ -174,9 +174,8 @@ def _fetch_parallel(urls, timeout=12, max_workers=None):
     """Esegue più curl_get in parallelo, mantenendo l'ordine dei risultati.
 
     Usata ovunque si debbano interrogare più URL indipendenti tra loro
-    (es. le 3 fonti di cerca_autore, o le pagine di dettaglio di più
-    candidati): prima venivano scaricate una dopo l'altra, sommando i
-    tempi di rete e causando i timeout del worker su ricerche per autore.
+    (es. le pagine di dettaglio di più candidati): prima venivano scaricate
+    una dopo l'altra, sommando i tempi di rete e causando timeout del worker.
     """
     if not urls:
         return []
@@ -215,97 +214,6 @@ def _estrai_risultati(html):
             if t and not t.lower().startswith("vai a"):
                 visti[num] = t
     return visti
-
-def cerca_autore(autore, rows=30):
-    """Ricerca dedicata per autore.
-
-    STORIA DEL PROBLEMA (per chi legge in futuro):
-    Il box di ricerca generico (q=) di DiscoveryNG interroga principalmente
-    titolo/soggetto/testo libero, e inizialmente sembrava non toccare affatto
-    il campo autore, dando pochi o nessun risultato per query come "Orwell".
-    Si è quindi passati a interrogare direttamente il campo dedicato
-    all'autore via Ricerca Avanzata (parametro field_1=autha, il campo "Nomi"
-    usato di default per l'autore in ricerca avanzata).
-
-    Verificato però con dati reali che il campo "autha" da solo è troppo
-    RESTRITTIVO su questo catalogo specifico: per "Orwell" restituiva solo 4
-    notizie in tutto (nessuna delle quali era 1984 o La fattoria degli
-    animali), pur essendo opere sicuramente presenti e molto diffuse nella
-    rete. La causa esatta è lato server (probabile disallineamento tra le
-    forme di autorità indicizzate su record diversi) e non è verificabile da
-    qui; la soluzione pratica è non affidarsi a una sola fonte.
-
-    STRATEGIA ATTUALE: uniamo SEMPRE più fonti, così se una sotto-indicizza
-    non perdiamo comunque i risultati:
-      1. field=autha  → precisa, ma può mancare molte opere (vedi sopra)
-      2. field=aut    → più ampia (tutti i ruoli 700/701/702/710/711/712/
-                         720/790), ma può includere co-autori/curatori
-      3. q=<autore>   → ricerca "tutto testo": include anche l'autore (la
-                         doc DNG conferma che il boosting di default si
-                         applica "alla ricerca semplice ... es. per titolo o
-                         per autore"), quindi cattura casi che i campi
-                         strutturati sopra non trovano
-    I risultati vengono uniti e deduplicati per numero di notizia. Solo la
-    fonte 1 è considerata "affidabile" abbastanza da saltare il filtro a
-    valle sull'autore nella pagina di dettaglio (vedi api_search); per le
-    fonti 2 e 3 quel filtro resta attivo, perché più soggette a falsi
-    positivi (nome dell'autore citato ma non come autore principale, o come
-    soggetto/testo libero).
-    """
-    val = re.sub(r'"', ' ', autore or '').strip()
-    if not val:
-        return []
-
-    sort = "&sort=mostborrowed"
-    combinati = {}   # num -> {"titolo":..., "affidabile": bool}
-
-    def _aggiungi(html, affidabile):
-        if not html:
-            return
-        for num, tit in _estrai_risultati(html).items():
-            if num not in combinati or (affidabile and not combinati[num]["affidabile"]):
-                combinati[num] = {"titolo": tit, "affidabile": affidabile}
-
-    # 1) Campo "autha" (Nomi — dedicato, ma può sotto-indicizzare)
-    url1 = (f"{BASE_URL}/opac/advanced?op_1=and&field_1=autha"
-            f"&value_1={quote_plus(val)}&lop_1=1&submit=Cerca&rows={rows}{sort}")
-
-    # 2) Campo "aut" (più ampio: tutti i ruoli di responsabilità)
-    url2 = (f"{BASE_URL}/opac/advanced?op_1=and&field_1=aut"
-            f"&value_1={quote_plus(val)}&lop_1=1&submit=Cerca&rows={rows}{sort}")
-
-    # 3) Ricerca generica "tutto testo": rete di sicurezza più ampia,
-    #    fondamentale per catturare opere che i campi strutturati sopra
-    #    non trovano (es. 1984 di Orwell nei nostri test reali)
-    url3 = f"{BASE_URL}/opac/search?q={quote_plus(val)}&rows={max(rows, 30)}{sort}"
-
-    # Le 3 fonti sono indipendenti tra loro: prima venivano scaricate una
-    # dopo l'altra (3 round-trip in sequenza), che da sola era una delle
-    # cause principali del timeout. Ora partono in parallelo.
-    html1, html2, html3 = _fetch_parallel([url1, url2, url3], timeout=12, max_workers=3)
-    _aggiungi(html1, affidabile=True)
-    _aggiungi(html2, affidabile=False)
-    _aggiungi(html3, affidabile=False)
-
-    # 4) Ultima rete di sicurezza: vecchia query Solr esplicita via solr=
-    if not combinati:
-        solr_q = f'fldin_txt_author_main:"{val}" OR fldin_txt_author:"{val}"'
-        url4 = f"{BASE_URL}/opac/search?solr={quote_plus(solr_q)}&rows={rows}{sort}"
-        _aggiungi(curl_get(url4, timeout=12), affidabile=False)
-
-    risultati = [{"titolo": info["titolo"],
-                  "url": f"{BASE_URL}/opac/detail/view/test:catalog:{num}",
-                  "affidabile": info["affidabile"]}
-                 for num, info in combinati.items()]
-
-    # Limite di sicurezza: senza un tetto massimo, unire più fonti può
-    # produrre decine di candidati grezzi. Il passo successivo (verifica
-    # disponibilità) fa una richiesta di rete + mezzo secondo di pausa per
-    # OGNI candidato finché non ne trova abbastanza di validi: se pochi
-    # combaciano davvero, il ciclo può scorrere l'intera lista e superare
-    # facilmente il timeout del server. I candidati "affidabili" restano
-    # sempre in testa (inseriti per primi), quindi il taglio non li penalizza.
-    return risultati[:40]
 
 def cerca_titolo(titolo, rows=10):
     url  = f"{BASE_URL}/opac/search?q={quote_plus(titolo)}&rows={rows}"
@@ -474,30 +382,13 @@ def imposta_obiettivo():
 def api_search():
     q          = request.args.get("q", "").strip()
     biblioteca = request.args.get("biblioteca", "").strip()
-    campo      = request.args.get("campo", "titolo").strip().lower()
-    if campo not in ("titolo", "autore"):
-        campo = "titolo"
     if not q or not biblioteca:
         return jsonify({"error": "Parametri mancanti"}), 400
 
     try:
-        # In modalità "autore" la ricerca è delegata a cerca_autore(), che
-        # combina più fonti (campo autore dedicato + campo più ampio +
-        # ricerca tutto testo) perché nessuna delle singole fonti da sola si
-        # è rivelata sufficientemente completa su questo catalogo.
-        if campo == "autore":
-            risultati_base = cerca_autore(q, rows=30)
-            max_risultati = 20
-        else:
-            risultati_base = cerca_titolo(q, rows=10)
-            max_risultati = 10
-
-        # In modalità "autore" il filtro a valle (sotto) può scartare alcuni
-        # candidati non affidabili: scarichiamo qualche candidato in più
-        # della soglia finale per non rischiare di restare corti dopo il
-        # filtro. In modalità "titolo" non c'è filtro, quindi nessun margine.
-        cap = max_risultati * 2 if campo == "autore" else max_risultati
-        candidati = risultati_base[:cap]
+        risultati_base = cerca_titolo(q, rows=10)
+        max_risultati = 10
+        candidati = risultati_base[:max_risultati]
 
         # Le pagine di dettaglio di candidati diversi sono richieste
         # indipendenti tra loro: prima venivano scaricate una alla volta con
@@ -519,7 +410,6 @@ def api_search():
                         dettagli[i] = {"titolo": "—", "autore": "—", "copie": []}
 
         output = []
-        q_norm = _norm(q)
         for libro, det in zip(candidati, dettagli):
             if len(output) >= max_risultati:
                 break
@@ -528,19 +418,6 @@ def api_search():
             if autore_r in ("—","") and " - " in titolo_r:
                 parti = titolo_r.rsplit(" - ", 1)
                 titolo_r, autore_r = parti[0].strip(), parti[1].strip()
-
-            # In modalità "autore": se il libro proviene dalla ricerca mirata sul
-            # campo "autha" (flag affidabile=True), l'OPAC stesso ha già
-            # verificato che l'autore combaci — NON lo ri-filtriamo qui.
-            # L'estrazione dell'autore dalla pagina di dettaglio (primo <h4> utile)
-            # è un'euristica fragile: le edizioni più catalogate/famose (es. 1984,
-            # La fattoria degli animali) spesso hanno più metadati (collana,
-            # curatore, traduttore) e l'euristica può pescare l'h4 sbagliato,
-            # facendo scartare a torto proprio le opere più note. Il filtro resta
-            # applicato solo ai risultati dei fallback meno precisi (aut/q=).
-            if campo == "autore" and not libro.get("affidabile") and \
-               (not autore_r or q_norm not in _norm(autore_r)):
-                continue
 
             copie = det["copie"]
             output.append({
@@ -562,13 +439,13 @@ def api_search():
                 (u["id"], q, biblioteca, len(output), a_bib))
             get_db().commit()
 
-        return jsonify({"query": q, "biblioteca": biblioteca, "campo": campo, "risultati": output})
+        return jsonify({"query": q, "biblioteca": biblioteca, "risultati": output})
 
     except Exception as e:
         # Log completo lato server (visibile nei log del processo/host) +
         # messaggio esplicito nella risposta, così un eventuale errore futuro
         # è diagnosticabile subito invece di apparire come un 500 generico.
-        app.logger.exception("Errore in /api/search (q=%r, campo=%r)", q, campo)
+        app.logger.exception("Errore in /api/search (q=%r)", q)
         return jsonify({"error": f"Errore interno: {e}"}), 500
 
 #  API Letti
