@@ -929,10 +929,6 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
       <input type="search" id="it" placeholder="Cerca un titolo…" autocomplete="off" autocorrect="off" enterkeyhint="search">
       <button class="bsm bsmp" id="bcerca" onclick="cerca()">Cerca</button>
     </div>
-    <div style="display:flex;gap:6px;padding:0 16px 13px;margin-top:-6px">
-      <button type="button" class="campo-tog on" data-campo="titolo" onclick="setCampoRicerca('titolo')" style="flex:1;padding:7px;border-radius:20px;font-size:.68rem;font-weight:700;letter-spacing:.04em;cursor:pointer;font-family:'Inter',sans-serif;border:1.5px solid rgba(200,164,74,.4);background:rgba(200,164,74,.12);color:var(--oro);transition:all .2s">Titolo</button>
-      <button type="button" class="campo-tog" data-campo="autore" onclick="setCampoRicerca('autore')" style="flex:1;padding:7px;border-radius:20px;font-size:.68rem;font-weight:700;letter-spacing:.04em;cursor:pointer;font-family:'Inter',sans-serif;border:1.5px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,255,255,.4);transition:all .2s">Autore</button>
-    </div>
   </header>
   <div class="pm" id="main">
     <div class="vuoto">
@@ -1244,7 +1240,7 @@ function toggleDark(){applyDark(!document.body.classList.contains('dark'));}
 (function(){const s=localStorage.getItem('rbbc_dark');if(s==='1')applyDark(true);})();
 
 
-let G={u:null,bib:'',letti:new Set(),lettiData:[],campoRicerca:'titolo'};
+let G={u:null,bib:'',letti:new Set(),lettiData:[]};
 
 const BIBS=["Acquafredda","Adro","Agnadello","Agnosine","Anfo","Angolo Terme","Annicco","Artogne","Azzano Mella","Bagnolo Cremasco","Bagnolo Mella","Bagolino","Barbariga","Barghe","Bassano Bresciano","Bedizzole","Berlingo","Berzo Demo","Berzo Inferiore","Bienno","Bione","Bonemerse","Borgo San Giacomo","Borgosatollo","Borno","Botticino","Bovegno","Bovezzo","Brandico","Braone","Breno","Brescia - Abba-Ballini","Brescia - Archivio Storico","Brescia - Arnaldo","Brescia - Bibliobus","Brescia - Buffalora","Brescia - Canton Mombello","Brescia - Casazza","Brescia - Centro Casa Severino","Brescia - Emeroteca Queriniana","Brescia - Fondazione Trebeschi","Brescia - Gambara","Brescia - Ghetti","Brescia - Golgi","Brescia - La Vetrina","Brescia - Largo Torrelunga","Brescia - Mediateca Queriniana","Brescia - Museo Scienze Naturali","Brescia - Parco Gallo","Brescia - Prealpino","Brescia - Queriniana","Brescia - San Polo","Brescia - SBU","Brescia - Sereno","Brescia - UAU","Brione","Caino","Calcinato","Calvagese D-R","Calvatone","Calvisano","Camisano","Capergnanica","Capo Di Ponte","Capovalle","Capralba","Capriano Del Colle","Capriolo","Carpenedolo","Casalbuttano","Casale Cremasco Vidolasco","Casaletto Ceredano","Casaletto Vaprio","Casalmaggiore","Casalpusterlengo","Castegnato","Castel Mella","Castelcovati","Castelleone","Castello Di Padernello","Castelverde","Castenedolo","Casto","Castrezzato","Cazzago SM","Cedegolo","Cellatica","Centro Fumetto A. Pazienza","Centro Studi RSI Salò","Cerveno","Ceto","Cevo","Chiari","Chieve","Cigole","Cimbergo","Cingia De' Botti","Cividate Camuno","Clusane","Coccaglio","Collebeato","Collio","Cologne","Comezzano - Cizzago","Concesio","Corte De' Frati","Corte Franca","Corteno Golgi","Corzano","Credera Rubbiano","Crema","Crema - Museo","Cremona - Anguissola","Cremona - CDA","Cremona - Manin","Darfo Boario Terme","Dello","Desenzano","Dovera","Edolo","Elnos","Erbusco","Esine","Fiesco","Fiesse","Flero","Gadesco Pieve Delmona","Gambara","Gardone Riviera","Gardone Val Trompia","Gargnano","Gavardo","Genivolta","Ghedi","Gianico","Gottolengo","Grontardo","Grumello Cremonese","Gussago","Gussola","Idro","Incudine","Irma","Iseo","Isola Dovarese","Isorella","Izano","Lavenone","Leno","Limone Sul Garda","Lodrino","Lograto","Lonato Del Garda","Longhena","Losine","Lozio","Lumezzane","Maclodio","Madignano","Magasa","Mairano","Malegno","Malonno","Manerba Del Garda","Manerbio","Marcheno","Marmentino","Marone","Martignana Di Po","Mazzano","Milzano","Moniga Del Garda","Monno","Monte Cremasco","Monte Isola","Monticelli Brusati","Montichiari","Montirone","Montodine","Mura","Muscoline","Nave","Niardo","Nuvolento","Nuvolera","Odolo","Offanengo","Offlaga","Ome","Ono San Pietro","Orzinuovi","Orzivecchi","Ospitaletto","Ostiano","Padenghe Sul Garda","Paderno FC","Paderno Ponchielli","Paitone","Palazzo Pignano","Palazzolo Sull'Oglio","Pandino","Paratico","Passirano","Pavone Del Mella","Persico Dosimo","Pertica Alta","Pertica Bassa","Pescarolo Ed Uniti","Pezzaze","Piadena Drizzona","Pian Camuno","Piancogno","Pianengo","Pisogne","Pizzighettone","Polaveno","Polpenazze Del Garda","Pompiano","Poncarale","Ponte Di Legno","Pontevico","Pontoglio","Pozzolengo","Pralboino","Preseglie","Prestine","Prevalle","Provaglio D'Iseo","Provaglio VS","Puegnago Del Garda","Quinzano D'Oglio","Remedello","Rezzato","Ricengo","Ripalta Cremasca","Rivarolo Del Re","Rivolta D'Adda","Roccafranca","Rodengo Saiano","Roè Volciano","Romanengo","Roncadelle","Rovato","Rudiano","Sabbio Chiese","Sale Marasino","Salò","San Bassano","San Daniele Po","San Felice Del Benaco","San Gervasio Bresciano","San Giovanni In Croce","San Paolo","San Zeno Naviglio","Sarezzo","Saviore Dell'Adamello","Sellero","Seniga","Sergnano","Serle","Sesto Ed Uniti","Sirmione","Soiano Del Lago","Solarolo Rainerio","Soncino","Sonico","Soresina","Sospiro","Spino D'Adda","Sulzano","Tavernole Sul Mella","Temù","Tignale","Torbole Casaglia","Tornata","Torre De' Picenardi","Torricella Del Pizzo","Toscolano Maderno","Travagliato","Tremosine","Trenzano","Trescore Balneario","Trescore Cremasco","Treviso Bresciano","Urago D'Oglio","Vallio Terme","Valvestino","Verolanuova","Verolavecchia","Vestone","Vezza D'Oglio","Villa Carcina","Villanuova Sul Clisi","Visano","Vobarno","Zone"];
 
@@ -1694,18 +1690,6 @@ setupAC('pbi','ddpb',()=>{});
 function apriSh(id){document.getElementById(id).classList.add('on');}
 function chiudiSh(id,e){if(!e||e.target===document.getElementById(id))document.getElementById(id).classList.remove('on');}
 
-function setCampoRicerca(c){
-  G.campoRicerca=c;
-  document.querySelectorAll('.campo-tog').forEach(b=>{
-    const on=b.dataset.campo===c;
-    b.classList.toggle('on',on);
-    b.style.background=on?'rgba(200,164,74,.12)':'transparent';
-    b.style.borderColor=on?'rgba(200,164,74,.4)':'rgba(255,255,255,.12)';
-    b.style.color=on?'var(--oro)':'rgba(255,255,255,.4)';
-  });
-  const inp=document.getElementById('it');
-  if(inp)inp.placeholder=c==='autore'?'Cerca un autore…':'Cerca un titolo…';
-}
 /* RICERCA */
 const main=document.getElementById('main');
 function stC(c){if(!c?.length)return'';const ss=c.map(x=>x.stato.toLowerCase());if(ss.some(s=>s.includes('scaffale')||s.includes('disponib')))return'disp';if(ss.some(s=>s.includes('prestito')))return'prest';return'';}
@@ -1809,7 +1793,7 @@ async function cerca(){
   const bc=document.getElementById('bcerca');bc.disabled=true;bc.textContent='…';
   try{
     if(G.u)await caricaSalv();
-    const r=await fetch(`/api/search?q=${encodeURIComponent(q)}&biblioteca=${encodeURIComponent(G.bib)}&campo=${G.campoRicerca||'titolo'}`);
+    const r=await fetch(`/api/search?q=${encodeURIComponent(q)}&biblioteca=${encodeURIComponent(G.bib)}`);
     if(!r.ok)throw new Error(`Errore ${r.status}`);
     const data=await r.json();
     renderRis(data);
@@ -1990,22 +1974,13 @@ function aggiornaProgressoAtlante(){
   bar.style.width=pct+'%';
   txt.textContent=`${n}/${tot} nazioni scoperte`;
 }
-function cercaAutoreInAlexandria(nome){
-  tap('light');
-  if(!G.bib){vai('sbib');return;}
-  vai('salex');
-  setCampoRicerca('autore');
-  const inp=document.getElementById('it');
-  if(inp)inp.value=nome;
-  cerca();
-}
 function selNazione(name,info,el){
   document.querySelectorAll('.mapnaz').forEach(p=>p.classList.remove('sel'));
   if(el)el.classList.add('sel');
   marcaNazioneScoperta(name);
   const box=document.getElementById('mapinfo');
   const nome=info.nome||name;
-  const ops=info.autori.map(a=>`<div class="opi"><div class="opb"><div class="opt">${a.a}</div><div class="opo">${fmtOpere(a.o)}</div></div><button class="bric" style="margin:0;padding:5px 10px;font-size:.62rem;flex-shrink:0" onclick="cercaAutoreInAlexandria('${a.a.replace(/'/g,"\\'")}')">🔍 Cerca</button></div>`).join('');
+  const ops=info.autori.map(a=>`<div class="opi"><div class="opb"><div class="opt">${a.a}</div><div class="opo">${fmtOpere(a.o)}</div></div></div>`).join('');
   box.innerHTML=`<div class="ec"><div class="ech"><div class="ecl">📍 ${nome}</div><div class="autn" style="font-size:1.1rem">Autori da scoprire</div></div><div class="oplist">${ops}</div></div>`;
 }
 
@@ -3541,7 +3516,7 @@ function _disegnaMappFS(svgId,infoEl){
           marcaNazioneScoperta(f.properties.name);
           const ninfo=NAZIONI[f.properties.name];
           const nome=ninfo?.nome||f.properties.name;
-          const ops=(ninfo?.autori||[]).map(a=>`<div class="opi"><div class="opb"><div class="opt">${a.a}</div><div class="opo">${fmtOpere(a.o)}</div></div><button class="bric" style="margin:0;padding:5px 10px;font-size:.62rem;flex-shrink:0" onclick="chiudiMappaFS();cercaAutoreInAlexandria('${a.a.replace(/'/g,"\\'")}')">🔍 Cerca</button></div>`).join('');
+          const ops=(ninfo?.autori||[]).map(a=>`<div class="opi"><div class="opb"><div class="opt">${a.a}</div><div class="opo">${fmtOpere(a.o)}</div></div></div>`).join('');
           infoEl.innerHTML=`<div class="ech"><div class="ecl">📍 ${nome}</div><div class="autn" style="font-size:1rem">Autori da scoprire</div></div><div class="oplist">${ops}</div>`;
         });
     });
