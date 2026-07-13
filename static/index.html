@@ -1798,10 +1798,7 @@ async function cerca(){
     const data=await r.json();
     renderRis(data);
     // Badge: prima ricerca
-    if(G.u&&data.risultati?.length){
-      const nu=unlockBadge('prima_ricerca');
-      if(nu)showBadgeToast(TUTTI_BADGE.find(b=>b.id==='prima_ricerca'));
-    }
+    if(G.u&&data.risultati?.length)unlockAndCeremony('prima_ricerca');
     // Badge: alexandrino (50 ricerche) — controlla storico
     if(G.u)verificaBadgeRicerche();
   }
@@ -1895,7 +1892,7 @@ const NAZIONI={
   'Canada':{nome:'Canada',autori:[{a:'Margaret Atwood',o:'Il racconto dell’ancella'},{a:'Alice Munro',o:'Racconti'},{a:'Leonard Cohen',o:'Il libro del desiderio'}]},
   'Ecuador':{nome:'Ecuador',autori:[{a:'Jorge Icaza',o:'Huasipungo'},{a:'Adalberto Ortiz',o:'Juyungo'},{a:'Jorge Enrique Adoum',o:'Entre Marx y una mujer desnuda'}]},
   'Bolivia':{nome:'Bolivia',autori:[{a:'Alcides Arguedas',o:'Raza di bronzo'},{a:'Jaime Sáenz',o:'Felipe Delgado'},{a:'Edmundo Paz Soldán',o:'Río fugitivo'}]},
-  'Côte d\'Ivoire':{nome:'Costa d’Avorio',autori:[{a:'Ahmadou Kourouma',o:'Allah non è obbligato'},{a:'Bernard Dadié',o:'Climbié'},{a:'Véronique Tadjo',o:'Queen Pokou'}]},
+  'Ivory Coast':{nome:'Costa d’Avorio',autori:[{a:'Ahmadou Kourouma',o:'Allah non è obbligato'},{a:'Bernard Dadié',o:'Climbié'},{a:'Véronique Tadjo',o:'Queen Pokou'}]},
   'Cameroon':{nome:'Camerun',autori:[{a:'Mongo Beti',o:'Il povero Cristo di Bomba'},{a:'Ferdinand Oyono',o:'Una vita di boy'},{a:'Leonora Miano',o:'L’interno della notte'}]},
   'Iceland':{nome:'Islanda',autori:[{a:'Snorri Sturluson',o:'Edda in prosa'},{a:'Halldór Laxness',o:'Gente indipendente'},{a:'Sjón',o:'Il ragazzo che non è mai esistito'}]},
   'Greenland':{nome:'Groenlandia',autori:[{a:'Mathias Storch',o:'Un groenlandese sogna'},{a:'Augo Lynge',o:'Trecento anni dopo'},{a:'Niviaq Korneliussen',o:'HOMO sapienne'}]},
@@ -2027,14 +2024,14 @@ const TUTTI_BADGE=[
   {id:'pantocratore',     ico:'👑', nome:'Pantocratore delle Lettere',   desc:'Completa tutte le costellazioni'},
   {id:'alessandria_bibliotecario',ico:'📜', nome:'Bibliotecario di Alessandria', desc:'Leggi 250 libri'},
   {id:'aleph',            ico:'✨', nome:'Aleph',                        desc:'Leggi almeno un\'opera per ogni costellazione, ogni continente e 5 lingue originali'},
-  {id:'walden',           ico:'🌲', nome:'Walden',                       desc:'???'},
-  {id:'macondo',          ico:'🦋', nome:'Macondo',                      desc:'???'},
-  {id:'manoscritto',      ico:'📜', nome:'Il manoscritto perduto',       desc:'???'},
-  {id:'pequod',           ico:'⚓', nome:'Pequod',                        desc:'???'},
-  {id:'vronskij',         ico:'🚂', nome:'Vronskij',                     desc:'???'},
-  {id:'boxer',            ico:'🐴', nome:'Boxer',                        desc:'???'},
-  {id:'fuoco_alessandria',ico:'🔥', nome:'Fuoco di Alessandria',         desc:'???'},
-  {id:'mulino_acqua',     ico:'🌊', nome:'Mulino ad acqua',              desc:'???'},
+  {id:'walden',           ico:'🌲', nome:'Walden',                       desc:'Hai letto "Walden ovvero la vita nei boschi" di Henry David Thoreau'},
+  {id:'macondo',          ico:'🦋', nome:'Macondo',                      desc:'Hai letto "Cent\'anni di solitudine" di Gabriel García Márquez'},
+  {id:'manoscritto',      ico:'📜', nome:'Il manoscritto perduto',       desc:'Hai letto "I promessi sposi" di Alessandro Manzoni'},
+  {id:'pequod',           ico:'⚓', nome:'Pequod',                        desc:'Hai letto "Moby Dick" di Herman Melville'},
+  {id:'vronskij',         ico:'🚂', nome:'Vronskij',                     desc:'Hai letto "Anna Karenina" di Lev Tolstoj'},
+  {id:'boxer',            ico:'🐴', nome:'Boxer',                        desc:'Hai letto "La fattoria degli animali" di George Orwell'},
+  {id:'fuoco_alessandria',ico:'🔥', nome:'Fuoco di Alessandria',         desc:'Hai letto "Fahrenheit 451" di Ray Bradbury'},
+  {id:'mulino_acqua',     ico:'🌊', nome:'Mulino ad acqua',              desc:'Hai letto "Il mulino sulla Floss" di George Eliot'},
   {id:'biblioteca_babele',ico:'🌌', nome:'Biblioteca di Babele',         desc:'Ottieni tutti i badge'},
 ];
 
@@ -2053,10 +2050,6 @@ const PAESI_NILO_GANGE=['Egypt','Saudi Arabia','Iran','India'];
 const PAESI_OCEANO_INDIANO=['India','Saudi Arabia','Kenya','Tanzania','Ethiopia','Indonesia'];
 const PAESI_MEDIO_ORIENTE=['Lebanon','Syria','Israel','Iraq','Saudi Arabia','Iran','Egypt','Turkey','Afghanistan'];
 const PAESI_ULTIMA_THULE=['Norway']; /* Islanda e Groenlandia non presenti in NAZIONI: vincolo applicato sui paesi disponibili */
-/* Opere teatrali presenti nelle costellazioni (per il badge "Tragico": 5 opere teatrali) */
-const OPERE_TEATRALI=['edipo','amleto','macbeth'];
-/* 2 opere teatrali aggiuntive, non presenti nelle costellazioni, verificate per titolo (vedi titoloLetto) */
-const OPERE_TEATRALI_EXTRA=['Aspettando Godot',"Sei personaggi in cerca d'autore"];
 /* Opere poetiche presenti nelle costellazioni (per il badge "La rosa profonda": 10 opere poetiche) */
 const OPERE_POETICHE=['simposio','canzoniere','ars','georgiche'];
 /* Continenti coperti dalle nazioni in NAZIONI, per il badge "Aleph" */
@@ -2149,6 +2142,19 @@ function unlockBadge(id){
   return true;
 }
 
+/* Sblocca un badge e, se è davvero nuovo, mette in coda la cerimonia di sblocco.
+   Usare questa invece di unlockBadge() ovunque lo sblocco debba essere visibile
+   all'utente: centralizza la logica ed evita di dimenticare showBadgeToast. */
+function unlockAndCeremony(id){
+  const nu=unlockBadge(id);
+  if(nu){
+    const badge=TUTTI_BADGE.find(b=>b.id===id);
+    if(badge)enqueueBadgeToast(badge);
+    else console.warn('unlockAndCeremony: badge non trovato in TUTTI_BADGE:',id);
+  }
+  return nu;
+}
+
 async function caricaBadge(){
   if(!G.u){_badgeCache=null;return;}
   try{
@@ -2190,21 +2196,21 @@ async function renderPantheon(){
     const lit=getAutoLitStars();
     COSTELLAZIONI.forEach(ep=>{
       const completed=ep.stars.every(s=>lit.has(s.id));
-      if(completed)unlockBadge(ep.badge);
+      if(completed)unlockAndCeremony(ep.badge);
     });
-    if(COSTELLAZIONI.every(ep=>ep.stars.some(s=>lit.has(s.id))))unlockBadge('custode_tempo');
-    if(COSTELLAZIONI.every(ep=>ep.stars.every(s=>lit.has(s.id))))unlockBadge('pantocratore');
+    if(COSTELLAZIONI.every(ep=>ep.stars.some(s=>lit.has(s.id))))unlockAndCeremony('custode_tempo');
+    if(COSTELLAZIONI.every(ep=>ep.stars.every(s=>lit.has(s.id))))unlockAndCeremony('pantocratore');
     /* Epico: Iliade, Odissea ed Eneide */
-    if(['iliade','odissea','eneide'].every(s=>lit.has(s)))unlockBadge('epico');
+    if(['iliade','odissea','eneide'].every(s=>lit.has(s)))unlockAndCeremony('epico');
     /* Tragico: 5 opere teatrali (3 in costellazioni + 2 extra verificate per titolo) */
     const tragicheLette=OPERE_TEATRALI.filter(s=>lit.has(s)).length+OPERE_TEATRALI_EXTRA.filter(t=>titoloLetto(t)).length;
-    if(tragicheLette>=5)unlockBadge('tragico');
+    if(tragicheLette>=5)unlockAndCeremony('tragico');
     /* Novecento + Baricco: costellazione Novecento completa e "Novecento" letto */
     const novecentoEp=COSTELLAZIONI.find(ep=>ep.id==='novecento');
-    if(novecentoEp&&novecentoEp.stars.every(s=>lit.has(s.id))&&titoloLetto('Novecento'))unlockBadge('novecento_baricco');
+    if(novecentoEp&&novecentoEp.stars.every(s=>lit.has(s.id))&&titoloLetto('Novecento'))unlockAndCeremony('novecento_baricco');
     /* Badge segreti: ciascuno legato a un'unica opera specifica */
     Object.entries(BADGE_SEGRETI_LIBRO).forEach(([id,titolo])=>{
-      if(titoloLetto(titolo))unlockBadge(id);
+      if(titoloLetto(titolo))unlockAndCeremony(id);
     });
     const lingue=new Set();
     G.lettiData.forEach(l=>{
@@ -2215,54 +2221,54 @@ async function renderPantheon(){
     COSTELLAZIONI.forEach(ep=>ep.stars.forEach(s=>{
       if(lit.has(s.id)&&LINGUE_COSTELLAZIONE_ANTICHITA[s.id])lingue.add(LINGUE_COSTELLAZIONE_ANTICHITA[s.id]);
     }));
-    if(lingue.size>=5)unlockBadge('torre_babele');
+    if(lingue.size>=5)unlockAndCeremony('torre_babele');
     const nobelLetti=AUTORI_NOBEL.filter(n=>autLetto(n)).length;
-    if(nobelLetti>=20)unlockBadge('accademia_svezia');
+    if(nobelLetti>=20)unlockAndCeremony('accademia_svezia');
     const russiLetti=new Set();
     (NAZIONI['Russia']?.autori||[]).forEach(a=>{if(autLetto(a.a))russiLetti.add(a.a);});
-    if(russiLetti.size>=5)unlockBadge('transiberiana');
+    if(russiLetti.size>=5)unlockAndCeremony('transiberiana');
     const paesiVisitati=Object.keys(getLettiPerNazione());
     const nPaesi=paesiVisitati.length;
-    if(nPaesi>=10)unlockBadge('navigatore');
-    if(nPaesi>=25)unlockBadge('cartografo');
-    if(nPaesi>=50)unlockBadge('cosmopolita');
-    if(nPaesi>=Object.keys(NAZIONI).length)unlockBadge('eterno_pellegrino');
-    if(PAESI_ASIATICI.filter(p=>paesiVisitati.includes(p)).length>=5)unlockBadge('via_seta');
-    if(PAESI_MEDITERRANEO.every(p=>paesiVisitati.includes(p)))unlockBadge('mediterraneo');
-    if(G.lettiData.length>=250)unlockBadge('alessandria_bibliotecario');
+    if(nPaesi>=10)unlockAndCeremony('navigatore');
+    if(nPaesi>=25)unlockAndCeremony('cartografo');
+    if(nPaesi>=50)unlockAndCeremony('cosmopolita');
+    if(nPaesi>=Object.keys(NAZIONI).length)unlockAndCeremony('eterno_pellegrino');
+    if(PAESI_ASIATICI.filter(p=>paesiVisitati.includes(p)).length>=5)unlockAndCeremony('via_seta');
+    if(PAESI_MEDITERRANEO.every(p=>paesiVisitati.includes(p)))unlockAndCeremony('mediterraneo');
+    if(G.lettiData.length>=250)unlockAndCeremony('alessandria_bibliotecario');
     /* Badge geografici */
-    if(PAESI_EUROPEI.filter(p=>paesiVisitati.includes(p)).length>=5)unlockBadge('europa');
-    if(PAESI_AFRICANI.filter(p=>paesiVisitati.includes(p)).length>=5)unlockBadge('africa');
-    if(PAESI_AMERICANI.filter(p=>paesiVisitati.includes(p)).length>=5)unlockBadge('america');
-    if(PAESI_INSULARI.filter(p=>paesiVisitati.includes(p)).length>=5)unlockBadge('arcipelago');
-    if(PAESI_MARCO_POLO.every(p=>paesiVisitati.includes(p)))unlockBadge('marco_polo');
-    if(PAESI_NUOVA_VIA_SETA.every(p=>paesiVisitati.includes(p)))unlockBadge('nuova_via_seta');
-    if(PAESI_CROCEVIA.every(p=>paesiVisitati.includes(p)))unlockBadge('crocevia_civilta');
-    if(PAESI_NILO_GANGE.every(p=>paesiVisitati.includes(p)))unlockBadge('dal_nilo_al_gange');
-    if(PAESI_OCEANO_INDIANO.every(p=>paesiVisitati.includes(p)))unlockBadge('oceano_indiano');
-    if(PAESI_MEDIO_ORIENTE.filter(p=>paesiVisitati.includes(p)).length>=5)unlockBadge('mille_e_una_notte');
-    if(PAESI_ULTIMA_THULE.every(p=>paesiVisitati.includes(p)))unlockBadge('ultima_thule');
+    if(PAESI_EUROPEI.filter(p=>paesiVisitati.includes(p)).length>=5)unlockAndCeremony('europa');
+    if(PAESI_AFRICANI.filter(p=>paesiVisitati.includes(p)).length>=5)unlockAndCeremony('africa');
+    if(PAESI_AMERICANI.filter(p=>paesiVisitati.includes(p)).length>=5)unlockAndCeremony('america');
+    if(PAESI_INSULARI.filter(p=>paesiVisitati.includes(p)).length>=5)unlockAndCeremony('arcipelago');
+    if(PAESI_MARCO_POLO.every(p=>paesiVisitati.includes(p)))unlockAndCeremony('marco_polo');
+    if(PAESI_NUOVA_VIA_SETA.every(p=>paesiVisitati.includes(p)))unlockAndCeremony('nuova_via_seta');
+    if(PAESI_CROCEVIA.every(p=>paesiVisitati.includes(p)))unlockAndCeremony('crocevia_civilta');
+    if(PAESI_NILO_GANGE.every(p=>paesiVisitati.includes(p)))unlockAndCeremony('dal_nilo_al_gange');
+    if(PAESI_OCEANO_INDIANO.every(p=>paesiVisitati.includes(p)))unlockAndCeremony('oceano_indiano');
+    if(PAESI_MEDIO_ORIENTE.filter(p=>paesiVisitati.includes(p)).length>=5)unlockAndCeremony('mille_e_una_notte');
+    if(PAESI_ULTIMA_THULE.every(p=>paesiVisitati.includes(p)))unlockAndCeremony('ultima_thule');
     const areeToccate=Object.values(AREE_CULTURALI).filter(area=>area.some(p=>paesiVisitati.includes(p))).length;
-    if(areeToccate>=7)unlockBadge('sette_mari');
-    if(areeToccate>=5)unlockBadge('cantastorie');
+    if(areeToccate>=7)unlockAndCeremony('sette_mari');
+    if(areeToccate>=5)unlockAndCeremony('cantastorie');
     /* Anima dell'Eurasia: Europa, Russia, Asia Centrale e Cina */
     const PAESI_ANIMA_EURASIA_GRUPPI=[PAESI_EUROPEI,['Russia'],['Uzbekistan','Kazakhstan','Tajikistan','Kyrgyzstan','Turkmenistan'],['China']];
-    if(PAESI_ANIMA_EURASIA_GRUPPI.every(gruppo=>gruppo.some(p=>paesiVisitati.includes(p))))unlockBadge('anima_eurasia');
+    if(PAESI_ANIMA_EURASIA_GRUPPI.every(gruppo=>gruppo.some(p=>paesiVisitati.includes(p))))unlockAndCeremony('anima_eurasia');
     /* Oltre le colonne d'Ercole: prima opera non europea letta */
-    if(paesiVisitati.some(p=>!PAESI_EUROPEI.includes(p)))unlockBadge('colonne_ercole');
+    if(paesiVisitati.some(p=>!PAESI_EUROPEI.includes(p)))unlockAndCeremony('colonne_ercole');
     /* Duemila anni di storie: letta almeno un'opera dell'Antichità e una del Novecento */
     const antichitaEp=COSTELLAZIONI.find(ep=>ep.id==='antichita');
     const novecentoEp2=COSTELLAZIONI.find(ep=>ep.id==='novecento');
-    if(antichitaEp?.stars.some(s=>lit.has(s.id))&&novecentoEp2?.stars.some(s=>lit.has(s.id)))unlockBadge('duemila_anni');
+    if(antichitaEp?.stars.some(s=>lit.has(s.id))&&novecentoEp2?.stars.some(s=>lit.has(s.id)))unlockAndCeremony('duemila_anni');
     /* Aleph: almeno un'opera per ogni costellazione, ogni continente e 5 lingue diverse */
     const tutteCostellazioniToccate=COSTELLAZIONI.every(ep=>ep.stars.some(s=>lit.has(s.id)));
     const tuttiContinentiToccati=Object.values(CONTINENTI_NAZIONI).every(lista=>lista.some(p=>paesiVisitati.includes(p)));
-    if(tutteCostellazioniToccate&&tuttiContinentiToccati&&lingue.size>=5)unlockBadge('aleph');
+    if(tutteCostellazioniToccate&&tuttiContinentiToccati&&lingue.size>=5)unlockAndCeremony('aleph');
   }
   {
     const unl0=getBadgeUnlocked();
     const altri=TUTTI_BADGE.filter(b=>b.id!=='biblioteca_babele');
-    if(altri.every(b=>unl0.has(b.id)))unlockBadge('biblioteca_babele');
+    if(altri.every(b=>unl0.has(b.id)))unlockAndCeremony('biblioteca_babele');
   }
   const unl=getBadgeUnlocked();
 
@@ -2655,7 +2661,7 @@ function renderCostellazioni(){
     });
 
     // Controlla badge costellazione e mostra toast se appena sbloccato
-    if(completed){const nu=unlockBadge(ep.badge);if(nu)showBadgeToast(TUTTI_BADGE.find(b=>b.id===ep.badge));}
+    if(completed)unlockAndCeremony(ep.badge);
   });
 }
 
@@ -2689,7 +2695,7 @@ async function verificaBadgeRicerche(){
   try{
     const r=await fetch('/api/storico');if(!r.ok)return;
     const d=await r.json();
-    if((d.tot_ricerche||0)>=50){const nu=unlockBadge('alexandrino');if(nu)showBadgeToast(TUTTI_BADGE.find(b=>b.id==='alexandrino'));}
+    if((d.tot_ricerche||0)>=50)unlockAndCeremony('alexandrino');
   }catch{}
 }
 
@@ -2707,14 +2713,8 @@ async function incAtlanteVisits(){
     n=(parseInt(localStorage.getItem('rbbc_atlante_visits')||'0'))+1;
     localStorage.setItem('rbbc_atlante_visits',n);
   }
-  if(n>=5&&!getBadgeUnlocked().has('esploratore')){
-    const nu=unlockBadge('esploratore');
-    if(nu)setTimeout(()=>showBadgeToast(TUTTI_BADGE.find(b=>b.id==='esploratore')),400);
-  }
-  if(n>=100&&!getBadgeUnlocked().has('labirinto')){
-    const nu2=unlockBadge('labirinto');
-    if(nu2)setTimeout(()=>showBadgeToast(TUTTI_BADGE.find(b=>b.id==='labirinto')),400);
-  }
+  if(n>=5&&!getBadgeUnlocked().has('esploratore'))setTimeout(()=>unlockAndCeremony('esploratore'),400);
+  if(n>=100&&!getBadgeUnlocked().has('labirinto'))setTimeout(()=>unlockAndCeremony('labirinto'),400);
 }
 
 /* ── NUOVA CERIMONIA BADGE ── */
@@ -2790,6 +2790,23 @@ function _startCerParticles(){
   _cerRaf=requestAnimationFrame(tick);
 }
 
+/* Coda cerimonie: se più badge si sbloccano nello stesso istante (es. al
+   primo caricamento del Pantheon con molte letture già registrate), le
+   cerimonie si mostrano una alla volta invece di accavallarsi o perdersi. */
+let _badgeToastQueue=[];
+let _badgeToastActive=false;
+function enqueueBadgeToast(badge){
+  if(!badge)return;
+  _badgeToastQueue.push(badge);
+  _tryShowNextBadgeToast();
+}
+function _tryShowNextBadgeToast(){
+  if(_badgeToastActive||!_badgeToastQueue.length)return;
+  _badgeToastActive=true;
+  const b=_badgeToastQueue.shift();
+  showBadgeToast(b);
+}
+
 function chiudiBadgeCeremony(){
   const ovr=document.getElementById('bdgCerOvr');
   if(!ovr)return;
@@ -2797,6 +2814,11 @@ function chiudiBadgeCeremony(){
   if(_cerRaf){cancelAnimationFrame(_cerRaf);_cerRaf=null;}
   const canvas=document.getElementById('bdg-cer-canvas');
   if(canvas)canvas.classList.remove('active');
+  // Evita che un auto-chiudi rimasto in sospeso da una cerimonia precedente
+  // chiuda in anticipo quella successiva mostrata dalla coda.
+  clearTimeout(ovr._autoClose);
+  _badgeToastActive=false;
+  if(_badgeToastQueue.length)setTimeout(_tryShowNextBadgeToast,450);
 }
 
 function badgeCeremony(badgeId){
