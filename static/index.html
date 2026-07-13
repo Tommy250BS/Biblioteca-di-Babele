@@ -2202,9 +2202,6 @@ async function renderPantheon(){
     if(COSTELLAZIONI.every(ep=>ep.stars.every(s=>lit.has(s.id))))unlockAndCeremony('pantocratore');
     /* Epico: Iliade, Odissea ed Eneide */
     if(['iliade','odissea','eneide'].every(s=>lit.has(s)))unlockAndCeremony('epico');
-    /* Tragico: 5 opere teatrali (3 in costellazioni + 2 extra verificate per titolo) */
-    const tragicheLette=OPERE_TEATRALI.filter(s=>lit.has(s)).length+OPERE_TEATRALI_EXTRA.filter(t=>titoloLetto(t)).length;
-    if(tragicheLette>=5)unlockAndCeremony('tragico');
     /* Novecento + Baricco: costellazione Novecento completa e "Novecento" letto */
     const novecentoEp=COSTELLAZIONI.find(ep=>ep.id==='novecento');
     if(novecentoEp&&novecentoEp.stars.every(s=>lit.has(s.id))&&titoloLetto('Novecento'))unlockAndCeremony('novecento_baricco');
