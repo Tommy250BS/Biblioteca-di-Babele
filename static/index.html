@@ -73,6 +73,11 @@ body.dark .etimo{border-left-color:var(--oro)}
 body.dark .ec{border-left-color:var(--oro)}
 body.dark .card.disp{border-left-color:var(--bosco-2)}
 body.dark .card.prest{border-left-color:var(--oro)}
+/* Bottone "segna come letto" in dark mode */
+body.dark .bsalv{color:var(--ink3);border-color:var(--av3)}
+body.dark .bsalv:hover{border-color:var(--oro-2);color:var(--oro-2)}
+body.dark .bsalv.on{background:var(--bosco-2);color:var(--oro-2);border-color:var(--bosco-2)}
+body.dark .bletto.on{background:rgba(200,164,74,.16);color:var(--oro-2);border-color:var(--oro)}
 /* Testi chiari */
 body.dark .ctt,body.dark .sc-nome,body.dark .etn,
 body.dark .wtt,body.dark .opt,
@@ -104,14 +109,14 @@ body.dark .ddi:hover,.dark .ddi.hl{background:var(--bosco);color:#fff}
 /* Sheet overlay */
 body.dark .shovr{background:rgba(0,0,0,.75)}
 /* Sezioni intro mantengono bosco-3, ok */
-/* mappa sfondo */
-body.dark .mapwrap{background:#0a1409}
-body.dark .map-fs-svg-wrap{background:#0a1409}
-body.dark .map-ocean{fill:#0a1409}
-body.dark .mapcont{fill:#22392a;stroke:#0a1409}
-body.dark .mapnaz.attiva{fill:var(--oro);fill-opacity:.55}
-body.dark .mapnaz.attiva:hover{fill:var(--oro-2);fill-opacity:.85}
-body.dark .mapnaz.attiva.sel{fill:var(--oro-2);fill-opacity:1;stroke:#fff}
+/* mappa sfondo — atmosfera notturna coerente col tema bosco/oro */
+body.dark .mapwrap{background:radial-gradient(ellipse 90% 70% at 50% 25%,#0f2214 0%,#070d08 75%)}
+body.dark .map-fs-svg-wrap{background:radial-gradient(ellipse 90% 70% at 50% 25%,#0f2214 0%,#070d08 75%)}
+body.dark .map-ocean{fill:#070d08}
+body.dark .mapcont{fill:#16281a;stroke:#070d08;stroke-width:1}
+body.dark .mapnaz.attiva{fill:var(--oro);fill-opacity:.5;filter:drop-shadow(0 0 3px rgba(200,164,74,.3))}
+body.dark .mapnaz.attiva:hover{fill:var(--oro-2);fill-opacity:.82;filter:drop-shadow(0 0 7px rgba(228,196,94,.55))}
+body.dark .mapnaz.attiva.sel{fill:var(--oro-2);fill-opacity:1;stroke:#fff6cf;stroke-width:1.4;filter:drop-shadow(0 0 10px rgba(228,196,94,.65))}
 /* ctcop */
 body.dark .ctcop{background:#0f1a10;border-color:var(--av3)}
 body.dark .cln{background:#0f1a10;border-color:var(--av3);color:var(--bosco-2)}
