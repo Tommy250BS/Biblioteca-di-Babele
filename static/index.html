@@ -766,11 +766,13 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
 .cost-star.nucleo.lit .spt{filter:drop-shadow(0 0 7px #ffe066) drop-shadow(0 0 16px rgba(255,200,50,.65))}
 /* Galassia: nebulose — cerchio sfumato invece di stella a punte */
 .cost-nebula{cursor:pointer}
-.cost-nebula circle.neb-glow{fill:rgba(180,160,255,.16);transition:fill .8s,opacity .8s}
-.cost-nebula.lit circle.neb-glow{fill:rgba(200,180,255,.4);animation:nebPulse 3.2s ease-in-out infinite}
-.cost-nebula circle.neb-core{fill:rgba(220,205,255,.5);transition:fill .8s}
-.cost-nebula.lit circle.neb-core{fill:#e9defe;filter:drop-shadow(0 0 6px rgba(210,190,255,.8))}
-@keyframes nebPulse{0%,100%{opacity:.75}50%{opacity:1}}
+.cost-nebula circle.neb-ring{fill:none;stroke:rgba(210,180,255,.55);stroke-width:1;stroke-dasharray:2.5 2.5;transition:stroke .8s,opacity .8s}
+.cost-nebula.lit circle.neb-ring{stroke:rgba(230,205,255,.85);stroke-dasharray:none}
+.cost-nebula circle.neb-glow{fill:rgba(196,168,255,.4);transition:fill .8s,opacity .8s}
+.cost-nebula.lit circle.neb-glow{fill:rgba(224,200,255,.7);animation:nebPulse 3.2s ease-in-out infinite}
+.cost-nebula circle.neb-core{fill:rgba(238,225,255,.95);stroke:rgba(255,255,255,.6);stroke-width:.6;transition:fill .8s}
+.cost-nebula.lit circle.neb-core{fill:#fbf7ff;filter:drop-shadow(0 0 8px rgba(224,200,255,.95)) drop-shadow(0 0 18px rgba(196,168,255,.6))}
+@keyframes nebPulse{0%,100%{opacity:.8}50%{opacity:1}}
 /* Galassia: etichette dei bracci */
 .cost-arm-label{font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:600;fill:rgba(228,196,94,.55);letter-spacing:.04em}
 .cost-core-glow{fill:rgba(228,196,94,.1)}
@@ -2859,12 +2861,16 @@ function renderCostellazioni(){
         g.setAttribute('class',`cost-nebula${isLit?' lit':''}`);
         g.dataset.id=star.id;
         g.dataset.braccio=braccio.id;
+        const ring=document.createElementNS('http://www.w3.org/2000/svg','circle');
+        ring.setAttribute('cx',p.x);ring.setAttribute('cy',p.y);ring.setAttribute('r',isLit?13:10);
+        ring.setAttribute('class','neb-ring');
+        g.appendChild(ring);
         const glow=document.createElementNS('http://www.w3.org/2000/svg','circle');
-        glow.setAttribute('cx',p.x);glow.setAttribute('cy',p.y);glow.setAttribute('r',isLit?15:11);
+        glow.setAttribute('cx',p.x);glow.setAttribute('cy',p.y);glow.setAttribute('r',isLit?18:13);
         glow.setAttribute('class','neb-glow');
         g.appendChild(glow);
         const core=document.createElementNS('http://www.w3.org/2000/svg','circle');
-        core.setAttribute('cx',p.x);core.setAttribute('cy',p.y);core.setAttribute('r',isLit?4:3);
+        core.setAttribute('cx',p.x);core.setAttribute('cy',p.y);core.setAttribute('r',isLit?5:4);
         core.setAttribute('class','neb-core');
         g.appendChild(core);
         const hit=document.createElementNS('http://www.w3.org/2000/svg','circle');
