@@ -758,6 +758,41 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
 /* micro stelle di sfondo */
 .cost-bg-star{fill:rgba(255,255,255,.55);animation:bgTwinkle var(--dur,3s) ease-in-out infinite var(--del,0s)}
 @keyframes bgTwinkle{0%,100%{opacity:.55}50%{opacity:.1}}
+/* Galassia: link stella-doppia (più caldo, tratteggio largo) */
+.cost-link-doppia{stroke:rgba(224,140,90,.22);stroke-width:1.2;stroke-dasharray:2 3;transition:stroke .8s,stroke-width .8s,filter .8s}
+.cost-link-doppia.lit{stroke:#ffb877;stroke-width:2;stroke-dasharray:none;filter:drop-shadow(0 0 5px rgba(255,184,119,.7))}
+/* Galassia: nuclei di braccio — alone proprio più intenso */
+.cost-star.nucleo .spt{stroke-width:.7}
+.cost-star.nucleo.lit .spt{filter:drop-shadow(0 0 7px #ffe066) drop-shadow(0 0 16px rgba(255,200,50,.65))}
+/* Galassia: nebulose — cerchio sfumato invece di stella a punte */
+.cost-nebula{cursor:pointer}
+.cost-nebula circle.neb-glow{fill:rgba(180,160,255,.16);transition:fill .8s,opacity .8s}
+.cost-nebula.lit circle.neb-glow{fill:rgba(200,180,255,.4);animation:nebPulse 3.2s ease-in-out infinite}
+.cost-nebula circle.neb-core{fill:rgba(220,205,255,.5);transition:fill .8s}
+.cost-nebula.lit circle.neb-core{fill:#e9defe;filter:drop-shadow(0 0 6px rgba(210,190,255,.8))}
+@keyframes nebPulse{0%,100%{opacity:.75}50%{opacity:1}}
+/* Galassia: etichette dei bracci */
+.cost-arm-label{font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:600;fill:rgba(228,196,94,.55);letter-spacing:.04em}
+.cost-core-glow{fill:rgba(228,196,94,.1)}
+/* Riepilogo bracci sotto la mappa */
+.arm-summary{display:flex;flex-direction:column;gap:6px;margin-top:16px}
+.arm-row{display:flex;align-items:center;gap:10px;background:#fff;border-radius:var(--rs);padding:9px 12px;box-shadow:var(--sh-s);cursor:pointer;transition:box-shadow .2s,transform .15s var(--ease-spring)}
+.arm-row:active{transform:scale(.98)}
+body.dark .arm-row{background:#121f13}
+.arm-row.done{border-left:3px solid var(--oro)}
+.arm-row-dot{width:8px;height:8px;border-radius:50%;background:var(--av3);flex-shrink:0}
+.arm-row.done .arm-row-dot{background:var(--oro);box-shadow:0 0 5px rgba(200,164,74,.7)}
+.arm-row-txt{flex:1;min-width:0}
+.arm-row-nome{font-family:'Cormorant Garamond',serif;font-size:.92rem;font-weight:600;color:var(--ink)}
+.arm-row-sub{font-size:.66rem;color:#aaa}
+.arm-row-count{font-size:.68rem;font-weight:700;color:var(--bosco-2);flex-shrink:0}
+body.dark .arm-row-count{color:var(--oro-2)}
+.arm-row.active{box-shadow:0 0 0 2px var(--oro),var(--sh-m)}
+.arm-row.active .arm-row-dot{background:var(--oro);box-shadow:0 0 6px rgba(200,164,74,.8)}
+.cost-arm-label{cursor:pointer;transition:opacity .35s ease,fill .35s ease}
+.cost-arm-label:hover{fill:rgba(228,196,94,.85)}
+.cost-arm-label.active{fill:var(--oro-2);font-weight:700}
+[data-braccio]{transition:opacity .35s ease}
 /* info card */
 .cost-info{background:#fff;border-radius:0 0 var(--r) var(--r);padding:13px 16px;border-top:1px solid var(--av2);display:none}
 .cost-info.on{display:block;animation:up .2s ease both}
@@ -1113,14 +1148,14 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
     <div class="sinti">
       <div class="stag">Grandi Classici</div>
       <h1 class="stitolo">Lapides<strong><br>Miliarii</strong></h1>
-      <div class="ssub">Le costellazioni della letteratura mondiale</div>
+      <div class="ssub">Una galassia di archetipi letterari</div>
     </div>
   </div>
   <div class="sbody">
     <button class="bsm bsmg" style="margin-bottom:20px" onclick="vai('shome')">← Home</button>
     <div class="etimo">
       <div class="etn">Lapides Miliarii</div><div class="eto">Dal latino · Pietre miliari</div>
-      <p class="etd">Come le stelle formano costellazioni, i grandi classici disegnano la mappa della letteratura universale. Ogni opera letta illumina una stella; quando due stelle vicine brillano insieme, si accende il legame tra loro. Completa una costellazione per ottenere il badge dell'epoca.</p>
+      <p class="etd">Non una cronologia, ma sei archetipi che attraversano i secoli: il viaggio, la tragedia, la lirica, l'utopia, il pensiero, la condizione umana. Ogni braccio della galassia parte da un nucleo antico e si allontana fino alla periferia contemporanea. Ogni opera letta accende una stella; le nebulose sono testi perduti o frammentari; le stelle doppie collegano opere lontane che dialogano tra loro. Completa un braccio per ottenere il suo badge.</p>
     </div>
     <button class="bsm bsmp" style="margin-bottom:20px" onclick="apriLetturaManuale()">+ Aggiungi lettura passata</button>
     <div id="cost-container"><!-- costellazioni renderizzate da JS --></div>
@@ -2059,13 +2094,13 @@ const TUTTI_BADGE=[
   {id:'alexandrino',      ico:'🏛️', nome:'Alexandrino',                  desc:'50 ricerche nel catalogo'},
   {id:'esploratore',      ico:'🗺️', nome:'Esploratore',                  desc:'Visita Atlante 5 volte'},
   {id:'labirinto',        ico:'🌀', nome:'Il labirinto',                 desc:'Visita Atlante 100 volte'},
-  {id:'antichita',        ico:'🏺', nome:'Custode dell\'antichità',      desc:'Completa la Costellazione Antichità'},
-  {id:'medioevo',         ico:'⚔️', nome:'Pellegrino medievale',         desc:'Completa la Costellazione Medioevo'},
-  {id:'rinascimento',     ico:'🎨', nome:'Umanista',                     desc:'Completa la Costellazione Rinascimento'},
-  {id:'seicento',         ico:'🔭', nome:'Illuminato',                   desc:'Completa la Costellazione 600-700'},
-  {id:'ottocento',        ico:'📖', nome:'Romantico',                    desc:'Completa la Costellazione Ottocento'},
-  {id:'novecento',        ico:'✒️', nome:'Contemporaneo',                desc:'Completa la Costellazione Novecento'},
-  {id:'novecento_baricco',ico:'🎹',nome:'Il pianista sull\'oceano',      desc:'Completa la costellazione Novecento e leggi "Novecento"'},
+  {id:'ursa_maior',       ico:'🐻', nome:'Viaggiatore',                  desc:'Completa la costellazione Ursa Maior — Il viaggio dell\'eroe'},
+  {id:'phoenix',          ico:'🔥', nome:'Rinato dalle ceneri',          desc:'Completa la costellazione Phoenix — La tragedia e la rinascita'},
+  {id:'cygnus',           ico:'🦢', nome:'Voce lirica',                  desc:'Completa la costellazione Cygnus — La lirica e il sentimento'},
+  {id:'pegasus',          ico:'🐎', nome:'Sognatore',                    desc:'Completa la costellazione Pegasus — L\'utopia e l\'immaginario'},
+  {id:'orion',            ico:'🏹', nome:'Cercatore',                    desc:'Completa la costellazione Orion — Il pensiero e la visione'},
+  {id:'andromeda',        ico:'⛓️', nome:'Testimone dell\'umano',        desc:'Completa la costellazione Andromeda — La condizione umana'},
+  {id:'novecento_baricco',ico:'🎹',nome:'Il pianista sull\'oceano',      desc:'Completa la costellazione Andromeda e leggi "Novecento"'},
   {id:'navigatore',       ico:'⛵', nome:'Navigatore',                   desc:'Letture da 10 paesi diversi'},
   {id:'cartografo',       ico:'🧭', nome:'Cartografo',                   desc:'Letture da 25 paesi diversi'},
   {id:'cosmopolita',      ico:'🌍', nome:'Cosmopolita',                  desc:'Letture da 50 paesi diversi'},
@@ -2247,7 +2282,7 @@ const BADGE_CATEGORIE=[
   {id:'ricerche', label:'Esplorazione', ico:'📚',
    ids:['prima_ricerca','alexandrino','esploratore','labirinto']},
   {id:'costellazioni', label:'Costellazioni', ico:'⭐',
-   ids:['antichita','medioevo','rinascimento','seicento','ottocento','novecento','novecento_baricco','custode_tempo','duemila_anni']},
+   ids:['ursa_maior','phoenix','cygnus','pegasus','orion','andromeda','novecento_baricco','custode_tempo','duemila_anni']},
   {id:'viaggi', label:'Viaggi & Geografia', ico:'🌍',
    ids:['navigatore','cartografo','cosmopolita','eterno_pellegrino','marco_polo','transiberiana','via_seta','nuova_via_seta','europa','africa','america','arcipelago','mediterraneo','crocevia_civilta','dal_nilo_al_gange','oceano_indiano','anima_eurasia','mille_e_una_notte','sette_mari','ultima_thule']},
   {id:'letteratura', label:'Forme & Generi', ico:'🎭',
@@ -2275,8 +2310,8 @@ async function renderPantheon(){
     /* Epico: Iliade, Odissea ed Eneide */
     if(['iliade','odissea','eneide'].every(s=>lit.has(s)))unlockAndCeremony('epico');
     /* Novecento + Baricco: costellazione Novecento completa e "Novecento" letto */
-    const novecentoEp=COSTELLAZIONI.find(ep=>ep.id==='novecento');
-    if(novecentoEp&&novecentoEp.stars.every(s=>lit.has(s.id))&&titoloLetto('Novecento'))unlockAndCeremony('novecento_baricco');
+    const andromedaEp=COSTELLAZIONI.find(ep=>ep.id==='andromeda');
+    if(andromedaEp&&andromedaEp.stars.every(s=>lit.has(s.id))&&titoloLetto('Novecento'))unlockAndCeremony('novecento_baricco');
     /* Badge segreti: ciascuno legato a un'unica opera specifica */
     Object.entries(BADGE_SEGRETI_LIBRO).forEach(([id,titolo])=>{
       if(titoloLetto(titolo))unlockAndCeremony(id);
@@ -2326,9 +2361,9 @@ async function renderPantheon(){
     /* Oltre le colonne d'Ercole: prima opera non europea letta */
     if(paesiVisitati.some(p=>!PAESI_EUROPEI.includes(p)))unlockAndCeremony('colonne_ercole');
     /* Duemila anni di storie: letta almeno un'opera dell'Antichità e una del Novecento */
-    const antichitaEp=COSTELLAZIONI.find(ep=>ep.id==='antichita');
-    const novecentoEp2=COSTELLAZIONI.find(ep=>ep.id==='novecento');
-    if(antichitaEp?.stars.some(s=>lit.has(s.id))&&novecentoEp2?.stars.some(s=>lit.has(s.id)))unlockAndCeremony('duemila_anni');
+    const nucleiLetti=COSTELLAZIONI.some(ep=>ep.stars.some(s=>(s.tipo||'').includes('nucleo')&&lit.has(s.id)));
+    const periferieLette=COSTELLAZIONI.some(ep=>{const ultimo=ep.stars[ep.stars.length-1];return lit.has(ultimo.id);});
+    if(nucleiLetti&&periferieLette)unlockAndCeremony('duemila_anni');
     /* Aleph: almeno un'opera per ogni costellazione, ogni continente e 5 lingue diverse */
     const tutteCostellazioniToccate=COSTELLAZIONI.every(ep=>ep.stars.some(s=>lit.has(s.id)));
     const tuttiContinentiToccati=Object.values(CONTINENTI_NAZIONI).every(lista=>lista.some(p=>paesiVisitati.includes(p)));
@@ -2382,116 +2417,131 @@ async function renderPantheon(){
   gr.innerHTML=html;
 }
 
-/* COSTELLAZIONI — 10 stelle ciascuna, forme geometriche variate, viewBox 440×140 */
+/* ══════════════════════════════════════════════════════════════════════
+   GALASSIA LETTERARIA — struttura a "step logico" invece di coordinate.
+   Ogni stella ha solo un braccio (costellazione archetipica) e uno `step`
+   (distanza logica dal nucleo: 0 = origine, valori crescenti = periferia).
+   Le coordinate x,y vengono calcolate a runtime da posizioneGalassia()
+   con una formula a spirale — per spostare o aggiungere un libro basta
+   cambiare un numero qui sotto, non serve mai ricalcolare pixel a mano.
+   `tipo` distingue: 'nucleo' (origine del braccio), 'nebulosa' (testo
+   perduto/frammentario, reso come alone sfumato), altrimenti stella normale.
+   ══════════════════════════════════════════════════════════════════════ */
 const COSTELLAZIONI=[
   {
-    id:'antichita', badge:'antichita',
-    label:'Antichità', nome:'Le origini del logos',
-    // Forma: grande V aperta con ramo centrale — evoca un compasso antico
+    id:'ursa_maior', badge:'ursa_maior', angolo:0,
+    label:'Ursa Maior', nome:'Il viaggio dell\'eroe',
+    tema:'Esplorazione, ritorno, ossessione e la ricerca del limite umano.',
     stars:[
-      {id:'odissea',   t:"L'Odissea",              a:'Omero',              url:'https://opac.provincia.brescia.it/opac/search?q=odissea+omero',      x:40,  y:110},
-      {id:'iliade',    t:"L'Iliade",               a:'Omero',              url:'https://opac.provincia.brescia.it/opac/search?q=iliade+omero',       x:100, y:65},
-      {id:'eneide',    t:"L'Eneide",               a:'Virgilio',           url:'https://opac.provincia.brescia.it/opac/search?q=eneide+virgilio',     x:160, y:30},
-      {id:'simposio',  t:'Il simposio',             a:'Platone',            url:'https://opac.provincia.brescia.it/opac/search?q=simposio+platone',   x:220, y:18},
-      {id:'poetica',   t:'Poetica',                a:'Aristotele',         url:'https://opac.provincia.brescia.it/opac/search?q=poetica+aristotele', x:280, y:30},
-      {id:'storie',    t:'Storie',                 a:'Erodoto',            url:'https://opac.provincia.brescia.it/opac/search?q=storie+erodoto',     x:340, y:65},
-      {id:'edipo',     t:'Edipo re',               a:'Sofocle',            url:'https://opac.provincia.brescia.it/opac/search?q=edipo+re+sofocle',   x:400, y:110},
-      {id:'repubbl',   t:'La Repubblica',           a:'Platone',            url:'https://opac.provincia.brescia.it/opac/search?q=repubblica+platone', x:220, y:55},
-      {id:'ars',       t:'Ars amatoria',            a:'Ovidio',             url:'https://opac.provincia.brescia.it/opac/search?q=ars+amatoria+ovidio',x:155, y:90},
-      {id:'georgiche', t:'Georgiche',              a:'Virgilio',            url:'https://opac.provincia.brescia.it/opac/search?q=georgiche+virgilio', x:285, y:90},
+      {id:'gilgamesh',      step:0, tipo:'nucleo',   t:'Epopea di Gilgameš',      a:'Anonimo',                url:'https://opac.provincia.brescia.it/opac/search?q=epopea+gilgamesh'},
+      {id:'odissea_um',     step:1,                  t:"L'Odissea",               a:'Omero',                  url:'https://opac.provincia.brescia.it/opac/search?q=odissea+omero'},
+      {id:'eneide_um',      step:2,                  t:"L'Eneide",                a:'Virgilio',                url:'https://opac.provincia.brescia.it/opac/search?q=eneide+virgilio'},
+      {id:'storia_vera',    step:3, tipo:'nebulosa', t:'La storia vera',          a:'Luciano di Samosata',    url:'https://opac.provincia.brescia.it/opac/search?q=storia+vera+luciano+samosata'},
+      {id:'commedia_um',    step:4,                  t:'La Divina Commedia',      a:'Dante Alighieri',        url:'https://opac.provincia.brescia.it/opac/search?q=divina+commedia'},
+      {id:'milione',        step:5,                  t:'Il Milione',              a:'Marco Polo',              url:'https://opac.provincia.brescia.it/opac/search?q=milione+marco+polo'},
+      {id:'gulliver_um',    step:6,                  t:'I viaggi di Gulliver',    a:'Jonathan Swift',         url:'https://opac.provincia.brescia.it/opac/search?q=gulliver+swift'},
+      {id:'mobydick',       step:7,                  t:'Moby Dick',               a:'Herman Melville',        url:'https://opac.provincia.brescia.it/opac/search?q=moby+dick'},
+      {id:'cuore_tenebra',  step:8,                  t:'Cuore di tenebra',        a:'Joseph Conrad',          url:'https://opac.provincia.brescia.it/opac/search?q=cuore+tenebra+conrad'},
+      {id:'citta_invisibili',step:9,                 t:'Le città invisibili',     a:'Italo Calvino',          url:'https://opac.provincia.brescia.it/opac/search?q=citta+invisibili+calvino'},
     ],
-    links:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[3,7],[7,8],[7,9],[1,8],[5,9]],
   },
   {
-    id:'medioevo', badge:'medioevo',
-    label:'Medioevo', nome:'Luce nel buio del tempo',
-    // Forma: croce gotica con bracci allungati
+    id:'phoenix', badge:'phoenix', angolo:60,
+    label:'Phoenix', nome:'La tragedia e la rinascita',
+    tema:'Il conflitto dell\'individuo contro il fato, le passioni distruttive e la catarsi.',
     stars:[
-      {id:'commedia',  t:'La Divina Commedia',      a:'Dante Alighieri',   url:'https://opac.provincia.brescia.it/opac/search?q=divina+commedia',       x:220, y:18},
-      {id:'decameron', t:'Decameron',               a:'Giovanni Boccaccio',url:'https://opac.provincia.brescia.it/opac/search?q=decameron+boccaccio',   x:220, y:55},
-      {id:'canzoniere',t:'Canzoniere',              a:'Francesco Petrarca',url:'https://opac.provincia.brescia.it/opac/search?q=canzoniere+petrarca',   x:220, y:90},
-      {id:'beowulf',   t:'Beowulf',                 a:'Anonimo',           url:'https://opac.provincia.brescia.it/opac/search?q=beowulf',               x:220, y:122},
-      {id:'nibelungi', t:'Canto dei Nibelunghi',    a:'Anonimo',           url:'https://opac.provincia.brescia.it/opac/search?q=nibelunghi',            x:40,  y:55},
-      {id:'trovatori', t:'I trovatori',             a:'Vari autori',       url:'https://opac.provincia.brescia.it/opac/search?q=trovatori+poesia',      x:110, y:55},
-      {id:'rolandot',  t:'Chanson de Roland',       a:'Anonimo',           url:'https://opac.provincia.brescia.it/opac/search?q=chanson+de+roland',     x:330, y:55},
-      {id:'milione',   t:'Il Milione',              a:'Marco Polo',        url:'https://opac.provincia.brescia.it/opac/search?q=milione+marco+polo',    x:400, y:55},
-      {id:'volgari',   t:'De vulgari eloquentia',   a:'Dante Alighieri',   url:'https://opac.provincia.brescia.it/opac/search?q=vulgari+eloquentia',    x:130, y:20},
-      {id:'arabici',   t:'Le mille e una notte',    a:'Anonimi',           url:'https://opac.provincia.brescia.it/opac/search?q=mille+e+una+notte',     x:310, y:20},
+      {id:'edipo_ph',       step:0, tipo:'nucleo',   t:'Edipo re',                a:'Sofocle',                url:'https://opac.provincia.brescia.it/opac/search?q=edipo+re+sofocle'},
+      {id:'medea',          step:1,                  t:'Medea',                   a:'Euripide',                url:'https://opac.provincia.brescia.it/opac/search?q=medea+euripide'},
+      {id:'fedra_seneca',   step:2,                  t:'Fedra',                   a:'Seneca',                  url:'https://opac.provincia.brescia.it/opac/search?q=fedra+seneca'},
+      {id:'amleto',         step:3,                  t:'Amleto',                  a:'William Shakespeare',    url:'https://opac.provincia.brescia.it/opac/search?q=amleto+shakespeare'},
+      {id:'fedra_racine',   step:4,                  t:'Fedra',                   a:'Jean Racine',             url:'https://opac.provincia.brescia.it/opac/search?q=fedra+racine'},
+      {id:'faust',          step:5,                  t:'Faust',                   a:'Johann Wolfgang von Goethe',url:'https://opac.provincia.brescia.it/opac/search?q=faust+goethe'},
+      {id:'karamazov',      step:6,                  t:'I fratelli Karamazov',    a:'Fëdor Dostoevskij',      url:'https://opac.provincia.brescia.it/opac/search?q=fratelli+karamazov'},
+      {id:'discorso_amoroso',step:7, tipo:'nebulosa',t:'Frammenti di un discorso amoroso',a:'Roland Barthes',url:'https://opac.provincia.brescia.it/opac/search?q=frammenti+discorso+amoroso+barthes'},
+      {id:'spettri',        step:8,                  t:'Spettri',                 a:'Henrik Ibsen',            url:'https://opac.provincia.brescia.it/opac/search?q=spettri+ibsen'},
+      {id:'godot',          step:9,                  t:'Aspettando Godot',        a:'Samuel Beckett',         url:'https://opac.provincia.brescia.it/opac/search?q=aspettando+godot'},
     ],
-    links:[[0,1],[1,2],[2,3],[4,5],[5,1],[1,6],[6,7],[0,8],[0,9],[8,5],[9,6],[5,2],[2,6]],
   },
   {
-    id:'rinascimento', badge:'rinascimento',
-    label:'Rinascimento', nome:'L\'uomo al centro del mondo',
-    // Forma: spirale/diamante espanso — evoca il compasso di Leonardo
+    id:'cygnus', badge:'cygnus', angolo:120,
+    label:'Cygnus', nome:'La lirica e il sentimento',
+    tema:'Introspezione, canto, l\'evoluzione dell\'Io e le dinamiche amorose.',
     stars:[
-      {id:'principe',  t:'Il Principe',             a:'Niccolò Machiavelli',url:'https://opac.provincia.brescia.it/opac/search?q=principe+machiavelli',x:220, y:18},
-      {id:'furioso',   t:'Orlando Furioso',          a:'Ludovico Ariosto',  url:'https://opac.provincia.brescia.it/opac/search?q=orlando+furioso',      x:370, y:55},
-      {id:'utopia',    t:'Utopia',                  a:'Thomas More',       url:'https://opac.provincia.brescia.it/opac/search?q=utopia+more',           x:370, y:100},
-      {id:'essais',    t:'Saggi',                   a:'Michel de Montaigne',url:'https://opac.provincia.brescia.it/opac/search?q=saggi+montaigne',      x:220, y:125},
-      {id:'erasm',     t:'Elogio della pazzia',     a:'Erasmo da Rotterdam',url:'https://opac.provincia.brescia.it/opac/search?q=elogio+pazzia+erasmo', x:70,  y:100},
-      {id:'liberlibr', t:'Il Cortegiano',           a:'Baldassarre Castiglione',url:'https://opac.provincia.brescia.it/opac/search?q=cortegiano+castiglione',x:70,y:55},
-      {id:'gerusalem', t:'Gerusalemme liberata',    a:'Torquato Tasso',    url:'https://opac.provincia.brescia.it/opac/search?q=gerusalemme+liberata', x:310, y:18},
-      {id:'gargantua', t:'Gargantua e Pantagruele', a:'François Rabelais', url:'https://opac.provincia.brescia.it/opac/search?q=gargantua+rabelais',   x:130, y:18},
-      {id:'decam2',    t:'Hypnerotomachia Poliphili',a:'Francesco Colonna', url:'https://opac.provincia.brescia.it/opac/search?q=poliphili',             x:130, y:125},
-      {id:'vita',      t:'Vita',                    a:'Benvenuto Cellini', url:'https://opac.provincia.brescia.it/opac/search?q=vita+cellini',           x:310, y:125},
+      {id:'saffo',          step:0, tipo:'nucleo nebulosa', t:'Frammenti',        a:'Saffo',                   url:'https://opac.provincia.brescia.it/opac/search?q=saffo+frammenti'},
+      {id:'catullo',        step:1,                  t:'Il canzoniere',           a:'Catullo',                 url:'https://opac.provincia.brescia.it/opac/search?q=canzoniere+catullo'},
+      {id:'canzoniere_cyg', step:2,                  t:'Canzoniere',              a:'Francesco Petrarca',     url:'https://opac.provincia.brescia.it/opac/search?q=canzoniere+petrarca'},
+      {id:'sonetti',        step:3,                  t:'I sonetti',               a:'William Shakespeare',    url:'https://opac.provincia.brescia.it/opac/search?q=sonetti+shakespeare'},
+      {id:'canti_leopardi', step:4,                  t:'Canti',                   a:'Giacomo Leopardi',       url:'https://opac.provincia.brescia.it/opac/search?q=canti+leopardi'},
+      {id:'fiori_male',     step:5,                  t:'I fiori del male',        a:'Charles Baudelaire',     url:'https://opac.provincia.brescia.it/opac/search?q=fiori+del+male+baudelaire'},
+      {id:'foglie_erba',    step:6,                  t:"Foglie d'erba",           a:'Walt Whitman',            url:'https://opac.provincia.brescia.it/opac/search?q=foglie+erba+whitman'},
+      {id:'terra_desolata', step:7,                  t:'La terra desolata',       a:'T.S. Eliot',              url:'https://opac.provincia.brescia.it/opac/search?q=terra+desolata+eliot'},
+      {id:'vita_nova',      step:8,                  t:'Vita nova',               a:'Dante Alighieri',        url:'https://opac.provincia.brescia.it/opac/search?q=vita+nova+dante'},
+      {id:'ossi_seppia',    step:9,                  t:'Ossi di seppia',          a:'Eugenio Montale',        url:'https://opac.provincia.brescia.it/opac/search?q=ossi+seppia+montale'},
+      {id:'neruda',         step:10,                 t:'Venti poesie d\'amore e una canzone disperata',a:'Pablo Neruda',url:'https://opac.provincia.brescia.it/opac/search?q=venti+poesie+amore+neruda'},
     ],
-    links:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[0,6],[0,7],[3,8],[3,9],[6,1],[7,5],[8,4],[9,2],[5,4],[1,6]],
   },
   {
-    id:'seicento', badge:'seicento',
-    label:'Seicento–Settecento', nome:'La ragione illumina il cielo',
-    // Forma: zig-zag a onde — evoca il grafico di una funzione, la razionalità
+    id:'pegasus', badge:'pegasus', angolo:180,
+    label:'Pegasus', nome:'L\'utopia e l\'immaginario',
+    tema:'Mondi alternativi, satira filosofica, sogni e la nascita del fantastico.',
     stars:[
-      {id:'amleto',    t:'Amleto',                  a:'William Shakespeare',url:'https://opac.provincia.brescia.it/opac/search?q=amleto+shakespeare',  x:35,  y:35},
-      {id:'macbeth',   t:'Macbeth',                 a:'William Shakespeare',url:'https://opac.provincia.brescia.it/opac/search?q=macbeth+shakespeare', x:90,  y:100},
-      {id:'paradiso',  t:'Paradiso perduto',         a:'John Milton',       url:'https://opac.provincia.brescia.it/opac/search?q=paradiso+perduto',    x:150, y:30},
-      {id:'candide',   t:'Candido',                 a:'Voltaire',           url:'https://opac.provincia.brescia.it/opac/search?q=candido+voltaire',    x:210, y:105},
-      {id:'gulliver',  t:'I viaggi di Gulliver',    a:'Jonathan Swift',     url:'https://opac.provincia.brescia.it/opac/search?q=gulliver+swift',      x:265, y:28},
-      {id:'donchi',    t:'Don Chisciotte',           a:'Miguel de Cervantes',url:'https://opac.provincia.brescia.it/opac/search?q=don+chisciotte',     x:320, y:105},
-      {id:'robinson',  t:'Robinson Crusoe',          a:'Daniel Defoe',      url:'https://opac.provincia.brescia.it/opac/search?q=robinson+crusoe',     x:375, y:30},
-      {id:'faust1',    t:'Pensieri',                 a:'Blaise Pascal',     url:'https://opac.provincia.brescia.it/opac/search?q=pensieri+pascal',     x:405, y:100},
-      {id:'discorso',  t:'Discorso sul metodo',      a:'René Descartes',    url:'https://opac.provincia.brescia.it/opac/search?q=discorso+metodo+descartes',x:35,y:105},
-      {id:'leviat',    t:'Leviatano',                a:'Thomas Hobbes',     url:'https://opac.provincia.brescia.it/opac/search?q=leviatano+hobbes',    x:150, y:115},
+      {id:'repubblica_peg', step:0, tipo:'nucleo',   t:'La Repubblica',           a:'Platone',                url:'https://opac.provincia.brescia.it/opac/search?q=repubblica+platone'},
+      {id:'metamorfosi_ov', step:1,                  t:'Le metamorfosi',          a:'Ovidio',                  url:'https://opac.provincia.brescia.it/opac/search?q=metamorfosi+ovidio'},
+      {id:'utopia',         step:2,                  t:'Utopia',                  a:'Thomas More',             url:'https://opac.provincia.brescia.it/opac/search?q=utopia+more'},
+      {id:'citta_sole',     step:3,                  t:'La città del Sole',       a:'Tommaso Campanella',     url:'https://opac.provincia.brescia.it/opac/search?q=citta+del+sole+campanella'},
+      {id:'orlando_furioso',step:4,                  t:'Orlando furioso',         a:'Ludovico Ariosto',       url:'https://opac.provincia.brescia.it/opac/search?q=orlando+furioso'},
+      {id:'frankenstein',   step:5,                  t:'Frankenstein',            a:'Mary Shelley',            url:'https://opac.provincia.brescia.it/opac/search?q=frankenstein+shelley'},
+      {id:'alice',          step:6,                  t:'Alice nel Paese delle Meraviglie',a:'Lewis Carroll',  url:'https://opac.provincia.brescia.it/opac/search?q=alice+paese+meraviglie'},
+      {id:'serafini',       step:7, tipo:'nebulosa', t:'Codice di Serafini',      a:'Luigi Serafini',         url:'https://opac.provincia.brescia.it/opac/search?q=codice+serafini'},
+      {id:'1984_peg',       step:8,                  t:'1984',                    a:'George Orwell',          url:'https://opac.provincia.brescia.it/opac/search?q=1984+orwell'},
+      {id:'finzioni',       step:9,                  t:'Finzioni',                a:'Jorge Luis Borges',      url:'https://opac.provincia.brescia.it/opac/search?q=finzioni+borges'},
     ],
-    links:[[8,0],[0,2],[2,4],[4,6],[6,7],[1,3],[3,5],[5,7],[0,1],[2,3],[4,5],[8,9],[9,3]],
   },
   {
-    id:'ottocento', badge:'ottocento',
-    label:'Ottocento', nome:'Il romanzo del cuore',
-    // Forma: costellazione ad aquila (W asimmetrica con code)
+    id:'orion', badge:'orion', angolo:240,
+    label:'Orion', nome:'Il pensiero e la visione',
+    tema:'I testi filosofici, le confessioni e le opere che hanno ridefinito la coscienza umana.',
     stars:[
-      {id:'crimedelit', t:'Delitto e castigo',      a:'Fëdor Dostoevskij', url:'https://opac.provincia.brescia.it/opac/search?q=delitto+castigo',     x:40,  y:115},
-      {id:'guerrpace',  t:'Guerra e pace',           a:'Lev Tolstoj',       url:'https://opac.provincia.brescia.it/opac/search?q=guerra+pace+tolstoj', x:120, y:50},
-      {id:'miserabili', t:'I miserabili',            a:'Victor Hugo',       url:'https://opac.provincia.brescia.it/opac/search?q=miserabili+hugo',     x:180, y:115},
-      {id:'orgoglio',   t:'Orgoglio e pregiudizio', a:'Jane Austen',        url:'https://opac.provincia.brescia.it/opac/search?q=orgoglio+pregiudizio',x:220, y:22},
-      {id:'mobydi',     t:'Moby Dick',              a:'Herman Melville',    url:'https://opac.provincia.brescia.it/opac/search?q=moby+dick',            x:260, y:115},
-      {id:'rosso',      t:'Il rosso e il nero',     a:'Stendhal',          url:'https://opac.provincia.brescia.it/opac/search?q=rosso+nero+stendhal',  x:320, y:50},
-      {id:'bobovary',   t:'Madame Bovary',           a:'Gustave Flaubert',  url:'https://opac.provincia.brescia.it/opac/search?q=madame+bovary',       x:400, y:115},
-      {id:'dorian',     t:'Il ritratto di Dorian Gray',a:'Oscar Wilde',     url:'https://opac.provincia.brescia.it/opac/search?q=ritratto+dorian+gray',x:400, y:35},
-      {id:'karamaz',    t:'I fratelli Karamazov',    a:'Fëdor Dostoevskij', url:'https://opac.provincia.brescia.it/opac/search?q=fratelli+karamazov',  x:80,  y:25},
-      {id:'brontewuth', t:'Cime tempestose',         a:'Emily Brontë',      url:'https://opac.provincia.brescia.it/opac/search?q=cime+tempestose',     x:340, y:115},
+      {id:'apologia_socrate',step:0, tipo:'nucleo',  t:'Dialoghi. Apologia di Socrate',a:'Platone',            url:'https://opac.provincia.brescia.it/opac/search?q=apologia+socrate+platone'},
+      {id:'lettere_lucilio', step:1,                 t:'Lettere a Lucilio',       a:'Seneca',                  url:'https://opac.provincia.brescia.it/opac/search?q=lettere+lucilio+seneca'},
+      {id:'colloqui_ma',     step:2,                 t:'Colloqui con se stesso',  a:'Marco Aurelio',          url:'https://opac.provincia.brescia.it/opac/search?q=colloqui+marco+aurelio'},
+      {id:'confessioni',     step:3,                 t:'Confessioni',             a:'Sant\'Agostino',         url:'https://opac.provincia.brescia.it/opac/search?q=confessioni+agostino'},
+      {id:'principe_or',     step:4,                 t:'Il Principe',             a:'Niccolò Machiavelli',    url:'https://opac.provincia.brescia.it/opac/search?q=principe+machiavelli'},
+      {id:'saggi_montaigne', step:5,                 t:'Saggi',                   a:'Michel de Montaigne',    url:'https://opac.provincia.brescia.it/opac/search?q=saggi+montaigne'},
+      {id:'zarathustra',     step:6,                 t:'Così parlò Zarathustra',  a:'Friedrich Nietzsche',    url:'https://opac.provincia.brescia.it/opac/search?q=zarathustra+nietzsche'},
+      {id:'eraclito',        step:7, tipo:'nebulosa',t:'Frammenti',               a:'Eraclito',                url:'https://opac.provincia.brescia.it/opac/search?q=eraclito+frammenti'},
+      {id:'interpretazione_sogni',step:8,            t:'L\'interpretazione dei sogni',a:'Sigmund Freud',       url:'https://opac.provincia.brescia.it/opac/search?q=interpretazione+sogni+freud'},
+      {id:'mito_sisifo',     step:9,                 t:'Il mito di Sisifo',       a:'Albert Camus',           url:'https://opac.provincia.brescia.it/opac/search?q=mito+sisifo+camus'},
     ],
-    links:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[1,3],[3,5],[0,8],[8,1],[6,9],[9,5],[5,7],[7,6]],
   },
   {
-    id:'novecento', badge:'novecento',
-    label:'Novecento', nome:'Il frammento e l\'eterno',
-    // Forma: frammento irregolare — triangoli intrecciati, modernismo
+    id:'andromeda', badge:'andromeda', angolo:300,
+    label:'Andromeda', nome:'La condizione umana',
+    tema:'La nascita e la scomposizione del romanzo, l\'individuo nella società, la solitudine.',
     stars:[
-      {id:'kafka',      t:'La metamorfosi',          a:'Franz Kafka',       url:'https://opac.provincia.brescia.it/opac/search?q=metamorfosi+kafka',   x:110, y:22},
-      {id:'1984',       t:'1984',                    a:'George Orwell',     url:'https://opac.provincia.brescia.it/opac/search?q=1984+orwell',         x:330, y:22},
-      {id:'centanni',   t:"Cent'anni di solitudine", a:'Gabriel García Márquez',url:'https://opac.provincia.brescia.it/opac/search?q=cento+anni+solitudine',x:55,y:90},
-      {id:'ulisse',     t:'Ulisse',                  a:'James Joyce',       url:'https://opac.provincia.brescia.it/opac/search?q=ulisse+joyce',         x:220, y:55},
-      {id:'montagna',   t:'La montagna magica',      a:'Thomas Mann',       url:'https://opac.provincia.brescia.it/opac/search?q=montagna+magica',     x:385, y:90},
-      {id:'proustric',  t:'Alla ricerca del tempo perduto',a:'Marcel Proust',url:'https://opac.provincia.brescia.it/opac/search?q=ricerca+tempo+perduto',x:165,y:115},
-      {id:'woolf',      t:'Gita al faro',            a:'Virginia Woolf',   url:'https://opac.provincia.brescia.it/opac/search?q=gita+faro+woolf',      x:275, y:115},
-      {id:'straniero',  t:'Lo straniero',            a:'Albert Camus',     url:'https://opac.provincia.brescia.it/opac/search?q=straniero+camus',      x:220, y:22},
-      {id:'siddharta',  t:'Siddharta',               a:'Hermann Hesse',    url:'https://opac.provincia.brescia.it/opac/search?q=siddharta+hesse',      x:40,  y:35},
-      {id:'buio',       t:'Cuore di tenebra',        a:'Joseph Conrad',    url:'https://opac.provincia.brescia.it/opac/search?q=cuore+tenebra+conrad', x:400, y:35},
+      {id:'satyricon',      step:0, tipo:'nucleo',   t:'Satyricon',               a:'Petronio',                url:'https://opac.provincia.brescia.it/opac/search?q=satyricon+petronio'},
+      {id:'asino_oro',      step:1,                  t:"L'asino d'oro",           a:'Apuleio',                 url:'https://opac.provincia.brescia.it/opac/search?q=asino+oro+apuleio'},
+      {id:'don_chisciotte', step:2,                  t:'Don Chisciotte della Mancia',a:'Miguel de Cervantes',  url:'https://opac.provincia.brescia.it/opac/search?q=don+chisciotte'},
+      {id:'promessi_sposi', step:3,                  t:'I promessi sposi',        a:'Alessandro Manzoni',     url:'https://opac.provincia.brescia.it/opac/search?q=promessi+sposi'},
+      {id:'bovary',         step:4,                  t:'Madame Bovary',           a:'Gustave Flaubert',       url:'https://opac.provincia.brescia.it/opac/search?q=madame+bovary'},
+      {id:'ricerca_tempo',  step:5,                  t:'Alla ricerca del tempo perduto',a:'Marcel Proust',    url:'https://opac.provincia.brescia.it/opac/search?q=ricerca+tempo+perduto'},
+      {id:'ulisse_and',     step:6,                  t:'Ulisse',                  a:'James Joyce',             url:'https://opac.provincia.brescia.it/opac/search?q=ulisse+joyce'},
+      {id:'processo',       step:7,                  t:'Il processo',             a:'Franz Kafka',             url:'https://opac.provincia.brescia.it/opac/search?q=processo+kafka'},
+      {id:'coscienza_zeno', step:8,                  t:'La coscienza di Zeno',    a:'Italo Svevo',             url:'https://opac.provincia.brescia.it/opac/search?q=coscienza+zeno+svevo'},
+      {id:'mattia_pascal',  step:9,                  t:'Il fu Mattia Pascal',     a:'Luigi Pirandello',       url:'https://opac.provincia.brescia.it/opac/search?q=fu+mattia+pascal'},
+      {id:'cent_anni',      step:10,                 t:"Cent'anni di solitudine", a:'Gabriel García Márquez', url:'https://opac.provincia.brescia.it/opac/search?q=cento+anni+solitudine'},
     ],
-    links:[[8,0],[0,7],[7,1],[1,9],[0,3],[3,1],[3,5],[3,6],[2,5],[6,4],[2,3],[3,4],[5,6],[8,2],[9,4]],
   },
+];
+
+/* "Stelle Doppie": coppie di opere — anche di bracci diversi — che dialogano
+   tra loro. Disegnate come collegamento dorato extra sulla mappa. Per
+   aggiungerne una basta una riga qui: [id1, id2]. */
+const DOPPIE_STELLARI=[
+  ['amleto','don_chisciotte'],
+  ['orlando_furioso','don_chisciotte'],
+  ['vita_nova','ossi_seppia'],
+  ['coscienza_zeno','mattia_pascal'],
 ];
 
 /* Stato letti costellazioni: ora solo automatico, basato su G.lettiData */
@@ -2646,102 +2696,238 @@ function stellaPath(cx,cy,r){
   return `M${pts.join('L')}Z`;
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   GENERATORE DI POSIZIONI A SPIRALE (spirale archimedea)
+   Prende un braccio (angolo di partenza) e uno step logico, restituisce
+   coordinate x,y nel piano della galassia. Nessuna coordinata è mai
+   salvata a mano: cambiando `step` nei dati, la mappa si ridisegna da sé.
+   Un piccolo jitter deterministico (basato sull'id, non casuale ad ogni
+   render) rompe la regolarità meccanica senza perdere riproducibilità.
+   ══════════════════════════════════════════════════════════════════════ */
+const GAL_CX=450, GAL_CY=450;      // centro della galassia (viewBox 900×900)
+const GAL_R_MIN=34;                 // raggio del nucleo (step 0)
+const GAL_R_STEP=37;                // incremento di raggio per ogni step
+const GAL_THETA_STEP=24;            // gradi di curvatura per ogni step (dà la forma a spirale)
+const GAL_ARM_SPAN=50;              // ampiezza angolare "di sicurezza" riservata a ogni braccio
+
+function _hashSeed(id){
+  let h=0;for(let i=0;i<id.length;i++)h=(h*31+id.charCodeAt(i))>>>0;
+  return h;
+}
+function posizioneGalassia(angoloBraccioDeg,step,starId){
+  const seed=_hashSeed(starId);
+  const jitterR=((seed%17)-8)*0.9;                 // ±~7px
+  const jitterTheta=(((seed>>4)%13)-6)*0.6;         // ±~3.6°
+  const r=GAL_R_MIN+step*GAL_R_STEP+jitterR;
+  const thetaDeg=angoloBraccioDeg+step*GAL_THETA_STEP*(GAL_ARM_SPAN/60)+jitterTheta;
+  const theta=thetaDeg*Math.PI/180;
+  return{
+    x:+(GAL_CX+r*Math.cos(theta)).toFixed(2),
+    y:+(GAL_CY+r*Math.sin(theta)).toFixed(2),
+    r,
+  };
+}
+
+/* Posizione "pulita" sulla curva della spirale, senza jitter — usata per le
+   etichette dei bracci: devono seguire esattamente la traiettoria del
+   braccio, non la dispersione organica delle singole stelle. */
+function posizioneGalassiaEsatta(angoloBraccioDeg,step){
+  const r=GAL_R_MIN+step*GAL_R_STEP;
+  const thetaDeg=angoloBraccioDeg+step*GAL_THETA_STEP*(GAL_ARM_SPAN/60);
+  const theta=thetaDeg*Math.PI/180;
+  return{x:+(GAL_CX+r*Math.cos(theta)).toFixed(2), y:+(GAL_CY+r*Math.sin(theta)).toFixed(2)};
+}
+
+/* Calcola e mette in cache le posizioni di tutte le stelle della galassia */
+function calcolaPosizioniGalassia(){
+  const pos={};
+  COSTELLAZIONI.forEach(braccio=>{
+    braccio.stars.forEach(star=>{
+      pos[star.id]={...posizioneGalassia(braccio.angolo,star.step,star.id),braccio:braccio.id};
+    });
+  });
+  return pos;
+}
+
+/* Stato di "focus": quando un braccio è selezionato (click su etichetta o
+   riga del riepilogo), il resto della galassia si attenua per chiarezza. */
+let _bracciFocus=null;
+function toggleFocusBraccio(id){
+  _bracciFocus=(_bracciFocus===id)?null:id;
+  applyFocusBraccio();
+}
+function applyFocusBraccio(){
+  const svg=document.getElementById('svg-galassia');
+  if(svg)svg.querySelectorAll('[data-braccio]').forEach(el=>{
+    el.style.opacity=!_bracciFocus?'':(el.dataset.braccio===_bracciFocus?'1':'.15');
+  });
+  document.querySelectorAll('.cost-arm-label').forEach(t=>t.classList.toggle('active',t.dataset.braccio===_bracciFocus));
+  document.querySelectorAll('.arm-row').forEach(r=>r.classList.toggle('active',r.dataset.braccio===_bracciFocus));
+}
+
 function renderCostellazioni(){
   const cont=document.getElementById('cost-container');if(!cont)return;
   const litAuto=getAutoLitStars();
   const lit=litAuto;
+  const pos=calcolaPosizioniGalassia();
   cont.innerHTML='';
-  COSTELLAZIONI.forEach(ep=>{
-    const litCount=ep.stars.filter(s=>lit.has(s.id)).length;
-    const total=ep.stars.length;
-    const completed=litCount===total;
-    const pct=Math.round(litCount/total*100);
+  _bracciFocus=null;
 
-    const wrap=document.createElement('div');
-    wrap.className='cost-epoca';
-    wrap.innerHTML=`
-      <div class="cost-label">${ep.label}</div>
-      <div class="cost-nome">${ep.nome}</div>
-      <div class="cost-badge-hint">🏅 Badge: ${TUTTI_BADGE.find(b=>b.id===ep.badge)?.nome}</div>
-      <div class="cost-wrap" id="cw-${ep.id}">
-        <svg viewBox="0 0 440 140" xmlns="http://www.w3.org/2000/svg" id="svg-${ep.id}"></svg>
-      </div>
-      <div class="cost-stato">
-        <div class="cost-prog"><div class="cost-prog-inner" style="width:${pct}%"></div></div>
-        <div class="cost-prog-txt">${litCount}/${total}</div>
-      </div>
-      <div class="cost-info" id="ci-${ep.id}"></div>
-      ${completed?`<div class="cost-badge-earned">${TUTTI_BADGE.find(b=>b.id===ep.badge)?.ico} ${TUTTI_BADGE.find(b=>b.id===ep.badge)?.nome}</div>`:''}
-    `;
-    cont.appendChild(wrap);
+  // ── Struttura: una mappa unica + pannello info condiviso + riepilogo bracci ──
+  const mapWrap=document.createElement('div');
+  mapWrap.className='cost-wrap';
+  mapWrap.innerHTML=`<svg viewBox="0 0 900 900" xmlns="http://www.w3.org/2000/svg" id="svg-galassia"></svg>`;
+  cont.appendChild(mapWrap);
 
-    const svg=wrap.querySelector(`#svg-${ep.id}`);
+  const infoBox=document.createElement('div');
+  infoBox.className='cost-info';
+  infoBox.id='ci-galassia';
+  cont.appendChild(infoBox);
 
-    // Micro-stelle di sfondo (decorative)
-    const bgSeed=ep.id.length;
-    for(let i=0;i<22;i++){
-      const bx=((i*37+bgSeed*13)%440);
-      const by=((i*23+bgSeed*7)%90);
-      const r=(i%3===0)?1.3:0.7;
-      const dur=2+((i*7)%4);
-      const del=((i*3)%5)*0.4;
-      const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
-      c.setAttribute('cx',bx);c.setAttribute('cy',by);c.setAttribute('r',r);
-      c.setAttribute('class','cost-bg-star');
-      c.style.setProperty('--dur',`${dur}s`);
-      c.style.setProperty('--del',`${del}s`);
-      svg.appendChild(c);
-    }
+  const summary=document.createElement('div');
+  summary.className='arm-summary';
+  cont.appendChild(summary);
 
-    // Disegna link
-    ep.links.forEach(([ai,bi])=>{
-      const a=ep.stars[ai],b=ep.stars[bi];
+  const svg=document.getElementById('svg-galassia');
+
+  // Micro-stelle di sfondo decorative sparse su tutta la galassia (sempre visibili, non fanno parte di un braccio)
+  for(let i=0;i<90;i++){
+    const bx=(i*53.7)%900, by=(i*37.3+i*i*.6)%900;
+    const r=(i%4===0)?1.4:0.7;
+    const dur=2+((i*7)%4), del=((i*3)%5)*0.4;
+    const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx',bx.toFixed(1));c.setAttribute('cy',by.toFixed(1));c.setAttribute('r',r);
+    c.setAttribute('class','cost-bg-star');
+    c.style.setProperty('--dur',`${dur}s`);c.style.setProperty('--del',`${del}s`);
+    svg.appendChild(c);
+  }
+  // Alone del nucleo comune
+  const coreGlow=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  coreGlow.setAttribute('cx',GAL_CX);coreGlow.setAttribute('cy',GAL_CY);coreGlow.setAttribute('r',60);
+  coreGlow.setAttribute('class','cost-core-glow');
+  svg.appendChild(coreGlow);
+
+  COSTELLAZIONI.forEach(braccio=>{
+    // Spina dorsale: collega gli step consecutivi dello stesso braccio
+    for(let i=0;i<braccio.stars.length-1;i++){
+      const a=braccio.stars[i],b=braccio.stars[i+1];
+      const pa=pos[a.id],pb=pos[b.id];
       const bothLit=lit.has(a.id)&&lit.has(b.id);
       const line=document.createElementNS('http://www.w3.org/2000/svg','line');
-      line.setAttribute('x1',a.x);line.setAttribute('y1',a.y);
-      line.setAttribute('x2',b.x);line.setAttribute('y2',b.y);
-      line.className.baseVal=`cost-link${bothLit?' lit':''}`;
-      line.dataset.a=a.id;line.dataset.b=b.id;
+      line.setAttribute('x1',pa.x);line.setAttribute('y1',pa.y);
+      line.setAttribute('x2',pb.x);line.setAttribute('y2',pb.y);
+      line.setAttribute('class',`cost-link${bothLit?' lit':''}`);
+      line.dataset.braccio=braccio.id;
       svg.appendChild(line);
-    });
+    }
+    // Etichetta del braccio: subito dopo l'ultima stella, sulla stessa curva (nessun jitter)
+    const ultimo=braccio.stars[braccio.stars.length-1];
+    const labelPos=posizioneGalassiaEsatta(braccio.angolo,ultimo.step+0.55);
+    const txt=document.createElementNS('http://www.w3.org/2000/svg','text');
+    txt.setAttribute('x',labelPos.x);txt.setAttribute('y',labelPos.y);
+    txt.setAttribute('class','cost-arm-label');
+    txt.setAttribute('text-anchor','middle');
+    txt.dataset.braccio=braccio.id;
+    txt.textContent=braccio.label;
+    txt.addEventListener('click',()=>{tap('light');toggleFocusBraccio(braccio.id);});
+    svg.appendChild(txt);
+  });
 
-    // Disegna stelle (forma a 5 punte)
-    ep.stars.forEach(star=>{
+  // Collegamenti "stelle doppie" (anche tra bracci diversi) — disegnati dopo le spine dorsali
+  DOPPIE_STELLARI.forEach(([id1,id2])=>{
+    const p1=pos[id1],p2=pos[id2];
+    if(!p1||!p2)return;
+    const bothLit=lit.has(id1)&&lit.has(id2);
+    const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1',p1.x);line.setAttribute('y1',p1.y);
+    line.setAttribute('x2',p2.x);line.setAttribute('y2',p2.y);
+    line.setAttribute('class',`cost-link-doppia${bothLit?' lit':''}`);
+    svg.appendChild(line);
+  });
+
+  // Stelle di ogni braccio (disegnate per ultime, così restano sopra i collegamenti)
+  COSTELLAZIONI.forEach(braccio=>{
+    braccio.stars.forEach(star=>{
+      const p=pos[star.id];
       const isLit=lit.has(star.id);
       const isAuto=litAuto.has(star.id);
-      const g=document.createElementNS('http://www.w3.org/2000/svg','g');
-      g.className.baseVal=`cost-star${isLit?' lit':''}`;
-      g.dataset.id=star.id;
-      if(isAuto)g.dataset.auto='1';
+      const isNebulosa=(star.tipo||'').includes('nebulosa');
+      const isNucleo=(star.tipo||'').includes('nucleo');
 
-      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-      path.setAttribute('d',stellaPath(star.x,star.y,isLit?8:6));
-      path.setAttribute('class','spt');
-      g.appendChild(path);
-
-      // Punto touch più grande (invisibile)
-      const hit=document.createElementNS('http://www.w3.org/2000/svg','circle');
-      hit.setAttribute('cx',star.x);hit.setAttribute('cy',star.y);
-      hit.setAttribute('r',18);hit.setAttribute('class','hit');
-      g.appendChild(hit);
-
-      g.addEventListener('click',()=>clickStar(ep,star,svg,wrap));
-      svg.appendChild(g);
+      if(isNebulosa){
+        const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+        g.setAttribute('class',`cost-nebula${isLit?' lit':''}`);
+        g.dataset.id=star.id;
+        g.dataset.braccio=braccio.id;
+        const glow=document.createElementNS('http://www.w3.org/2000/svg','circle');
+        glow.setAttribute('cx',p.x);glow.setAttribute('cy',p.y);glow.setAttribute('r',isLit?15:11);
+        glow.setAttribute('class','neb-glow');
+        g.appendChild(glow);
+        const core=document.createElementNS('http://www.w3.org/2000/svg','circle');
+        core.setAttribute('cx',p.x);core.setAttribute('cy',p.y);core.setAttribute('r',isLit?4:3);
+        core.setAttribute('class','neb-core');
+        g.appendChild(core);
+        const hit=document.createElementNS('http://www.w3.org/2000/svg','circle');
+        hit.setAttribute('cx',p.x);hit.setAttribute('cy',p.y);hit.setAttribute('r',18);hit.setAttribute('class','hit');
+        g.appendChild(hit);
+        g.addEventListener('click',()=>clickStar(braccio,star));
+        svg.appendChild(g);
+      }else{
+        const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+        g.setAttribute('class',`cost-star${isNucleo?' nucleo':''}${isLit?' lit':''}`);
+        g.dataset.id=star.id;
+        g.dataset.braccio=braccio.id;
+        if(isAuto)g.dataset.auto='1';
+        const raggio=isNucleo?(isLit?11:9):(isLit?8:6);
+        const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+        path.setAttribute('d',stellaPath(p.x,p.y,raggio));
+        path.setAttribute('class','spt');
+        g.appendChild(path);
+        const hit=document.createElementNS('http://www.w3.org/2000/svg','circle');
+        hit.setAttribute('cx',p.x);hit.setAttribute('cy',p.y);hit.setAttribute('r',18);hit.setAttribute('class','hit');
+        g.appendChild(hit);
+        g.addEventListener('click',()=>clickStar(braccio,star));
+        svg.appendChild(g);
+      }
     });
 
-    // Controlla badge costellazione e mostra toast se appena sbloccato
-    if(completed)unlockAndCeremony(ep.badge);
+    // Riepilogo braccio + badge
+    const litCount=braccio.stars.filter(s=>lit.has(s.id)).length;
+    const total=braccio.stars.length;
+    const completed=litCount===total;
+    const row=document.createElement('div');
+    row.className=`arm-row${completed?' done':''}`;
+    row.dataset.braccio=braccio.id;
+    row.innerHTML=`
+      <div class="arm-row-dot"></div>
+      <div class="arm-row-txt">
+        <div class="arm-row-nome">${braccio.label} <span style="font-weight:400;color:#aaa">— ${braccio.nome}</span></div>
+        <div class="arm-row-sub">${braccio.tema}</div>
+      </div>
+      <div class="arm-row-count">${litCount}/${total}</div>
+    `;
+    row.addEventListener('click',()=>{
+      tap('light');
+      toggleFocusBraccio(braccio.id);
+      // mostra anche il nucleo del braccio nel pannello info
+      const nucleo=braccio.stars.find(s=>(s.tipo||'').includes('nucleo'))||braccio.stars[0];
+      mostraInfoStella(braccio,nucleo,litAuto.has(nucleo.id));
+      mapWrap.scrollIntoView({behavior:'smooth',block:'center'});
+    });
+    summary.appendChild(row);
+
+    if(completed)unlockAndCeremony(braccio.badge);
   });
 }
 
-function clickStar(ep,star,svg,wrap){
+function clickStar(braccio,star){
   tap('light');
   const litAuto=getAutoLitStars();
-  mostraInfoStella(ep,star,wrap,litAuto.has(star.id));
+  mostraInfoStella(braccio,star,litAuto.has(star.id));
 }
 
-function mostraInfoStella(ep,star,wrap,isAuto){
-  const infoBox=document.querySelector(`#ci-${ep.id}`);
+function mostraInfoStella(braccio,star,isAuto){
+  const infoBox=document.getElementById('ci-galassia');
   if(!infoBox)return;
   infoBox.className='cost-info on';
   let statoMsg;
@@ -2750,7 +2936,10 @@ function mostraInfoStella(ep,star,wrap,isAuto){
   }else{
     statoMsg='<div style="font-size:.7rem;color:#bbb;margin-top:5px">Non ancora letto</div>';
   }
+  const tipoLabel=(star.tipo||'').includes('nebulosa')?'<div style="font-size:.63rem;color:#9a8fd6;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">✧ Nebulosa — testo perduto o frammentario</div>':'';
   infoBox.innerHTML=`
+    <div style="font-size:.62rem;color:var(--oro);letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-bottom:6px">${braccio.label} · ${braccio.nome}</div>
+    ${tipoLabel}
     <div class="cost-info-t">${star.t}</div>
     <div class="cost-info-a">${star.a}</div>
     <a class="cost-info-url" href="${star.url}" target="_blank" rel="noopener">🔍 Cerca nel catalogo RBBC →</a>
