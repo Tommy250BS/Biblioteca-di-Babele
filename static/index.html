@@ -787,6 +787,12 @@ body.dark .arm-row{background:#121f13}
 .arm-row-sub{font-size:.66rem;color:#aaa}
 .arm-row-count{font-size:.68rem;font-weight:700;color:var(--bosco-2);flex-shrink:0}
 body.dark .arm-row-count{color:var(--oro-2)}
+.arm-row.active{box-shadow:0 0 0 2px var(--oro),var(--sh-m)}
+.arm-row.active .arm-row-dot{background:var(--oro);box-shadow:0 0 6px rgba(200,164,74,.8)}
+.cost-arm-label{cursor:pointer;transition:opacity .35s ease,fill .35s ease}
+.cost-arm-label:hover{fill:rgba(228,196,94,.85)}
+.cost-arm-label.active{fill:var(--oro-2);font-weight:700}
+[data-braccio]{transition:opacity .35s ease}
 /* info card */
 .cost-info{background:#fff;border-radius:0 0 var(--r) var(--r);padding:13px 16px;border-top:1px solid var(--av2);display:none}
 .cost-info.on{display:block;animation:up .2s ease both}
@@ -2722,6 +2728,16 @@ function posizioneGalassia(angoloBraccioDeg,step,starId){
   };
 }
 
+/* Posizione "pulita" sulla curva della spirale, senza jitter — usata per le
+   etichette dei bracci: devono seguire esattamente la traiettoria del
+   braccio, non la dispersione organica delle singole stelle. */
+function posizioneGalassiaEsatta(angoloBraccioDeg,step){
+  const r=GAL_R_MIN+step*GAL_R_STEP;
+  const thetaDeg=angoloBraccioDeg+step*GAL_THETA_STEP*(GAL_ARM_SPAN/60);
+  const theta=thetaDeg*Math.PI/180;
+  return{x:+(GAL_CX+r*Math.cos(theta)).toFixed(2), y:+(GAL_CY+r*Math.sin(theta)).toFixed(2)};
+}
+
 /* Calcola e mette in cache le posizioni di tutte le stelle della galassia */
 function calcolaPosizioniGalassia(){
   const pos={};
@@ -2733,12 +2749,29 @@ function calcolaPosizioniGalassia(){
   return pos;
 }
 
+/* Stato di "focus": quando un braccio è selezionato (click su etichetta o
+   riga del riepilogo), il resto della galassia si attenua per chiarezza. */
+let _bracciFocus=null;
+function toggleFocusBraccio(id){
+  _bracciFocus=(_bracciFocus===id)?null:id;
+  applyFocusBraccio();
+}
+function applyFocusBraccio(){
+  const svg=document.getElementById('svg-galassia');
+  if(svg)svg.querySelectorAll('[data-braccio]').forEach(el=>{
+    el.style.opacity=!_bracciFocus?'':(el.dataset.braccio===_bracciFocus?'1':'.15');
+  });
+  document.querySelectorAll('.cost-arm-label').forEach(t=>t.classList.toggle('active',t.dataset.braccio===_bracciFocus));
+  document.querySelectorAll('.arm-row').forEach(r=>r.classList.toggle('active',r.dataset.braccio===_bracciFocus));
+}
+
 function renderCostellazioni(){
   const cont=document.getElementById('cost-container');if(!cont)return;
   const litAuto=getAutoLitStars();
   const lit=litAuto;
   const pos=calcolaPosizioniGalassia();
   cont.innerHTML='';
+  _bracciFocus=null;
 
   // ── Struttura: una mappa unica + pannello info condiviso + riepilogo bracci ──
   const mapWrap=document.createElement('div');
@@ -2757,7 +2790,7 @@ function renderCostellazioni(){
 
   const svg=document.getElementById('svg-galassia');
 
-  // Micro-stelle di sfondo decorative sparse su tutta la galassia
+  // Micro-stelle di sfondo decorative sparse su tutta la galassia (sempre visibili, non fanno parte di un braccio)
   for(let i=0;i<90;i++){
     const bx=(i*53.7)%900, by=(i*37.3+i*i*.6)%900;
     const r=(i%4===0)?1.4:0.7;
@@ -2784,17 +2817,19 @@ function renderCostellazioni(){
       line.setAttribute('x1',pa.x);line.setAttribute('y1',pa.y);
       line.setAttribute('x2',pb.x);line.setAttribute('y2',pb.y);
       line.setAttribute('class',`cost-link${bothLit?' lit':''}`);
+      line.dataset.braccio=braccio.id;
       svg.appendChild(line);
     }
-    // Etichetta del braccio, orientata verso l'esterno oltre l'ultima stella
+    // Etichetta del braccio: subito dopo l'ultima stella, sulla stessa curva (nessun jitter)
     const ultimo=braccio.stars[braccio.stars.length-1];
-    const pUlt=pos[ultimo.id];
-    const labelPos=posizioneGalassia(braccio.angolo,ultimo.step+1.1,'label-'+braccio.id);
+    const labelPos=posizioneGalassiaEsatta(braccio.angolo,ultimo.step+0.55);
     const txt=document.createElementNS('http://www.w3.org/2000/svg','text');
     txt.setAttribute('x',labelPos.x);txt.setAttribute('y',labelPos.y);
     txt.setAttribute('class','cost-arm-label');
     txt.setAttribute('text-anchor','middle');
+    txt.dataset.braccio=braccio.id;
     txt.textContent=braccio.label;
+    txt.addEventListener('click',()=>{tap('light');toggleFocusBraccio(braccio.id);});
     svg.appendChild(txt);
   });
 
@@ -2823,6 +2858,7 @@ function renderCostellazioni(){
         const g=document.createElementNS('http://www.w3.org/2000/svg','g');
         g.setAttribute('class',`cost-nebula${isLit?' lit':''}`);
         g.dataset.id=star.id;
+        g.dataset.braccio=braccio.id;
         const glow=document.createElementNS('http://www.w3.org/2000/svg','circle');
         glow.setAttribute('cx',p.x);glow.setAttribute('cy',p.y);glow.setAttribute('r',isLit?15:11);
         glow.setAttribute('class','neb-glow');
@@ -2840,6 +2876,7 @@ function renderCostellazioni(){
         const g=document.createElementNS('http://www.w3.org/2000/svg','g');
         g.setAttribute('class',`cost-star${isNucleo?' nucleo':''}${isLit?' lit':''}`);
         g.dataset.id=star.id;
+        g.dataset.braccio=braccio.id;
         if(isAuto)g.dataset.auto='1';
         const raggio=isNucleo?(isLit?11:9):(isLit?8:6);
         const path=document.createElementNS('http://www.w3.org/2000/svg','path');
@@ -2860,6 +2897,7 @@ function renderCostellazioni(){
     const completed=litCount===total;
     const row=document.createElement('div');
     row.className=`arm-row${completed?' done':''}`;
+    row.dataset.braccio=braccio.id;
     row.innerHTML=`
       <div class="arm-row-dot"></div>
       <div class="arm-row-txt">
@@ -2869,10 +2907,12 @@ function renderCostellazioni(){
       <div class="arm-row-count">${litCount}/${total}</div>
     `;
     row.addEventListener('click',()=>{
-      // porta in vista il nucleo del braccio selezionato
+      tap('light');
+      toggleFocusBraccio(braccio.id);
+      // mostra anche il nucleo del braccio nel pannello info
       const nucleo=braccio.stars.find(s=>(s.tipo||'').includes('nucleo'))||braccio.stars[0];
-      clickStar(braccio,nucleo);
-      infoBox.scrollIntoView({behavior:'smooth',block:'center'});
+      mostraInfoStella(braccio,nucleo,litAuto.has(nucleo.id));
+      mapWrap.scrollIntoView({behavior:'smooth',block:'center'});
     });
     summary.appendChild(row);
 
