@@ -352,10 +352,16 @@ def get_biblioteche(rete):
         )
     nomi = _estrai_biblioteche(html) if html else []
     if html and not nomi:
+        # "libpage/id" assente dal corpo = quasi certamente la lista non è
+        # nell'HTML grezzo (rendering lato client, cookie-wall, redirect a
+        # una pagina di consenso, bot-detection...), non un regex sbagliato.
+        # Presente ma 0 match = il regex va rivisto sul formato reale.
+        ha_libpage = "libpage/id" in html
         app.logger.warning(
-            "get_biblioteche(%s): risposta ricevuta da %s (%d caratteri) ma 0 biblioteche estratte — "
-            "verificare lib_path/regex per questa rete",
-            rete, url, len(html)
+            "get_biblioteche(%s): risposta da %s (%d caratteri), 'libpage/id' %s nel corpo — snippet: %r",
+            rete, url, len(html),
+            "presente" if ha_libpage else "ASSENTE",
+            html[:500]
         )
 
     if nomi:
