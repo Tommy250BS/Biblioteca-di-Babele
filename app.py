@@ -25,33 +25,74 @@ BASE_URL    = "https://opac.provincia.brescia.it"  # mantenuto per compatibilit�
 # solo l'URL base. Per attivare una nuova rete basta aggiungerla qui: non
 # serve toccare cerca_titolo/verifica_disponibilita/get_biblioteche.
 #
-# Mantovana e Bergamasca sono già mappate ma commentate: la richiesta era di
-# validare prima il funzionamento con Comasca come prova. Per attivarle,
-# basta scommentare la voce corrispondente (il frontend le mostrerà in automatico
-# leggendo /api/reti).
+# Tutte e quattro le reti girano sul software OPAC DiscoveryNG, ma non tutte
+# espongono l'elenco biblioteche sullo stesso percorso: RBBC, Comasca e
+# Bergamasca usano il percorso standard "/library/"; Mantovana invece ha una
+# struttura del sito personalizzata e l'elenco vive su
+# "/la-rete-delle-biblioteche/" (verificato manualmente: "/library/" su quel
+# dominio non esiste/non è collegato dalla nav del sito). "lib_path" permette
+# di configurare questo per singola rete senza toccare get_biblioteche().
 RETI = {
     "rbbc": {
         "label": "Rete Bibliotecaria Bresciana e Cremonese",
         "short": "RBBC",
         "base_url": "https://opac.provincia.brescia.it",
+        "lib_path": "/library/",
     },
     "comasca": {
         "label": "Rete Bibliotecaria della Provincia di Como",
         "short": "Comasca",
         "base_url": "https://opac.provincia.como.it",
+        "lib_path": "/library/",
     },
     "mantovana": {
         "label": "Rete Bibliotecaria Mantovana",
         "short": "Mantovana",
         "base_url": "https://opac.provincia.mantova.it",
+        "lib_path": "/la-rete-delle-biblioteche/",
     },
     "bergamasca": {
         "label": "Rete Bibliotecaria Bergamasca",
         "short": "Bergamasca",
         "base_url": "https://opacbg.provincia.brescia.it",
+        "lib_path": "/library/",
     },
 }
 RETE_DEFAULT = "rbbc"
+
+# ── ELENCO STATICO COMASCA ──────────────────────────────────────────────
+# Per Comasca lo scraping live di "/library/" usa lo schema corretto
+# (href="...libpage/id/N">Nome</a>", verificato manualmente sul sito), quindi
+# in teoria funzionerebbe; se in produzione risulta comunque vuoto è quasi
+# certamente un problema di rete/timeout verso quell'host, non di parsing.
+# Come mitigazione immediata (e per eliminare una dipendenza di rete in più)
+# usiamo un elenco statico, sullo stesso modello di BIBS in index.html per
+# RBBC. Va aggiornato manualmente se la composizione della rete cambia.
+BIBLIOTECHE_COMASCA = [
+    "Albavilla", "Albese con Cassano", "Albiolo", "Alzate Brianza",
+    "Appiano Gentile", "Asso", "Bassone Casa circondariale", "Bene Lario",
+    "Beregazzo con F.", "Biblioteca Liceo Classico e Scientifico \"A. Volta\"",
+    "Biblioteca Liceo Scientifico G. Galilei", "Binago", "Bizzarone", "Blevio",
+    "Bregnano", "Brenna", "Brienno", "Brunate", "Bulgarograsso", "Cadorago",
+    "Cagno", "Cantù", "Capiago Intimiano", "Carate Urio", "Carlazzo",
+    "Caslino d'Erba", "Casnate con Bernate", "Cassina Rizzardi", "Cavallasca",
+    "Centro Prov. Catalog.", "Cermenate", "Cernobbio", "Cirimido",
+    "Colverde - Drezzo", "Colverde - Gironico", "Colverde - Parè", "Como",
+    "Como Locker", "Como Musei civici", "Corrido", "Cucciago", "Dizzasco",
+    "Dongo", "Faloppio", "Fenegrò", "Figino Serenza", "Fino Mornasco",
+    "Fondazione Ratti", "Grandate", "Grandola ed Uniti",
+    "Gravedona ed Uniti. IC Don Roberto Malgesini", "Griante", "Guanzate",
+    "ITIS Magistri Cumacini", "Laglio", "Laino", "Lenno", "Lezzeno",
+    "Limido Comasco", "Lipomo", "Lomazzo", "Luisago", "Lurago Marinone",
+    "Lurate Caccivio", "Mariano Comense", "Menaggio", "Moltrasio",
+    "Montano Lucino", "Mozzate", "Novedrate", "Olgiate Comasco",
+    "Oltrona San Mamette", "Ossuccio", "Pianello", "Pigra", "Plesio",
+    "Ponte Lambro", "Porlezza", "Pusiano", "Rodero", "Ronago", "Rovellasca",
+    "S. Bartolomeo", "S. Fedele CMLI", "San Fermo della Battaglia",
+    "San Siro", "Società Archeologica Comense", "Solbiate", "Tavernerio",
+    "Uggiate Trevano", "Università Terza Età", "Valmorea", "Valsolda",
+    "Veniano", "Vertemate con M.", "Villa Guardia", "Zelbio",
+]
 
 def rete_valida(rete):
     """Restituisce l'id rete se valido, altrimenti la rete di default.
@@ -287,13 +328,36 @@ def _estrai_biblioteche(html):
     return nomi
 
 def get_biblioteche(rete):
+    # Comasca: elenco statico, nessuna dipendenza di rete (vedi BIBLIOTECHE_COMASCA).
+    if rete == "comasca":
+        return BIBLIOTECHE_COMASCA
+
     now = time.time()
     cached = _LIB_CACHE.get(rete)
     if cached and (now - cached[0]) < _LIB_CACHE_TTL:
         return cached[1]
     base_url = RETI[rete]["base_url"]
-    html = curl_get(f"{base_url}/library/", timeout=15)
+    lib_path = RETI[rete].get("lib_path", "/library/")
+    url = f"{base_url}{lib_path}"
+    html = curl_get(url, timeout=15)
+
+    # Logging esplicito: senza questo, un fallimento qui è indistinguibile
+    # dall'esterno tra "il sito non ha risposto" e "il sito ha risposto ma
+    # l'HTML non combacia col regex di parsing" — due problemi con soluzioni
+    # completamente diverse (rete/firewall vs. lib_path/regex da correggere).
+    if not html:
+        app.logger.warning(
+            "get_biblioteche(%s): nessuna risposta da %s (timeout, DNS o blocco di rete)",
+            rete, url
+        )
     nomi = _estrai_biblioteche(html) if html else []
+    if html and not nomi:
+        app.logger.warning(
+            "get_biblioteche(%s): risposta ricevuta da %s (%d caratteri) ma 0 biblioteche estratte — "
+            "verificare lib_path/regex per questa rete",
+            rete, url, len(html)
+        )
+
     if nomi:
         _LIB_CACHE[rete] = (now, nomi)
         return nomi
