@@ -900,7 +900,7 @@ body.dark .arm-row-count{color:var(--oro-2)}
       <span class="wt-line"><span class="wt-ink">La biblioteca</span></span>
       <span class="wt-line"><span class="wt-ink">di Babele</span></span>
     </h1>
-    <p class="wsub">Rete Bibliotecaria Bresciana e Cremonese</p>
+    <p class="wsub">Reti Bibliotecarie Lombarde</p>
     <div class="wsep">
       <div class="wsep-inner">
         <div class="wsl"></div>
@@ -941,6 +941,9 @@ body.dark .arm-row-count{color:var(--oro-2)}
       <div class="fi"><label>Nome</label><input type="text" id="rn" placeholder="Il tuo nome" autocomplete="name"></div>
       <div class="fi"><label>Email</label><input type="email" id="re" placeholder="la@tua.email" autocomplete="email"></div>
       <div class="fi"><label>Password</label><input type="password" id="rp" placeholder="Almeno 6 caratteri" autocomplete="new-password"></div>
+      <div class="fi"><label>Rete bibliotecaria</label>
+        <div data-rete-selector="registra" data-rete-attuale="rbbc"></div>
+      </div>
       <div class="fi"><label>Biblioteca di riferimento</label>
         <div class="acw"><input type="text" id="rb" placeholder="Es. Rezzato, Chiari…" autocomplete="off" autocorrect="off"><div class="dd" id="ddr"></div></div>
       </div>
@@ -952,8 +955,10 @@ body.dark .arm-row-count{color:var(--oro-2)}
 
 <!-- BIB -->
 <div id="sbib" class="S">
-  <div class="bh"><p>Catalogo RBBC</p><h2>Scegli la tua<strong><br>biblioteca</strong></h2></div>
+  <div class="bh"><p>Catalogo</p><h2>Scegli la tua<strong><br>biblioteca</strong></h2></div>
   <div class="bb">
+    <p class="bhint">Prima scegli la rete bibliotecaria, poi cerca la tua biblioteca.</p>
+    <div style="margin-bottom:14px" data-rete-selector="guest" data-rete-attuale="rbbc"></div>
     <p class="bhint">Seleziona la biblioteca in cui vuoi verificare la disponibilità.</p>
     <div class="acw"><input type="text" id="gb" placeholder="Es. Rezzato, Brescia…" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false"><div class="dd" id="ddg"></div></div>
     <button class="bp" style="margin-top:14px" id="bbOk" disabled onclick="confBib()">Inizia →</button>
@@ -1227,6 +1232,7 @@ body.dark .arm-row-count{color:var(--oro-2)}
 <!-- SHEETS -->
 <div class="shovr" id="shcb" onclick="chiudiSh('shcb',event)">
   <div class="sh"><div class="shhnd"></div><div class="shtit">Cambia biblioteca</div>
+    <div class="fi"><label>Rete bibliotecaria</label><div data-rete-selector="cambiabib" data-rete-attuale="rbbc"></div></div>
     <div class="fi"><div class="acw"><input type="text" id="cbib" placeholder="Es. Rezzato, Brescia…" autocomplete="off"><div class="dd" id="ddcb"></div></div></div>
     <div style="display:flex;gap:10px"><button class="bsm bsmp" onclick="confChip()">Cambia</button><button class="bsm bsmg" onclick="chiudiSh('shcb')">Annulla</button></div>
   </div>
@@ -1250,6 +1256,7 @@ body.dark .arm-row-count{color:var(--oro-2)}
 </div>
 <div class="shovr" id="shbib" onclick="chiudiSh('shbib',event)">
   <div class="sh"><div class="shhnd"></div><div class="shtit">Cambia biblioteca</div>
+    <div class="fi"><label>Rete bibliotecaria</label><div data-rete-selector="cambiabibProf" data-rete-attuale="rbbc"></div></div>
     <div class="fi"><label>Biblioteca</label><div class="acw"><input type="text" id="pbi" placeholder="Es. Rezzato…" autocomplete="off"><div class="dd" id="ddpb"></div></div></div>
     <div style="display:flex;gap:10px"><button class="bsm bsmp" onclick="salvaLib()">Salva</button><button class="bsm bsmg" onclick="chiudiSh('shbib')">Annulla</button></div>
   </div>
@@ -1331,7 +1338,100 @@ function toggleDark(){applyDark(!document.body.classList.contains('dark'));}
 (function(){const s=localStorage.getItem('rbbc_dark');if(s==='1')applyDark(true);})();
 
 
-let G={u:null,bib:'',letti:new Set(),lettiData:[]};
+let G={u:null,bib:'',rete:'rbbc',letti:new Set(),lettiData:[]};
+
+/* ── RETI BIBLIOTECARIE ──────────────────────────────────────────────────
+   RBBC resta con l'elenco biblioteche statico qui sotto (BIBS): è già
+   testato e non c'è motivo di introdurre una dipendenza di rete in più per
+   qualcosa che funziona. Le altre reti (per ora Comasca, come rete di prova)
+   caricano l'elenco biblioteche dinamicamente da /api/biblioteche — vedi
+   caricaBiblioteche(). L'elenco delle reti disponibili viene comunque letto
+   da /api/reti al boot, così attivare Mantovana/Bergamasca in futuro non
+   richiede toccare il frontend: basta scommentarle in app.py. */
+let RETI={rbbc:{label:'Rete Bibliotecaria Bresciana e Cremonese',short:'RBBC'}};
+let _retiCaricate=false;
+async function caricaReti(){
+  if(_retiCaricate)return;
+  try{
+    const r=await fetch('/api/reti');
+    if(r.ok){
+      const lista=await r.json();
+      if(Array.isArray(lista)&&lista.length){
+        RETI={};
+        lista.forEach(x=>{RETI[x.id]={label:x.label,short:x.short};});
+      }
+    }
+  }catch(e){console.error('caricaReti',e);}
+  _retiCaricate=true;
+  renderSelettoriRete();
+}
+
+/* Cache in memoria delle biblioteche per rete, per non richiamare l'API
+   ad ogni apertura di un campo di ricerca biblioteca. */
+const _bibCache={};
+async function caricaBiblioteche(rete){
+  if(rete==='rbbc')return BIBS;
+  if(_bibCache[rete])return _bibCache[rete];
+  try{
+    const r=await fetch(`/api/biblioteche?rete=${encodeURIComponent(rete)}`);
+    if(r.ok){
+      const d=await r.json();
+      if(Array.isArray(d.biblioteche)&&d.biblioteche.length){
+        _bibCache[rete]=d.biblioteche;
+        return d.biblioteche;
+      }
+    }
+  }catch(e){console.error('caricaBiblioteche',e);}
+  return [];
+}
+
+/* Elenco "correntemente attivo" per gli autocomplete: viene ripopolato da
+   selezionaRete()/preparaCampoBiblioteca() ogni volta che cambia la rete
+   scelta in un dato form. Tenuto per-contesto (non globale) perché più
+   form possono avere reti diverse selezionate nello stesso momento
+   (es. si sta cambiando rete dal profilo mentre si è ancora iscritti
+   a un'altra rete). */
+const _bibListePerContesto={};
+async function preparaCampoBiblioteca(ctx,rete){
+  const lista=await caricaBiblioteche(rete);
+  _bibListePerContesto[ctx]=lista;
+  return lista;
+}
+
+/* Aggiorna tutti i selettori di rete presenti nel DOM (pulsanti a chip)
+   una volta che l'elenco reti è stato caricato da /api/reti. */
+function renderSelettoriRete(){
+  document.querySelectorAll('[data-rete-selector]').forEach(cont=>{
+    const ctx=cont.dataset.reteSelector;
+    const attuale=cont.dataset.reteAttuale||G.rete;
+    cont.innerHTML=Object.entries(RETI).map(([id,info])=>
+      `<button type="button" class="bsm ${id===attuale?'bsmp':'bsmg'}" style="margin:0 6px 6px 0" data-rete-id="${id}" onclick="selezionaRete('${ctx}','${id}',this)">${info.short}</button>`
+    ).join('');
+  });
+}
+/* Callback quando l'utente clicca su una chip di rete: aggiorna lo stato,
+   ridisegna le chip (evidenzia quella scelta) e ricarica l'elenco
+   biblioteche di quel contesto, azzerando il campo di ricerca biblioteca
+   collegato (la selezione precedente potrebbe non esistere sulla nuova rete). */
+async function selezionaRete(ctx,reteId,btn){
+  tap('light');
+  const cont=btn.closest('[data-rete-selector]');
+  if(cont)cont.dataset.reteAttuale=reteId;
+  renderSelettoriRete();
+  const inputId=RETE_CTX_INPUT[ctx];
+  if(inputId){
+    const inp=document.getElementById(inputId);
+    if(inp)inp.value='';
+  }
+  await preparaCampoBiblioteca(ctx,reteId);
+  if(ctx==='guest')G.reteScelta=reteId;
+  if(ctx==='registra')G.reteRegistra=reteId;
+  if(ctx==='cambiabib')G.reteCambio=reteId;
+  if(ctx==='cambiabibProf')G.reteCambioProf=reteId;
+}
+/* Mappa contesto → id dell'input biblioteca collegato, usata sia da
+   selezionaRete() sia da setupAC() per sapere quale lista filtrare. */
+const RETE_CTX_INPUT={guest:'gb',registra:'rb',cambiabib:'cbib',cambiabibProf:'pbi'};
 
 const BIBS=["Acquafredda","Adro","Agnadello","Agnosine","Anfo","Angolo Terme","Annicco","Artogne","Azzano Mella","Bagnolo Cremasco","Bagnolo Mella","Bagolino","Barbariga","Barghe","Bassano Bresciano","Bedizzole","Berlingo","Berzo Demo","Berzo Inferiore","Bienno","Bione","Bonemerse","Borgo San Giacomo","Borgosatollo","Borno","Botticino","Bovegno","Bovezzo","Brandico","Braone","Breno","Brescia - Abba-Ballini","Brescia - Archivio Storico","Brescia - Arnaldo","Brescia - Bibliobus","Brescia - Buffalora","Brescia - Canton Mombello","Brescia - Casazza","Brescia - Centro Casa Severino","Brescia - Emeroteca Queriniana","Brescia - Fondazione Trebeschi","Brescia - Gambara","Brescia - Ghetti","Brescia - Golgi","Brescia - La Vetrina","Brescia - Largo Torrelunga","Brescia - Mediateca Queriniana","Brescia - Museo Scienze Naturali","Brescia - Parco Gallo","Brescia - Prealpino","Brescia - Queriniana","Brescia - San Polo","Brescia - SBU","Brescia - Sereno","Brescia - UAU","Brione","Caino","Calcinato","Calvagese D-R","Calvatone","Calvisano","Camisano","Capergnanica","Capo Di Ponte","Capovalle","Capralba","Capriano Del Colle","Capriolo","Carpenedolo","Casalbuttano","Casale Cremasco Vidolasco","Casaletto Ceredano","Casaletto Vaprio","Casalmaggiore","Casalpusterlengo","Castegnato","Castel Mella","Castelcovati","Castelleone","Castello Di Padernello","Castelverde","Castenedolo","Casto","Castrezzato","Cazzago SM","Cedegolo","Cellatica","Centro Fumetto A. Pazienza","Centro Studi RSI Salò","Cerveno","Ceto","Cevo","Chiari","Chieve","Cigole","Cimbergo","Cingia De' Botti","Cividate Camuno","Clusane","Coccaglio","Collebeato","Collio","Cologne","Comezzano - Cizzago","Concesio","Corte De' Frati","Corte Franca","Corteno Golgi","Corzano","Credera Rubbiano","Crema","Crema - Museo","Cremona - Anguissola","Cremona - CDA","Cremona - Manin","Darfo Boario Terme","Dello","Desenzano","Dovera","Edolo","Elnos","Erbusco","Esine","Fiesco","Fiesse","Flero","Gadesco Pieve Delmona","Gambara","Gardone Riviera","Gardone Val Trompia","Gargnano","Gavardo","Genivolta","Ghedi","Gianico","Gottolengo","Grontardo","Grumello Cremonese","Gussago","Gussola","Idro","Incudine","Irma","Iseo","Isola Dovarese","Isorella","Izano","Lavenone","Leno","Limone Sul Garda","Lodrino","Lograto","Lonato Del Garda","Longhena","Losine","Lozio","Lumezzane","Maclodio","Madignano","Magasa","Mairano","Malegno","Malonno","Manerba Del Garda","Manerbio","Marcheno","Marmentino","Marone","Martignana Di Po","Mazzano","Milzano","Moniga Del Garda","Monno","Monte Cremasco","Monte Isola","Monticelli Brusati","Montichiari","Montirone","Montodine","Mura","Muscoline","Nave","Niardo","Nuvolento","Nuvolera","Odolo","Offanengo","Offlaga","Ome","Ono San Pietro","Orzinuovi","Orzivecchi","Ospitaletto","Ostiano","Padenghe Sul Garda","Paderno FC","Paderno Ponchielli","Paitone","Palazzo Pignano","Palazzolo Sull'Oglio","Pandino","Paratico","Passirano","Pavone Del Mella","Persico Dosimo","Pertica Alta","Pertica Bassa","Pescarolo Ed Uniti","Pezzaze","Piadena Drizzona","Pian Camuno","Piancogno","Pianengo","Pisogne","Pizzighettone","Polaveno","Polpenazze Del Garda","Pompiano","Poncarale","Ponte Di Legno","Pontevico","Pontoglio","Pozzolengo","Pralboino","Preseglie","Prestine","Prevalle","Provaglio D'Iseo","Provaglio VS","Puegnago Del Garda","Quinzano D'Oglio","Remedello","Rezzato","Ricengo","Ripalta Cremasca","Rivarolo Del Re","Rivolta D'Adda","Roccafranca","Rodengo Saiano","Roè Volciano","Romanengo","Roncadelle","Rovato","Rudiano","Sabbio Chiese","Sale Marasino","Salò","San Bassano","San Daniele Po","San Felice Del Benaco","San Gervasio Bresciano","San Giovanni In Croce","San Paolo","San Zeno Naviglio","Sarezzo","Saviore Dell'Adamello","Sellero","Seniga","Sergnano","Serle","Sesto Ed Uniti","Sirmione","Soiano Del Lago","Solarolo Rainerio","Soncino","Sonico","Soresina","Sospiro","Spino D'Adda","Sulzano","Tavernole Sul Mella","Temù","Tignale","Torbole Casaglia","Tornata","Torre De' Picenardi","Torricella Del Pizzo","Toscolano Maderno","Travagliato","Tremosine","Trenzano","Trescore Balneario","Trescore Cremasco","Treviso Bresciano","Urago D'Oglio","Vallio Terme","Valvestino","Verolanuova","Verolavecchia","Vestone","Vezza D'Oglio","Villa Carcina","Villanuova Sul Clisi","Visano","Vobarno","Zone"];
 
@@ -1448,9 +1548,10 @@ costruisciScaffale();
 
 async function avvia(){
   vai('sw');
+  caricaReti();
   try{const r=await fetch('/api/auth/me');const d=await r.json();
     if(d.autenticato){
-      G.u=d;G.bib=d.biblioteca;
+      G.u=d;G.bib=d.biblioteca;G.rete=d.rete||'rbbc';
       await caricaBadge();
       await caricaSalv();
       document.getElementById('wbtns').style.display='none';
@@ -1732,50 +1833,64 @@ async function doLogin(){
   if(!email||!pw)return errA('Inserisci email e password.');
   const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
   const d=await r.json();if(!r.ok)return errA(d.error||'Errore login.');
-  G.u=d;G.bib=d.biblioteca;await caricaBadge();await caricaSalv();attivaApp(d.biblioteca);
+  G.u=d;G.bib=d.biblioteca;G.rete=d.rete||'rbbc';await caricaBadge();await caricaSalv();attivaApp(d.biblioteca);
 }
 async function doReg(){
   tap('medium');
   const nome=document.getElementById('rn').value.trim(),email=document.getElementById('re').value.trim();
   const pw=document.getElementById('rp').value,bib=document.getElementById('rb').value.trim();
+  const rete=G.reteRegistra||'rbbc';
   if(!nome||!email||!pw||!bib)return errA('Compila tutti i campi.');
-  if(!BIBS.some(b=>b.toLowerCase()===bib.toLowerCase()))return errA("Seleziona una biblioteca dall'elenco.");
-  const r=await fetch('/api/auth/registra',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome,email,password:pw,biblioteca:bib})});
+  const listaReg=_bibListePerContesto['registra']||[];
+  if(!listaReg.some(b=>b.toLowerCase()===bib.toLowerCase()))return errA("Seleziona una biblioteca dall'elenco.");
+  const r=await fetch('/api/auth/registra',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome,email,password:pw,biblioteca:bib,rete})});
   const d=await r.json();if(!r.ok)return errA(d.error||'Errore.');
-  G.u=d;G.bib=d.biblioteca;await caricaBadge();await caricaSalv();attivaApp(d.biblioteca);
+  G.u=d;G.bib=d.biblioteca;G.rete=d.rete||rete;await caricaBadge();await caricaSalv();attivaApp(d.biblioteca);
 }
 async function doLogout(){tap('heavy');await fetch('/api/auth/logout',{method:'POST'});G.u=null;G.bib='';_badgeCache=null;vai('sw');}
 function usaSenza(){G.u=null;vai('sbib');}
 
-setupAC('gb','ddg',n=>{G.bib=n||'';document.getElementById('bbOk').disabled=!n;});
-function confBib(){if(!G.bib)return;attivaApp(G.bib);}
+setupAC('gb','ddg',n=>{G.bib=n||'';document.getElementById('bbOk').disabled=!n;},'guest');
+function confBib(){if(!G.bib)return;G.rete=G.reteScelta||'rbbc';attivaApp(G.bib);}
 
 function attivaApp(bib){
   G.bib=bib;
   document.getElementById('chipn').textContent=bib;
   document.getElementById('vuotoh').textContent=`Digita il titolo per verificare la disponibilità a ${bib}.`;
+  aggiornaSottotitoloRete();
   aggiornaUIProf();vai('shome');
 }
 
-setupAC('cbib','ddcb',()=>{});
+setupAC('cbib','ddcb',()=>{},'cambiabib');
 function confChip(){
   const v=document.getElementById('cbib').value.trim();
-  if(!v||!BIBS.some(b=>b.toLowerCase()===v.toLowerCase()))return;
-  G.bib=v;document.getElementById('chipn').textContent=v;
+  const lista=_bibListePerContesto['cambiabib']||[];
+  if(!v||!lista.some(b=>b.toLowerCase()===v.toLowerCase()))return;
+  const rete=G.reteCambio||G.rete;
+  G.bib=v;G.rete=rete;document.getElementById('chipn').textContent=v;
   document.getElementById('vuotoh').textContent=`Digita il titolo per verificare la disponibilità a ${v}.`;
-  if(G.u){fetch('/api/auth/aggiorna',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome:G.u.nome,biblioteca:v})}).then(r=>r.json()).then(d=>{if(d.ok){G.u.biblioteca=v;aggiornaUIProf();}});}
+  aggiornaSottotitoloRete();
+  if(G.u){fetch('/api/auth/aggiorna',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome:G.u.nome,biblioteca:v,rete})}).then(r=>r.json()).then(d=>{if(d.ok){G.u.biblioteca=v;G.u.rete=rete;aggiornaUIProf();}});}
   chiudiSh('shcb');
 }
 
 const norm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[''`]/g,"'");
 function hl(n,q){const i=norm(n).indexOf(norm(q));if(i<0||!q)return n;return n.slice(0,i)+'<em>'+n.slice(i,i+q.length)+'</em>'+n.slice(i+q.length);}
-function setupAC(inpId,ddId,onSel){
+function setupAC(inpId,ddId,onSel,ctx){
   const inp=document.getElementById(inpId),dd=document.getElementById(ddId);
   if(!inp||!dd)return;let ih=-1;
+  // Se è passato un contesto (guest/registra/cambiabib/...), la lista si legge
+  // ad ogni tasto premuto da _bibListePerContesto[ctx], che selezionaRete()
+  // aggiorna quando l'utente cambia rete: così l'autocomplete resta sempre
+  // coerente con la rete scelta in quel form. Senza contesto si usa BIBS
+  // (comportamento invariato, non dovrebbe più capitare ma resta come
+  // fallback di sicurezza).
+  const listaAttuale=()=>ctx?(_bibListePerContesto[ctx]||[]):BIBS;
   inp.addEventListener('input',()=>{
     const q=inp.value.trim();onSel(null);ih=-1;
     if(!q){dd.classList.remove('on');return;}
-    const nq=norm(q),ini=BIBS.filter(n=>norm(n).startsWith(nq)),con=BIBS.filter(n=>!norm(n).startsWith(nq)&&norm(n).includes(nq));
+    const BIBS_CTX=listaAttuale();
+    const nq=norm(q),ini=BIBS_CTX.filter(n=>norm(n).startsWith(nq)),con=BIBS_CTX.filter(n=>!norm(n).startsWith(nq)&&norm(n).includes(nq));
     const ls=[...ini,...con].slice(0,12);
     dd.innerHTML=ls.length?ls.map(n=>`<div class="ddi">${hl(n,q)}</div>`).join(''):'<div class="dde">Nessuna biblioteca trovata</div>';
     dd.classList.add('on');
@@ -1791,10 +1906,41 @@ function setupAC(inpId,ddId,onSel){
   });
   document.addEventListener('click',e=>{if(!e.target.closest('#'+ddId)&&!e.target.closest('#'+inpId))dd.classList.remove('on');});
 }
-setupAC('rb','ddr',()=>{});
-setupAC('pbi','ddpb',()=>{});
+setupAC('rb','ddr',()=>{},'registra');
+setupAC('pbi','ddpb',()=>{},'cambiabibProf');
 
-function apriSh(id){document.getElementById(id).classList.add('on');}
+/* Precarica la lista RBBC (sincrona, nessuna chiamata di rete) nei contesti
+   dei form, così l'autocomplete funziona da subito anche prima che l'utente
+   tocchi il selettore di rete — il default resta RBBC come prima di questa
+   modifica. */
+['guest','registra','cambiabib','cambiabibProf'].forEach(ctx=>{preparaCampoBiblioteca(ctx,'rbbc');});
+renderSelettoriRete();
+
+/* Aggiorna testi che mostrano il nome della rete attualmente attiva
+   (sottotitolo in home, ecc.). Richiamata ogni volta che G.rete cambia. */
+function aggiornaSottotitoloRete(){
+  const info=RETI[G.rete]||RETI.rbbc;
+  const el=document.querySelector('.hsubt');
+  if(el)el.textContent=info.label;
+}
+
+function apriSh(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.classList.add('on');
+  // Le sheet di cambio biblioteca partono allineate alla rete attualmente
+  // in uso (non a un default fisso), altrimenti aprendole si perderebbe
+  // la biblioteca già impostata su un'altra rete.
+  if(id==='shcb'||id==='shbib'){
+    const ctx=id==='shcb'?'cambiabib':'cambiabibProf';
+    const cont=el.querySelector('[data-rete-selector]');
+    if(cont)cont.dataset.reteAttuale=G.rete||'rbbc';
+    renderSelettoriRete();
+    preparaCampoBiblioteca(ctx,G.rete||'rbbc');
+    if(ctx==='cambiabib')G.reteCambio=G.rete||'rbbc';
+    else G.reteCambioProf=G.rete||'rbbc';
+  }
+}
 function chiudiSh(id,e){if(!e||e.target===document.getElementById(id))document.getElementById(id).classList.remove('on');}
 
 /* RICERCA */
@@ -1814,9 +1960,9 @@ async function togLetto(btn,libro){
   try{
     if(nuovo){
       const r=await fetch('/api/letti',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({titolo:libro.titolo,autore:libro.autore||'',url_opac:url,biblioteca:G.bib})});
+        body:JSON.stringify({titolo:libro.titolo,autore:libro.autore||'',url_opac:url,biblioteca:G.bib,rete:G.rete||'rbbc'})});
       if(!r.ok){const e=await r.json();throw new Error(e.error);}
-      G.letti.add(url);G.lettiData.push({titolo:libro.titolo,autore:libro.autore||'',url_opac:url,biblioteca:G.bib});
+      G.letti.add(url);G.lettiData.push({titolo:libro.titolo,autore:libro.autore||'',url_opac:url,biblioteca:G.bib,rete:G.rete||'rbbc'});
       btn.textContent='✓ Letto';btn.classList.add('on');
       // Risolvi subito la nazione in background per il nuovo libro (serve ai badge geografici del Pantheon)
       if(libro.autore){
@@ -1845,7 +1991,7 @@ async function aggiungiLetturaManuale(){
   tap('medium');
   try{
     const r=await fetch('/api/letti',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({titolo:t,autore:a,biblioteca:G.bib||'',manuale:true})});
+      body:JSON.stringify({titolo:t,autore:a,biblioteca:G.bib||'',rete:G.rete||'rbbc',manuale:true})});
     if(!r.ok){const e=await r.json();throw new Error(e.error||'Errore');}
     await caricaSalv();
     document.getElementById('mlt').value='';document.getElementById('mla').value='';
@@ -1900,7 +2046,7 @@ async function cerca(){
   const bc=document.getElementById('bcerca');bc.disabled=true;bc.textContent='…';
   try{
     if(G.u)await caricaSalv();
-    const r=await fetch(`/api/search?q=${encodeURIComponent(q)}&biblioteca=${encodeURIComponent(G.bib)}`);
+    const r=await fetch(`/api/search?q=${encodeURIComponent(q)}&biblioteca=${encodeURIComponent(G.bib)}&rete=${encodeURIComponent(G.rete||'rbbc')}`);
     if(!r.ok)throw new Error(`Errore ${r.status}`);
     const data=await r.json();
     renderRis(data);
@@ -3868,10 +4014,11 @@ function aggiornaUIProf(){
   const pa=document.getElementById('pav');if(pa)pa.textContent=(u.nome||'?')[0].toUpperCase();
   const pn=document.getElementById('pnom');if(pn)pn.textContent=u.nome;
   const pe=document.getElementById('pem');if(pe)pe.textContent=u.email||'';
-  const pb=document.getElementById('pbib');if(pb)pb.textContent=G.bib;
+  const pb=document.getElementById('pbib');if(pb)pb.textContent=`${G.bib} · ${(RETI[G.rete]||RETI.rbbc).short}`;
   const ib=document.getElementById('imbv');if(ib)ib.textContent=G.bib;
   const pi=document.getElementById('pni');if(pi)pi.value=u.nome||'';
   const pbi=document.getElementById('pbi');if(pbi)pbi.value=G.bib||'';
+  aggiornaSottotitoloRete();
 }
 async function caricaProf(){
   if(!G.u)return;aggiornaUIProf();renderObiettivo();
@@ -3903,9 +4050,11 @@ async function salvaProfilo(){
 }
 async function salvaLib(){
   const bib=document.getElementById('pbi').value.trim();
-  if(!bib||!BIBS.some(b=>b.toLowerCase()===bib.toLowerCase()))return;
-  const r=await fetch('/api/auth/aggiorna',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome:G.u.nome,biblioteca:bib})});
-  const d=await r.json();if(d.ok){G.u.biblioteca=d.biblioteca;G.bib=d.biblioteca;document.getElementById('chipn').textContent=d.biblioteca;aggiornaUIProf();chiudiSh('shbib');}
+  const listaProf=_bibListePerContesto['cambiabibProf']||[];
+  if(!bib||!listaProf.some(b=>b.toLowerCase()===bib.toLowerCase()))return;
+  const rete=G.reteCambioProf||G.rete;
+  const r=await fetch('/api/auth/aggiorna',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome:G.u.nome,biblioteca:bib,rete})});
+  const d=await r.json();if(d.ok){G.u.biblioteca=d.biblioteca;G.u.rete=d.rete;G.bib=d.biblioteca;G.rete=d.rete;document.getElementById('chipn').textContent=d.biblioteca;aggiornaSottotitoloRete();aggiornaUIProf();chiudiSh('shbib');}
 }
 </script>
 </body>
