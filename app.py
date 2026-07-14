@@ -601,6 +601,41 @@ def api_search():
         app.logger.exception("Errore in /api/search (q=%r)", q)
         return jsonify({"error": f"Errore interno: {e}"}), 500
 
+#  API Debug rete (diagnostica temporanea)
+
+@app.route("/api/debug/rete-check")
+def debug_rete_check():
+    """Testa la raggiungibilità di ogni host OPAC dal server e restituisce
+    codice HTTP, tempo di risposta ed errore curl (se presente). Serve a
+    distinguere in un colpo solo: blocco a livello di connessione (DNS,
+    timeout, TLS, connection refused) da un 200 con contenuto inatteso.
+    Endpoint diagnostico: rimuovere o proteggere una volta chiuso il debug."""
+    risultati = {}
+    for rete_id, info in RETI.items():
+        base_url = info["base_url"]
+        lib_path = info.get("lib_path", "/library/")
+        url = f"{base_url}{lib_path}"
+        cmd = (["curl", "-s", "-o", "/dev/null",
+                "-w", "%{http_code}|%{time_total}|%{ssl_verify_result}|%{num_redirects}",
+                "-L", "--max-time", "10"] + HEADERS + [url])
+        try:
+            r = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+            parti = r.stdout.strip().split("|")
+            risultati[rete_id] = {
+                "url": url,
+                "http_code": parti[0] if len(parti) > 0 else None,
+                "tempo_sec": parti[1] if len(parti) > 1 else None,
+                "ssl_verify_result": parti[2] if len(parti) > 2 else None,
+                "redirect_count": parti[3] if len(parti) > 3 else None,
+                "curl_returncode": r.returncode,
+                "curl_stderr": r.stderr.strip()[:300] or None,
+            }
+        except subprocess.TimeoutExpired:
+            risultati[rete_id] = {"url": url, "errore": "timeout (>15s) — nessuna risposta dal server curl stesso"}
+        except Exception as e:
+            risultati[rete_id] = {"url": url, "errore": str(e)}
+    return jsonify(risultati)
+
 #  API Reti e Biblioteche
 
 @app.route("/api/reti")
