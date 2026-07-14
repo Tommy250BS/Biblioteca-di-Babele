@@ -40,16 +40,16 @@ RETI = {
         "short": "Comasca",
         "base_url": "https://opac.provincia.como.it",
     },
-    # "mantovana": {
-    #     "label": "Rete Bibliotecaria Mantovana",
-    #     "short": "Mantovana",
-    #     "base_url": "https://opac.provincia.mantova.it",
-    # },
-    # "bergamasca": {
-    #     "label": "Rete Bibliotecaria Bergamasca",
-    #     "short": "Bergamasca",
-    #     "base_url": "https://opacbg.provincia.brescia.it",
-    # },
+    "mantovana": {
+        "label": "Rete Bibliotecaria Mantovana",
+        "short": "Mantovana",
+        "base_url": "https://opac.provincia.mantova.it",
+    },
+    "bergamasca": {
+        "label": "Rete Bibliotecaria Bergamasca",
+        "short": "Bergamasca",
+        "base_url": "https://opacbg.provincia.brescia.it",
+    },
 }
 RETE_DEFAULT = "rbbc"
 
