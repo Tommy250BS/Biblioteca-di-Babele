@@ -5,7 +5,7 @@ DB: PostgreSQL
 Auth: bcrypt + flask-login, cookie di sessione firmato
 """
 
-import subprocess, re, os, unicodedata, tempfile, concurrent.futures
+import subprocess, re, os, time, unicodedata, tempfile, concurrent.futures
 from urllib.parse import quote_plus
 from flask import Flask, request, jsonify, g, session
 from flask_cors import CORS
@@ -17,7 +17,47 @@ app = Flask(__name__, static_folder="static", static_url_path="")
 app.secret_key = os.environ.get("SECRET_KEY", "cambia-questa-chiave-in-produzione")
 CORS(app, supports_credentials=True)
 
-BASE_URL    = "https://opac.provincia.brescia.it"
+BASE_URL    = "https://opac.provincia.brescia.it"  # mantenuto per compatibilità: coincide con RETI['rbbc']['base_url']
+
+# ── RETI BIBLIOTECARIE ────────────────────────────────────────────────────
+# Tutte e quattro girano sullo stesso software OPAC (DiscoveryNG), quindi lo
+# stesso motore di scraping (curl_get + regex) funziona su tutte cambiando
+# solo l'URL base. Per attivare una nuova rete basta aggiungerla qui: non
+# serve toccare cerca_titolo/verifica_disponibilita/get_biblioteche.
+#
+# Mantovana e Bergamasca sono già mappate ma commentate: la richiesta era di
+# validare prima il funzionamento con Comasca come prova. Per attivarle,
+# basta scommentare la voce corrispondente (il frontend le mostrerà in automatico
+# leggendo /api/reti).
+RETI = {
+    "rbbc": {
+        "label": "Rete Bibliotecaria Bresciana e Cremonese",
+        "short": "RBBC",
+        "base_url": "https://opac.provincia.brescia.it",
+    },
+    "comasca": {
+        "label": "Rete Bibliotecaria della Provincia di Como",
+        "short": "Comasca",
+        "base_url": "https://opac.provincia.como.it",
+    },
+    # "mantovana": {
+    #     "label": "Rete Bibliotecaria Mantovana",
+    #     "short": "Mantovana",
+    #     "base_url": "https://opac.provincia.mantova.it",
+    # },
+    # "bergamasca": {
+    #     "label": "Rete Bibliotecaria Bergamasca",
+    #     "short": "Bergamasca",
+    #     "base_url": "https://opacbg.provincia.brescia.it",
+    # },
+}
+RETE_DEFAULT = "rbbc"
+
+def rete_valida(rete):
+    """Restituisce l'id rete se valido, altrimenti la rete di default.
+    Centralizza la validazione così nessun endpoint rischia di costruire
+    un base_url da input utente non controllato."""
+    return rete if rete in RETI else RETE_DEFAULT
 # Nota: non esiste più un cookie-jar condiviso a livello di modulo (era
 # CURL_COOKIE = "/tmp/rbbc_opac.txt"). curl_get() ora crea un cookie-jar
 # temporaneo per ciascuna chiamata, necessario per poter eseguire più
@@ -66,6 +106,13 @@ def init_db():
                 ALTER TABLE utenti ADD COLUMN IF NOT EXISTS obiettivo_annuale INTEGER NOT NULL DEFAULT 0;
             """)
 
+            # Multi-rete: ogni utente/ricerca/lettura è ora legata a una rete
+            # bibliotecaria specifica (rbbc, comasca, ...). Default 'rbbc' per
+            # non rompere i dati già esistenti (che erano tutti su RBBC).
+            cur.execute("""
+                ALTER TABLE utenti ADD COLUMN IF NOT EXISTS rete VARCHAR(32) NOT NULL DEFAULT 'rbbc';
+            """)
+
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS ricerche (
                     id SERIAL PRIMARY KEY,
@@ -76,6 +123,9 @@ def init_db():
                     a_bib INTEGER NOT NULL DEFAULT 0,
                     cercato_il TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
+            """)
+            cur.execute("""
+                ALTER TABLE ricerche ADD COLUMN IF NOT EXISTS rete VARCHAR(32) NOT NULL DEFAULT 'rbbc';
             """)
 
             cur.execute("""
@@ -92,6 +142,9 @@ def init_db():
                     UNIQUE (utente_id, url_opac)
                 );
             """)
+            cur.execute("""
+                ALTER TABLE salvati ADD COLUMN IF NOT EXISTS rete VARCHAR(32) NOT NULL DEFAULT 'rbbc';
+            """)
 
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS letti (
@@ -104,6 +157,9 @@ def init_db():
                     letto_il TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE (utente_id, url_opac)
                 );
+            """)
+            cur.execute("""
+                ALTER TABLE letti ADD COLUMN IF NOT EXISTS rete VARCHAR(32) NOT NULL DEFAULT 'rbbc';
             """)
 
             # Migrazione: aggiunge la colonna 'letto' se il DB esisteva già
@@ -195,8 +251,8 @@ def _estrai_risultati(html):
                 visti[num] = t
     return visti
 
-def cerca_titolo(titolo, rows=10):
-    url  = f"{BASE_URL}/opac/search?q={quote_plus(titolo)}&rows={rows}"
+def cerca_titolo(titolo, base_url=BASE_URL, rows=10):
+    url  = f"{base_url}/opac/search?q={quote_plus(titolo)}&rows={rows}"
     html = curl_get(url)
     if not html:
         return []
@@ -207,8 +263,45 @@ def cerca_titolo(titolo, rows=10):
             t = strip_tags(raw)
             if t and not t.lower().startswith("vai a"):
                 visti[num] = t
-    return [{"titolo": tit, "url": f"{BASE_URL}/opac/detail/view/test:catalog:{num}"}
+    return [{"titolo": tit, "url": f"{base_url}/opac/detail/view/test:catalog:{num}"}
             for num, tit in list(visti.items())[:rows]]
+
+# ── ELENCO BIBLIOTECHE (dinamico, per rete) ────────────────────────────────
+# Ogni rete DiscoveryNG espone una pagina /library/ con l'elenco dei punti
+# di servizio, come link "<a href=".../libpage/id/N">Nome</a>". Invece di
+# tenere elenchi statici da aggiornare a mano per ogni rete (rischio di
+# errori/dimenticanze), li leggiamo da qui e li teniamo in cache in memoria
+# per non ri-scaricare la pagina ad ogni richiesta.
+_LIB_CACHE = {}          # rete -> (timestamp, [nomi ordinati])
+_LIB_CACHE_TTL = 24 * 3600  # 24 ore: l'elenco cambia raramente
+
+def _estrai_biblioteche(html):
+    pattern = r'href="[^"]*?libpage/id/\d+"[^>]*>\s*([^<]+?)\s*</a>'
+    visti, nomi = set(), []
+    for raw in re.findall(pattern, html):
+        nome = strip_tags(raw)
+        if nome and nome not in visti:
+            visti.add(nome)
+            nomi.append(nome)
+    nomi.sort(key=_norm)
+    return nomi
+
+def get_biblioteche(rete):
+    now = time.time()
+    cached = _LIB_CACHE.get(rete)
+    if cached and (now - cached[0]) < _LIB_CACHE_TTL:
+        return cached[1]
+    base_url = RETI[rete]["base_url"]
+    html = curl_get(f"{base_url}/library/", timeout=15)
+    nomi = _estrai_biblioteche(html) if html else []
+    if nomi:
+        _LIB_CACHE[rete] = (now, nomi)
+        return nomi
+    if cached:
+        # Il sito non ha risposto bene: meglio restituire la cache scaduta
+        # (anche se non freschissima) che una lista vuota all'utente.
+        return cached[1]
+    return []
 
 def verifica_disponibilita(url, biblioteca):
     html = curl_get(url)
@@ -246,6 +339,7 @@ def registra():
     nome = (d.get("nome") or "").strip()
     password = d.get("password") or ""
     biblioteca = (d.get("biblioteca") or "").strip()
+    rete = rete_valida((d.get("rete") or "").strip())
 
     if not email or not nome or not password or not biblioteca:
         return jsonify({"error": "Tutti i campi sono obbligatori"}), 400
@@ -264,12 +358,12 @@ def registra():
         cur = db.execute(
             """
             INSERT INTO utenti
-                (email, nome, password, biblioteca)
+                (email, nome, password, biblioteca, rete)
             VALUES
-                (%s, %s, %s, %s)
+                (%s, %s, %s, %s, %s)
             RETURNING id
             """,
-            (email, nome, pw_hash, biblioteca)
+            (email, nome, pw_hash, biblioteca, rete)
         )
 
         uid = cur.fetchone()["id"]
@@ -283,6 +377,7 @@ def registra():
             "ok": True,
             "nome": nome,
             "biblioteca": biblioteca,
+            "rete": rete,
             "obiettivo_annuale": 0
         })
 
@@ -306,6 +401,7 @@ def login():
     session["uid"] = u["id"]
     session.permanent = True
     return jsonify({"ok": True, "nome": u["nome"], "biblioteca": u["biblioteca"],
+                     "rete": u.get("rete") or RETE_DEFAULT,
                      "obiettivo_annuale": u.get("obiettivo_annuale", 0) or 0})
 
 @app.route("/api/auth/logout", methods=["POST"])
@@ -323,6 +419,7 @@ def me():
         "nome":        u["nome"],
         "email":       u["email"],
         "biblioteca":  u["biblioteca"],
+        "rete":        u.get("rete") or RETE_DEFAULT,
         "obiettivo_annuale": u.get("obiettivo_annuale", 0) or 0,
     })
 
@@ -333,12 +430,16 @@ def aggiorna_profilo():
     d = request.get_json() or {}
     biblioteca = (d.get("biblioteca") or "").strip()
     nome       = (d.get("nome") or "").strip()
+    # rete è opzionale nella richiesta: se non passata, resta quella attuale
+    # dell'utente (così una semplice modifica del nome non la tocca).
+    rete = (d.get("rete") or "").strip()
+    rete = rete_valida(rete) if rete else (u.get("rete") or RETE_DEFAULT)
     if not biblioteca or not nome:
         return jsonify({"error": "Campi mancanti"}), 400
-    get_db().execute("UPDATE utenti SET nome=%s, biblioteca=%s WHERE id=%s",
-                     (nome, biblioteca, u["id"]))
+    get_db().execute("UPDATE utenti SET nome=%s, biblioteca=%s, rete=%s WHERE id=%s",
+                     (nome, biblioteca, rete, u["id"]))
     get_db().commit()
-    return jsonify({"ok": True, "nome": nome, "biblioteca": biblioteca})
+    return jsonify({"ok": True, "nome": nome, "biblioteca": biblioteca, "rete": rete})
 
 @app.route("/api/obiettivo", methods=["POST"])
 @login_richiesto
@@ -362,11 +463,13 @@ def imposta_obiettivo():
 def api_search():
     q          = request.args.get("q", "").strip()
     biblioteca = request.args.get("biblioteca", "").strip()
+    rete       = rete_valida(request.args.get("rete", "").strip())
+    base_url   = RETI[rete]["base_url"]
     if not q or not biblioteca:
         return jsonify({"error": "Parametri mancanti"}), 400
 
     try:
-        risultati_base = cerca_titolo(q, rows=10)
+        risultati_base = cerca_titolo(q, base_url, rows=10)
         max_risultati = 10
         candidati = risultati_base[:max_risultati]
 
@@ -415,11 +518,11 @@ def api_search():
         if u and output:
             a_bib = sum(1 for r in output if r["copie_rezzato"])
             get_db().execute(
-                "INSERT INTO ricerche (utente_id,query,biblioteca,trovati,a_bib) VALUES (%s,%s,%s,%s,%s)",
-                (u["id"], q, biblioteca, len(output), a_bib))
+                "INSERT INTO ricerche (utente_id,query,biblioteca,rete,trovati,a_bib) VALUES (%s,%s,%s,%s,%s,%s)",
+                (u["id"], q, biblioteca, rete, len(output), a_bib))
             get_db().commit()
 
-        return jsonify({"query": q, "biblioteca": biblioteca, "risultati": output})
+        return jsonify({"query": q, "biblioteca": biblioteca, "rete": rete, "risultati": output})
 
     except Exception as e:
         # Log completo lato server (visibile nei log del processo/host) +
@@ -427,6 +530,20 @@ def api_search():
         # è diagnosticabile subito invece di apparire come un 500 generico.
         app.logger.exception("Errore in /api/search (q=%r)", q)
         return jsonify({"error": f"Errore interno: {e}"}), 500
+
+#  API Reti e Biblioteche
+
+@app.route("/api/reti")
+def api_reti():
+    return jsonify([
+        {"id": k, "label": v["label"], "short": v["short"]}
+        for k, v in RETI.items()
+    ])
+
+@app.route("/api/biblioteche")
+def api_biblioteche():
+    rete = rete_valida(request.args.get("rete", "").strip())
+    return jsonify({"rete": rete, "biblioteche": get_biblioteche(rete)})
 
 #  API Letti
 
@@ -448,16 +565,17 @@ def aggiungi_letto():
     url_opac = (d.get("url_opac") or "").strip()
     if not url_opac:
         return jsonify({"error": "url_opac mancante"}), 400
+    rete = rete_valida((d.get("rete") or "").strip())
     db = get_db()
     try:
         db.execute(
             """
-            INSERT INTO letti (utente_id, titolo, autore, url_opac, biblioteca)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO letti (utente_id, titolo, autore, url_opac, biblioteca, rete)
+            VALUES (%s, %s, %s, %s, %s, %s)
             ON CONFLICT (utente_id, url_opac) DO NOTHING
             """,
             (u["id"], d.get("titolo",""), d.get("autore",""),
-             url_opac, d.get("biblioteca",""))
+             url_opac, d.get("biblioteca",""), rete)
         )
         db.commit()
         return jsonify({"ok": True})
