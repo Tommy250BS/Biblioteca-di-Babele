@@ -32,33 +32,48 @@ BASE_URL    = "https://opac.provincia.brescia.it"  # mantenuto per compatibilit�
 # "/la-rete-delle-biblioteche/" (verificato manualmente: "/library/" su quel
 # dominio non esiste/non è collegato dalla nav del sito). "lib_path" permette
 # di configurare questo per singola rete senza toccare get_biblioteche().
+#
+# Ogni istanza DiscoveryNG ha anche un proprio "codename" di catalogo negli
+# URL dei risultati di ricerca (es. "opac/detail/view/<codename>:catalog:123").
+# Non è "test" per tutte le reti come si era assunto inizialmente: RBBC usa
+# "test", Como usa "como" (verificato dal vivo). "catalog_code" imposta questo
+# valore per rete. Per Mantovana/Bergamasca non è ancora stato verificato
+# (nessuna ricerca libri testata con successo finora): resta "test" come
+# default finché non abbiamo un caso reale da controllare — se la ricerca su
+# quelle reti risulta vuota nonostante una risposta di rete valida, il primo
+# sospetto è proprio questo valore.
 RETI = {
     "rbbc": {
         "label": "Rete Bibliotecaria Bresciana e Cremonese",
         "short": "RBBC",
         "base_url": "https://opac.provincia.brescia.it",
         "lib_path": "/library/",
+        "catalog_code": "test",
     },
     "comasca": {
         "label": "Rete Bibliotecaria della Provincia di Como",
         "short": "Comasca",
         "base_url": "https://opac.provincia.como.it",
         "lib_path": "/library/",
+        "catalog_code": "como",
     },
     "mantovana": {
         "label": "Rete Bibliotecaria Mantovana",
         "short": "Mantovana",
         "base_url": "https://opac.provincia.mantova.it",
         "lib_path": "/la-rete-delle-biblioteche/",
+        "catalog_code": "test",  # non ancora verificato, vedi nota sopra
     },
     "bergamasca": {
         "label": "Rete Bibliotecaria Bergamasca",
         "short": "Bergamasca",
         "base_url": "https://opacbg.provincia.brescia.it",
         "lib_path": "/library/",
+        "catalog_code": "test",  # non ancora verificato, vedi nota sopra
     },
 }
 RETE_DEFAULT = "rbbc"
+
 
 # ── ELENCO STATICO COMASCA ──────────────────────────────────────────────
 # Per Comasca lo scraping live di "/library/" usa lo schema corretto
@@ -282,7 +297,11 @@ def _norm(s):
     return s.lower().strip()
 
 def _estrai_risultati(html):
-    """Estrae (numero_notizia, titolo) dai risultati di una pagina OPAC."""
+    """Estrae (numero_notizia, titolo) dai risultati di una pagina OPAC.
+    NOTA: non più chiamata da nessuna parte (rimossa la logica duplicata,
+    ora vive in cerca_titolo() con catalog_code dinamico). Tenuta solo se
+    servisse un'estrazione "grezza" senza il resto della logica di
+    cerca_titolo — altrimenti da rimuovere."""
     pattern = r'href="opac/detail/view/test:catalog:(\d+)"[\s\S]{0,200}?title="([^"]{5,200})"'
     visti = {}
     for num, raw in re.findall(pattern, html):
@@ -292,14 +311,15 @@ def _estrai_risultati(html):
                 visti[num] = t
     return visti
 
-def cerca_titolo(titolo, base_url=BASE_URL, rows=10, rete_debug=None):
+def cerca_titolo(titolo, base_url=BASE_URL, rows=10, rete_debug=None, catalog_code="test"):
     url  = f"{base_url}/opac/search?q={quote_plus(titolo)}&rows={rows}"
     html = curl_get(url)
     if not html:
         if rete_debug:
             app.logger.warning("cerca_titolo(%s): nessuna risposta da %s", rete_debug, url)
         return []
-    pattern = r'href="opac/detail/view/test:catalog:(\d+)"[\s\S]{0,200}?title="([^"]{5,200})"'
+    pattern = (r'href="opac/detail/view/' + re.escape(catalog_code)
+               + r':catalog:(\d+)"[\s\S]{0,200}?title="([^"]{5,200})"')
     visti = {}
     for num, raw in re.findall(pattern, html):
         if num not in visti:
@@ -307,21 +327,21 @@ def cerca_titolo(titolo, base_url=BASE_URL, rows=10, rete_debug=None):
             if t and not t.lower().startswith("vai a"):
                 visti[num] = t
     if not visti and rete_debug:
-        # Il regex assume che l'identificativo di catalogo nell'URL sia
-        # sempre "test:catalog:" (valido per RBBC). Se una rete usa un
-        # codename diverso (es. "comasca:catalog:"), il link non combacia
-        # anche con risposta HTML perfettamente valida. Cerchiamo il primo
-        # "detail/view" nel corpo per vedere il codename reale usato.
+        # Il regex usa il codename di catalogo configurato in RETI[...]["catalog_code"]
+        # (es. "test" per RBBC, "como" per Comasca). Se una rete non ancora
+        # verificata usa un codename diverso, il link non combacia anche con
+        # risposta HTML perfettamente valida. Cerchiamo il primo "detail/view"
+        # nel corpo per vedere il codename reale usato da questa rete.
         idx = html.find("detail/view")
         contesto = html[max(0, idx - 100):idx + 150] if idx != -1 else None
         app.logger.warning(
-            "cerca_titolo(%s): risposta da %s (%d caratteri), 0 risultati estratti — "
+            "cerca_titolo(%s): risposta da %s (%d caratteri), 0 risultati estratti con catalog_code=%r — "
             "'detail/view' %s, contesto: %r",
-            rete_debug, url, len(html),
+            rete_debug, url, len(html), catalog_code,
             "presente" if idx != -1 else "ASSENTE",
             contesto
         )
-    return [{"titolo": tit, "url": f"{base_url}/opac/detail/view/test:catalog:{num}"}
+    return [{"titolo": tit, "url": f"{base_url}/opac/detail/view/{catalog_code}:catalog:{num}"}
             for num, tit in list(visti.items())[:rows]]
 
 # ── ELENCO BIBLIOTECHE (dinamico, per rete) ────────────────────────────────
@@ -334,7 +354,14 @@ _LIB_CACHE = {}          # rete -> (timestamp, [nomi ordinati])
 _LIB_CACHE_TTL = 24 * 3600  # 24 ore: l'elenco cambia raramente
 
 def _estrai_biblioteche(html):
-    pattern = r'href="[^"]*?libpage/id/\d+"[^>]*>\s*([^<]+?)\s*</a>'
+    # Alcune reti (es. Mantovana) avvolgono il nome in un tag interno, es.
+    # <a href="libpage/id/2" ...><span property="name">Nome</span></a>,
+    # altre (es. Como) lo mettono come testo diretto dentro <a>...</a>.
+    # Per essere robusti su entrambi i casi catturiamo tutto il contenuto tra
+    # <a ...> e </a> e lo ripuliamo con strip_tags(), invece di richiedere
+    # che sia testo puro subito dopo il '>' di apertura (fragile: si rompe
+    # non appena c'è un tag annidato, come successo con Mantovana).
+    pattern = r'href="[^"]*?libpage/id/\d+"[^>]*>([\s\S]{0,300}?)</a>'
     visti, nomi = set(), []
     for raw in re.findall(pattern, html):
         nome = strip_tags(raw)
@@ -560,7 +587,8 @@ def api_search():
         return jsonify({"error": "Parametri mancanti"}), 400
 
     try:
-        risultati_base = cerca_titolo(q, base_url, rows=10, rete_debug=rete)
+        risultati_base = cerca_titolo(q, base_url, rows=10, rete_debug=rete,
+                                       catalog_code=RETI[rete].get("catalog_code", "test"))
         max_risultati = 10
         candidati = risultati_base[:max_risultati]
 
