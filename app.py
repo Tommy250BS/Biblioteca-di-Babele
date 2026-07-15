@@ -424,8 +424,17 @@ def verifica_disponibilita(url, biblioteca):
     html = curl_get(url)
     if not html:
         return {"titolo": "—", "autore": "—", "copie": []}
-    m = re.search(r'<h3[^>]*>\s*([\s\S]*?)\s*</h3>', html)
-    titolo = strip_tags(m.group(1)) if m else "—"
+    # Come per l'autore (h4 sotto), non possiamo fidarci ciecamente del PRIMO
+    # <h3> della pagina: reti come Mantovana hanno un modale/help di login
+    # (es. "Quali sono le mie credenziali?") che compare più in alto nel DOM
+    # rispetto al titolo vero del libro. Scartiamo i valori noti non-titolo,
+    # come già si fa con le intestazioni spurie per l'autore.
+    titolo = "—"
+    for h3 in re.findall(r'<h3[^>]*>\s*([\s\S]*?)\s*</h3>', html):
+        cand = strip_tags(h3)
+        if cand and cand.lower() not in ("login", "accedi", "quali sono le mie credenziali?"):
+            titolo = cand
+            break
     autore = "—"
     for h4 in re.findall(r'<h4[^>]*>\s*([\s\S]*?)\s*</h4>', html):
         cand = strip_tags(h4)
