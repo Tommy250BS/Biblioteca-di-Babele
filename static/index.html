@@ -716,6 +716,11 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
 }
 .bdg-cer-btn:hover{box-shadow:0 6px 28px rgba(200,164,74,.45);}
 .bdg-cer-btn:active{transform:scale(.95);}
+.bdg-cer-btns{display:flex;gap:10px;width:100%}
+.bdg-cer-btns .bdg-cer-btn{flex:1;padding-left:0;padding-right:0}
+.bdg-cer-btn-ghost{background:transparent!important;border:1.5px solid rgba(200,164,74,.4);color:var(--oro-2)!important;box-shadow:none!important}
+.bdg-cer-btn-ghost:hover{box-shadow:0 0 0 1px rgba(200,164,74,.2)!important}
+.bdg-cer-btn:disabled{opacity:.55;cursor:default}
 /* canvas particelle cerimonia */
 #bdg-cer-canvas{
   position:fixed;inset:0;z-index:1001;
@@ -1156,6 +1161,7 @@ body.dark .arm-row-count{color:var(--oro-2)}
     </div>
     <div class="psez">
       <div class="sh3">Badge sbloccati e in attesa</div>
+      <button class="bsm bsmg" style="width:100%;margin-bottom:16px" id="btnCondividiPant" onclick="condividiPantheon()">✦ Condividi il mio Pantheon</button>
       <div class="bgr" id="pant-bgr">
         <!-- badge renderizzati da JS -->
       </div>
@@ -1374,7 +1380,10 @@ body.dark .arm-row-count{color:var(--oro-2)}
     </div>
     <div class="bdg-cer-nome" id="bdgCerNome"></div>
     <div class="bdg-cer-desc" id="bdgCerDesc"></div>
-    <button class="bdg-cer-btn" onclick="chiudiBadgeCeremony()">Continua →</button>
+    <div class="bdg-cer-btns">
+      <button class="bdg-cer-btn bdg-cer-btn-ghost" id="btnCerCondividi" onclick="condividiSblocco()">✦ Condividi</button>
+      <button class="bdg-cer-btn" onclick="chiudiBadgeCeremony()">Continua →</button>
+    </div>
   </div>
 </div>
 
@@ -3267,10 +3276,28 @@ function _statGal(ctx,x,y,valore,label){
   ctx.fillText(label.toUpperCase(),x,y+30);
 }
 
-/* Costruisce la card 1080×1350 pronta per essere condivisa o scaricata */
+/* Costruisce la card 1080×1350 pronta per essere condivisa o scaricata.
+   Se la galassia non è mai stata disegnata in questa sessione (l'utente
+   non ha ancora aperto Lapides Miliarii), la renderizza al volo fuori
+   schermo così la condivisione funziona da qualunque pagina — ad esempio
+   subito dopo lo sblocco di un badge nella cerimonia. */
 async function generaImmagineGalassia(){
-  const svgSrc=document.getElementById('svg-galassia')||document.getElementById('svg-galassia-fs');
-  const galImg=await svgToImage(svgSrc);
+  let svgSrc=document.getElementById('svg-galassia')||document.getElementById('svg-galassia-fs');
+  let tempWrap=null;
+  if(!svgSrc){
+    tempWrap=document.createElement('div');
+    tempWrap.style.cssText='position:fixed;left:-9999px;top:-9999px;width:900px;height:900px;pointer-events:none';
+    tempWrap.innerHTML='<svg viewBox="0 0 900 900" xmlns="http://www.w3.org/2000/svg" id="svg-galassia-temp"></svg>';
+    document.body.appendChild(tempWrap);
+    disegnaGalassiaIn('svg-galassia-temp','__headless__');
+    svgSrc=document.getElementById('svg-galassia-temp');
+  }
+  let galImg;
+  try{
+    galImg=await svgToImage(svgSrc);
+  }finally{
+    if(tempWrap)tempWrap.remove();
+  }
 
   const W=1080,H=1350;
   const canvas=document.createElement('canvas');
@@ -3400,6 +3427,174 @@ async function condividiGalassia(){
     console.error('condividiGalassia',e);
     if(btn){btn.disabled=false;btn.textContent=testoOrig;}
   }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   CONDIVISIONE PANTHEON — card con la propria collezione di badge,
+   raggruppata per categoria come nella schermata reale. Non dipende da
+   alcun elemento del DOM (i badge sbloccati vivono in getBadgeUnlocked),
+   quindi funziona da qualsiasi pagina dell'app. */
+const SEGRETI_IDS_SHARE=['walden','macondo','pequod','vronskij','boxer','manoscritto','fuoco_alessandria','mulino_acqua'];
+
+function _sfondoCardCosmico(ctx,W,H){
+  const bgGrad=ctx.createRadialGradient(W/2,H*0.26,60,W/2,H*0.26,Math.max(W,H)*0.85);
+  bgGrad.addColorStop(0,'#152616');
+  bgGrad.addColorStop(1,'#04070a');
+  ctx.fillStyle=bgGrad;ctx.fillRect(0,0,W,H);
+  for(let i=0;i<190;i++){
+    const x=(i*137.5)%W, y=(i*97.3+i*i*.7)%H;
+    const r=i%9===0?1.7:0.8;
+    ctx.globalAlpha=0.12+((i*53)%40)/100;
+    ctx.fillStyle='#fff';
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  ctx.strokeStyle='rgba(200,164,74,.18)';
+  ctx.lineWidth=2;
+  ctx.strokeRect(16,16,W-32,H-32);
+}
+function _intestazioneCard(ctx,W,titolo,sottotitolo){
+  ctx.textAlign='center';
+  ctx.fillStyle='rgba(228,196,94,.75)';
+  ctx.font='700 24px Arial, sans-serif';
+  ctx.fillText('L A   B I B L I O T E C A   D I   B A B E L E',W/2,84);
+  ctx.fillStyle='#f0d98a';
+  ctx.font='italic 300 56px Georgia, serif';
+  ctx.fillText(titolo,W/2,150);
+  ctx.fillStyle='rgba(255,255,255,.42)';
+  ctx.font='22px Georgia, serif';
+  ctx.fillText(sottotitolo,W/2,188);
+}
+function _piePaginaCard(ctx,W,H){
+  ctx.textAlign='center';
+  ctx.fillStyle='rgba(255,255,255,.26)';
+  ctx.font='19px Arial, sans-serif';
+  ctx.fillText('Rete Bibliotecaria Bresciana e Cremonese',W/2,H-46);
+}
+
+async function generaImmaginePantheon(){
+  const unl=getBadgeUnlocked();
+  const W=1080;
+  const cols=6,d=110,gap=26;
+  const gridW=cols*d+(cols-1)*gap;
+  const gridX=(W-gridW)/2;
+  const headerH=250, catHeaderH=52, catSpacing=42, footerH=100;
+
+  // Prima passata: calcola l'altezza totale scorrendo le categorie
+  let cursor=headerH;
+  const layout=BADGE_CATEGORIE.map(cat=>{
+    const ids=cat.ids;
+    const rows=Math.ceil(ids.length/cols);
+    const gridH=rows*d+(rows-1)*gap;
+    const catY=cursor+catHeaderH;
+    cursor=catY+gridH+catSpacing;
+    return{cat,catY,gridH};
+  });
+  const H=Math.ceil(cursor+footerH);
+
+  const canvas=document.createElement('canvas');
+  canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');
+
+  _sfondoCardCosmico(ctx,W,H);
+  const totBadge=TUTTI_BADGE.length;
+  _intestazioneCard(ctx,W,'Il mio Pantheon',`${unl.size}/${totBadge} badge sbloccati`);
+
+  layout.forEach(({cat,catY,gridH})=>{
+    const badgesInCat=cat.ids.map(id=>TUTTI_BADGE.find(b=>b.id===id)).filter(Boolean);
+    const nUnl=badgesInCat.filter(b=>unl.has(b.id)).length;
+
+    ctx.textAlign='left';
+    ctx.fillStyle='rgba(228,196,94,.85)';
+    ctx.font='700 25px Arial, sans-serif';
+    ctx.fillText(`${cat.ico}  ${cat.label}`,gridX,catY-18);
+    ctx.textAlign='right';
+    ctx.fillStyle='rgba(255,255,255,.4)';
+    ctx.font='19px Arial, sans-serif';
+    ctx.fillText(`${nUnl}/${badgesInCat.length}`,gridX+gridW,catY-18);
+    ctx.strokeStyle='rgba(200,164,74,.16)';
+    ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(gridX,catY-6);ctx.lineTo(gridX+gridW,catY-6);ctx.stroke();
+
+    badgesInCat.forEach((b,i)=>{
+      const col=i%cols,row=Math.floor(i/cols);
+      const cx=gridX+col*(d+gap)+d/2;
+      const cy=catY+row*(d+gap)+d/2;
+      const isOk=unl.has(b.id);
+      const isSecret=SEGRETI_IDS_SHARE.includes(b.id);
+
+      const grad=ctx.createRadialGradient(cx,cy,4,cx,cy,d/2);
+      if(isOk){grad.addColorStop(0,'rgba(200,164,74,.32)');grad.addColorStop(1,'rgba(200,164,74,.04)');}
+      else{grad.addColorStop(0,'rgba(255,255,255,.06)');grad.addColorStop(1,'rgba(255,255,255,.015)');}
+      ctx.fillStyle=grad;
+      ctx.beginPath();ctx.arc(cx,cy,d/2,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle=isOk?'rgba(200,164,74,.55)':'rgba(255,255,255,.1)';
+      ctx.lineWidth=isOk?2:1.4;
+      ctx.stroke();
+
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.font=`${Math.round(d*0.4)}px Arial`;
+      ctx.globalAlpha=isOk?1:0.3;
+      ctx.fillText(isOk?b.ico:(isSecret?'?':b.ico),cx,cy+2);
+      ctx.globalAlpha=1;
+      ctx.textBaseline='alphabetic';
+    });
+  });
+
+  _piePaginaCard(ctx,W,H);
+  return canvas;
+}
+
+async function condividiPantheon(){
+  tap('medium');
+  const btn=document.getElementById('btnCondividiPant');
+  const testoOrig=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='Genero…';}
+  try{
+    const canvas=await generaImmaginePantheon();
+    canvas.toBlob(async blob=>{
+      if(!blob){if(btn){btn.disabled=false;btn.textContent=testoOrig;}return;}
+      const file=new File([blob],'il-mio-pantheon-babele.png',{type:'image/png'});
+      const shareData={
+        files:[file],
+        title:'Il mio Pantheon',
+        text:'Ecco il mio Pantheon di badge su La Biblioteca di Babele 🏛️✦'
+      };
+      let condiviso=false;
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        try{await navigator.share(shareData);condiviso=true;}
+        catch(e){if(e.name==='AbortError')condiviso=true;}
+      }
+      if(!condiviso){
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');
+        a.href=url;a.download='il-mio-pantheon-babele.png';
+        document.body.appendChild(a);a.click();a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),4000);
+      }
+      if(btn){btn.disabled=false;btn.textContent=testoOrig;}
+    },'image/png',0.95);
+  }catch(e){
+    console.error('condividiPantheon',e);
+    if(btn){btn.disabled=false;btn.textContent=testoOrig;}
+  }
+}
+
+/* Dispatcher contestuale usato dal bottone "✦ Condividi" nella cerimonia di
+   sblocco: se il badge appena sbloccato è quello di completamento di un
+   braccio della galassia, condivide la galassia (più pertinente in quel
+   momento); per tutti gli altri badge condivide il Pantheon. */
+async function condividiSblocco(){
+  tap('light');
+  const btn=document.getElementById('btnCerCondividi');
+  const testoOrig=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='Genero…';}
+  try{
+    const armBadgeIds=COSTELLAZIONI.map(c=>c.badge);
+    if(_cerBadgeIdCorrente&&armBadgeIds.includes(_cerBadgeIdCorrente))await condividiGalassia();
+    else await condividiPantheon();
+  }catch(e){console.error('condividiSblocco',e);}
+  finally{if(btn){btn.disabled=false;btn.textContent=testoOrig;}}
 }
 
 /* Verifica badge alexandrino (50 ricerche) tramite storico API */
@@ -3548,8 +3743,10 @@ function badgeCeremony(badgeId){
   }
 }
 
+let _cerBadgeIdCorrente=null;
 function showBadgeToast(badge){
   if(!badge)return;
+  _cerBadgeIdCorrente=badge.id;
   badgeCeremony(badge.id);
   const ovr=document.getElementById('bdgCerOvr');
   if(!ovr)return;
