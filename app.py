@@ -318,7 +318,7 @@ def cerca_titolo(titolo, base_url=BASE_URL, rows=10, rete_debug=None, catalog_co
             app.logger.warning("cerca_titolo(%s): nessuna risposta da %s", rete_debug, url)
         return []
     pattern = (r'href="opac/detail/view/' + re.escape(catalog_code)
-               + r':catalog:(\d+)"[\s\S]{0,200}?title="([^"]{5,200})"')
+               + r':catalog:(\d+)"[^>]{0,300}?title="([^"]{5,200})"')
     visti = {}
     for num, raw in re.findall(pattern, html):
         if num not in visti:
