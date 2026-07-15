@@ -63,13 +63,13 @@ RETI = {
         "lib_path": "/la-rete-delle-biblioteche/",
         "catalog_code": "mn",
     },
-    "bergamasca": {
-        "label": "Rete Bibliotecaria Bergamasca",
-        "short": "Bergamasca",
-        "base_url": "https://opacbg.provincia.brescia.it",
-        "lib_path": "/library/",
-        "catalog_code": "test",  # placeholder, da verificare quando la rete sarà raggiungibile
-    },
+   # "bergamasca": {
+   #    "label": "Rete Bibliotecaria Bergamasca",
+   #    "short": "Bergamasca",
+   #    "base_url": "https://opacbg.provincia.brescia.it",
+   #    "lib_path": "/library/",
+   #    "catalog_code": "test",  # placeholder, da verificare quando la rete sarà raggiungibile
+   #},
 }
 RETE_DEFAULT = "rbbc"
 
