@@ -1179,9 +1179,10 @@ body.dark .arm-row-count{color:var(--oro-2)}
       <div class="etn">Lapides Miliarii</div><div class="eto">Dal latino · Pietre miliari</div>
       <p class="etd">Non una cronologia, ma sei archetipi che attraversano i secoli: il viaggio, la tragedia, la lirica, l'utopia, il pensiero, la condizione umana. Ogni braccio della galassia parte da un nucleo antico e si allontana fino alla periferia contemporanea. Ogni opera letta accende una stella; le nebulose sono testi perduti o frammentari; le stelle doppie collegano opere lontane che dialogano tra loro. Completa un braccio per ottenere il suo badge.</p>
     </div>
-    <div style="display:flex;gap:10px;margin-bottom:20px">
-      <button class="bsm bsmp" style="flex:1" onclick="apriLetturaManuale()">+ Aggiungi lettura</button>
+    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+      <button class="bsm bsmp" style="flex:1 1 100%" onclick="apriLetturaManuale()">+ Aggiungi lettura</button>
       <button class="bsm bsmg" style="flex:1" onclick="apriLegenda()">📖 Legenda</button>
+      <button class="bsm bsmg" style="flex:1" id="btnCondividiGal" onclick="condividiGalassia()">✦ Condividi</button>
     </div>
     <div id="cost-container"><!-- costellazioni renderizzate da JS --></div>
   </div>
@@ -3202,6 +3203,203 @@ function apriGalassiaFS(){
   applyFocusBraccio();
   _setupGalPan('fs','#mapFsSvgWrap','#svg-galassia-fs');
   galZoomReset('fs','#svg-galassia-fs');
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   CONDIVISIONE SOCIAL — genera una card immagine della propria galassia
+   Lapides Miliarii (con statistiche) e la condivide via Web Share API,
+   con fallback al download del PNG sui browser che non la supportano.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Converte l'SVG della galassia in un'immagine rasterizzata, incorporando
+   uno stile minimale: l'SVG isolato non ha accesso al foglio di stile della
+   pagina, quindi le regole necessarie (colori, forme delle stelle) vanno
+   duplicate qui. I custom property (--bc, --lbl-c…) sono già inline sugli
+   elementi (impostati via JS), quindi il clone li porta con sé. */
+function svgToImage(svgEl){
+  return new Promise((resolve,reject)=>{
+    if(!svgEl){reject(new Error('SVG galassia non trovato'));return;}
+    const clone=svgEl.cloneNode(true);
+    clone.setAttribute('xmlns','http://www.w3.org/2000/svg');
+    if(!clone.getAttribute('viewBox'))clone.setAttribute('viewBox','0 0 900 900');
+    const bgRect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    bgRect.setAttribute('x','0');bgRect.setAttribute('y','0');
+    bgRect.setAttribute('width','900');bgRect.setAttribute('height','900');
+    bgRect.setAttribute('fill','#05070d');
+    clone.insertBefore(bgRect,clone.firstChild);
+    const style=document.createElementNS('http://www.w3.org/2000/svg','style');
+    style.textContent=`
+      text{font-family:Georgia,serif}
+      .cost-bg-star{fill:rgba(255,255,255,.55)}
+      .cost-core-glow{fill:rgba(228,196,94,.12)}
+      .cost-link{stroke:rgba(201,168,76,.15);stroke-width:1}
+      .cost-link.lit{stroke:var(--bc,#ffe066);stroke-width:2}
+      .cost-link-doppia{stroke:rgba(224,140,90,.22);stroke-width:1.2}
+      .cost-link-doppia.lit{stroke:#ffb877;stroke-width:2.2}
+      .cost-star .spt{fill:rgba(255,255,255,.28);stroke:rgba(255,255,255,.4);stroke-width:.5}
+      .cost-star.lit .spt{fill:var(--bc,#ffe066);stroke:#fff6cf}
+      .cost-star .hit{fill:transparent}
+      .cost-nebula circle.neb-ring{fill:none;stroke:rgba(210,180,255,.55);stroke-width:1}
+      .cost-nebula.lit circle.neb-ring{stroke:rgba(230,205,255,.9)}
+      .cost-nebula circle.neb-glow{fill:rgba(196,168,255,.4)}
+      .cost-nebula.lit circle.neb-glow{fill:rgba(224,200,255,.75)}
+      .cost-nebula circle.neb-core{fill:rgba(238,225,255,.95);stroke:rgba(255,255,255,.6);stroke-width:.6}
+      .cost-nebula.lit circle.neb-core{fill:#fbf7ff}
+      .cost-arm-label{font-weight:600;fill:var(--lbl-c,rgba(228,196,94,.6));opacity:.85}
+    `;
+    clone.insertBefore(style,clone.firstChild);
+    const xml=new XMLSerializer().serializeToString(clone);
+    const svg64=btoa(unescape(encodeURIComponent(xml)));
+    const img=new Image();
+    img.onload=()=>resolve(img);
+    img.onerror=()=>reject(new Error('Errore rendering SVG'));
+    img.src='data:image/svg+xml;base64,'+svg64;
+  });
+}
+
+function _statGal(ctx,x,y,valore,label){
+  ctx.textAlign='center';
+  ctx.fillStyle='#f0d98a';
+  ctx.font='700 46px Georgia, serif';
+  ctx.fillText(valore,x,y);
+  ctx.fillStyle='rgba(255,255,255,.42)';
+  ctx.font='600 17px Arial, sans-serif';
+  ctx.fillText(label.toUpperCase(),x,y+30);
+}
+
+/* Costruisce la card 1080×1350 pronta per essere condivisa o scaricata */
+async function generaImmagineGalassia(){
+  const svgSrc=document.getElementById('svg-galassia')||document.getElementById('svg-galassia-fs');
+  const galImg=await svgToImage(svgSrc);
+
+  const W=1080,H=1350;
+  const canvas=document.createElement('canvas');
+  canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');
+
+  // Sfondo
+  const bgGrad=ctx.createRadialGradient(W/2,H*0.3,60,W/2,H*0.3,W*0.95);
+  bgGrad.addColorStop(0,'#152616');
+  bgGrad.addColorStop(1,'#04070a');
+  ctx.fillStyle=bgGrad;ctx.fillRect(0,0,W,H);
+
+  // Micro stelle di sfondo decorative
+  for(let i=0;i<150;i++){
+    const x=(i*137.5)%W, y=(i*97.3+i*i*.7)%(H*0.92);
+    const r=i%9===0?1.7:0.8;
+    ctx.globalAlpha=0.15+((i*53)%40)/100;
+    ctx.fillStyle='#fff';
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+
+  // Cornice sottile dorata
+  ctx.strokeStyle='rgba(200,164,74,.18)';
+  ctx.lineWidth=2;
+  ctx.strokeRect(16,16,W-32,H-32);
+
+  // Intestazione
+  ctx.textAlign='center';
+  ctx.fillStyle='rgba(228,196,94,.75)';
+  ctx.font='700 24px Arial, sans-serif';
+  ctx.fillText('L A   B I B L I O T E C A   D I   B A B E L E',W/2,84);
+
+  ctx.fillStyle='#f0d98a';
+  ctx.font='italic 300 58px Georgia, serif';
+  ctx.fillText('La mia Galassia Letteraria',W/2,150);
+
+  const nomeUtente=G.u?.nome?G.u.nome.split(' ')[0]:'Lettore';
+  const dataOggi=new Date().toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'});
+  ctx.fillStyle='rgba(255,255,255,.42)';
+  ctx.font='22px Georgia, serif';
+  ctx.fillText(`di ${nomeUtente} · ${dataOggi}`,W/2,188);
+
+  // Galassia (ritagliata in cerchio)
+  const galSize=760, galX=(W-galSize)/2, galY=228;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(W/2,galY+galSize/2,galSize/2,0,Math.PI*2);
+  ctx.closePath();
+  ctx.clip();
+  ctx.drawImage(galImg,galX,galY,galSize,galSize);
+  ctx.restore();
+  ctx.strokeStyle='rgba(200,164,74,.45)';
+  ctx.lineWidth=3;
+  ctx.beginPath();ctx.arc(W/2,galY+galSize/2,galSize/2,0,Math.PI*2);ctx.stroke();
+
+  // Statistiche
+  const lit=getAutoLitStars();
+  const totStars=COSTELLAZIONI.reduce((s,b)=>s+b.stars.length,0);
+  const bracciCompletati=COSTELLAZIONI.filter(b=>b.stars.every(s=>lit.has(s.id))).length;
+  const badgeCount=getBadgeUnlocked().size;
+
+  const statsY=galY+galSize+95;
+  _statGal(ctx,W*0.2,statsY,`${lit.size}/${totStars}`,'Opere illuminate');
+  _statGal(ctx,W*0.5,statsY,`${bracciCompletati}/${COSTELLAZIONI.length}`,'Costellazioni');
+  _statGal(ctx,W*0.8,statsY,`${badgeCount}`,'Badge sbloccati');
+
+  // Riepilogo bracci (due colonne)
+  const legY0=statsY+70, rowH=46, colW=W*0.44, colX=[W*0.09,W*0.53];
+  ctx.textAlign='left';
+  COSTELLAZIONI.forEach((b,i)=>{
+    const col=i%2, row=Math.floor(i/2);
+    const x=colX[col], y=legY0+row*rowH+30;
+    const col2=BRACCIO_COLORI[b.id]?.c||'#ffe066';
+    const n=b.stars.filter(s=>lit.has(s.id)).length;
+    ctx.fillStyle=col2;
+    ctx.beginPath();ctx.arc(x+7,y-8,7,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.85)';
+    ctx.font='600 24px Georgia, serif';
+    ctx.fillText(b.label,x+26,y);
+    ctx.textAlign='right';
+    ctx.fillStyle='rgba(255,255,255,.4)';
+    ctx.font='19px Arial, sans-serif';
+    ctx.fillText(`${n}/${b.stars.length}`,x+colW-14,y);
+    ctx.textAlign='left';
+  });
+
+  // Piè di pagina
+  ctx.textAlign='center';
+  ctx.fillStyle='rgba(255,255,255,.26)';
+  ctx.font='19px Arial, sans-serif';
+  ctx.fillText('Rete Bibliotecaria Bresciana e Cremonese',W/2,H-46);
+
+  return canvas;
+}
+
+async function condividiGalassia(){
+  tap('medium');
+  const btn=document.getElementById('btnCondividiGal');
+  const testoOrig=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='Genero…';}
+  try{
+    const canvas=await generaImmagineGalassia();
+    canvas.toBlob(async blob=>{
+      if(!blob){if(btn){btn.disabled=false;btn.textContent=testoOrig;}return;}
+      const file=new File([blob],'la-mia-galassia-babele.png',{type:'image/png'});
+      const shareData={
+        files:[file],
+        title:'La mia Galassia Letteraria',
+        text:'Ecco la mia Galassia Letteraria su La Biblioteca di Babele ✦📚'
+      };
+      let condiviso=false;
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        try{await navigator.share(shareData);condiviso=true;}
+        catch(e){if(e.name==='AbortError')condiviso=true;}
+      }
+      if(!condiviso){
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');
+        a.href=url;a.download='la-mia-galassia-babele.png';
+        document.body.appendChild(a);a.click();a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),4000);
+      }
+      if(btn){btn.disabled=false;btn.textContent=testoOrig;}
+    },'image/png',0.95);
+  }catch(e){
+    console.error('condividiGalassia',e);
+    if(btn){btn.disabled=false;btn.textContent=testoOrig;}
+  }
 }
 
 /* Verifica badge alexandrino (50 ricerche) tramite storico API */
