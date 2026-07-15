@@ -292,10 +292,12 @@ def _estrai_risultati(html):
                 visti[num] = t
     return visti
 
-def cerca_titolo(titolo, base_url=BASE_URL, rows=10):
+def cerca_titolo(titolo, base_url=BASE_URL, rows=10, rete_debug=None):
     url  = f"{base_url}/opac/search?q={quote_plus(titolo)}&rows={rows}"
     html = curl_get(url)
     if not html:
+        if rete_debug:
+            app.logger.warning("cerca_titolo(%s): nessuna risposta da %s", rete_debug, url)
         return []
     pattern = r'href="opac/detail/view/test:catalog:(\d+)"[\s\S]{0,200}?title="([^"]{5,200})"'
     visti = {}
@@ -304,6 +306,21 @@ def cerca_titolo(titolo, base_url=BASE_URL, rows=10):
             t = strip_tags(raw)
             if t and not t.lower().startswith("vai a"):
                 visti[num] = t
+    if not visti and rete_debug:
+        # Il regex assume che l'identificativo di catalogo nell'URL sia
+        # sempre "test:catalog:" (valido per RBBC). Se una rete usa un
+        # codename diverso (es. "comasca:catalog:"), il link non combacia
+        # anche con risposta HTML perfettamente valida. Cerchiamo il primo
+        # "detail/view" nel corpo per vedere il codename reale usato.
+        idx = html.find("detail/view")
+        contesto = html[max(0, idx - 100):idx + 150] if idx != -1 else None
+        app.logger.warning(
+            "cerca_titolo(%s): risposta da %s (%d caratteri), 0 risultati estratti — "
+            "'detail/view' %s, contesto: %r",
+            rete_debug, url, len(html),
+            "presente" if idx != -1 else "ASSENTE",
+            contesto
+        )
     return [{"titolo": tit, "url": f"{base_url}/opac/detail/view/test:catalog:{num}"}
             for num, tit in list(visti.items())[:rows]]
 
@@ -352,16 +369,20 @@ def get_biblioteche(rete):
         )
     nomi = _estrai_biblioteche(html) if html else []
     if html and not nomi:
-        # "libpage/id" assente dal corpo = quasi certamente la lista non è
-        # nell'HTML grezzo (rendering lato client, cookie-wall, redirect a
-        # una pagina di consenso, bot-detection...), non un regex sbagliato.
-        # Presente ma 0 match = il regex va rivisto sul formato reale.
-        ha_libpage = "libpage/id" in html
+        # Il primo tentativo mostrava i primi 500 caratteri della pagina, che
+        # sono sempre e solo l'<head> — inutile per capire perché il regex
+        # non cattura i link, che stanno più in basso nel corpo. Ora
+        # mostriamo il contesto reale attorno al primo "libpage/id" trovato,
+        # cioè esattamente il markup che il regex deve interpretare.
+        idx = html.find("libpage/id")
+        if idx == -1:
+            contesto = None
+        else:
+            contesto = html[max(0, idx - 150):idx + 150]
         app.logger.warning(
-            "get_biblioteche(%s): risposta da %s (%d caratteri), 'libpage/id' %s nel corpo — snippet: %r",
-            rete, url, len(html),
-            "presente" if ha_libpage else "ASSENTE",
-            html[:500]
+            "get_biblioteche(%s): risposta da %s (%d caratteri), 0 biblioteche estratte — "
+            "contesto attorno al primo 'libpage/id': %r",
+            rete, url, len(html), contesto
         )
 
     if nomi:
@@ -539,7 +560,7 @@ def api_search():
         return jsonify({"error": "Parametri mancanti"}), 400
 
     try:
-        risultati_base = cerca_titolo(q, base_url, rows=10)
+        risultati_base = cerca_titolo(q, base_url, rows=10, rete_debug=rete)
         max_risultati = 10
         candidati = risultati_base[:max_risultati]
 
