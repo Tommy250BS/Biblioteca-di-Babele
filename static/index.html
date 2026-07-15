@@ -1043,7 +1043,7 @@ body.dark .arm-row-count{color:var(--oro-2)}
   <header class="hdr">
     <div class="hbar">
       <button class="hbtn" onclick="vai('shome')">←</button>
-      <div class="hbrand"><h1>Alexandria</h1><p>Catalogo RBBC</p></div>
+      <div class="hbrand"><h1>Alexandria</h1><p id="alexCatLabel">Catalogo RBBC</p></div>
       <div class="bchip" id="bchip" onclick="apriSh('shcb')">
         <span class="bchip-dot"></span><span id="chipn">—</span>
       </div>
@@ -1489,7 +1489,30 @@ const _bibListePerContesto={};
 async function preparaCampoBiblioteca(ctx,rete){
   const lista=await caricaBiblioteche(rete);
   _bibListePerContesto[ctx]=lista;
+  aggiornaPlaceholderBib(ctx,rete);
   return lista;
+}
+
+/* Esempi curati per RBBC (rete di default): nomi di biblioteche note e
+   riconoscibili, più efficaci come esempio dei primi risultati in ordine
+   alfabetico. Per le altre reti non abbiamo una curatela manuale, quindi il
+   placeholder viene generato al volo dai primi nomi della lista caricata. */
+const PLACEHOLDER_RBBC={gb:'Es. Rezzato, Brescia…',rb:'Es. Rezzato, Chiari…',cbib:'Es. Rezzato, Brescia…',pbi:'Es. Rezzato…'};
+
+/* Aggiorna il placeholder di esempio (es. "Es. Rezzato, Chiari…") del campo
+   di ricerca biblioteca collegato a un contesto: per RBBC resta l'esempio
+   curato, per le altre reti viene generato dai nomi reali appena caricati —
+   così l'esempio è sempre coerente con la rete effettivamente selezionata. */
+function aggiornaPlaceholderBib(ctx,rete){
+  const inputId=RETE_CTX_INPUT[ctx];
+  if(!inputId)return;
+  const inp=document.getElementById(inputId);
+  if(!inp)return;
+  if(rete==='rbbc'){inp.placeholder=PLACEHOLDER_RBBC[inputId]||'Cerca la tua biblioteca…';return;}
+  const lista=_bibListePerContesto[ctx]||[];
+  if(lista.length>=2)inp.placeholder=`Es. ${lista[0]}, ${lista[1]}…`;
+  else if(lista.length===1)inp.placeholder=`Es. ${lista[0]}…`;
+  else inp.placeholder='Cerca la tua biblioteca…';
 }
 
 /* Aggiorna tutti i selettori di rete presenti nel DOM (pulsanti a chip)
@@ -2014,6 +2037,8 @@ function aggiornaSottotitoloRete(){
   const info=RETI[G.rete]||RETI.rbbc;
   const el=document.querySelector('.hsubt');
   if(el)el.textContent=info.label;
+  const cat=document.getElementById('alexCatLabel');
+  if(cat)cat.textContent=`Catalogo ${info.short}`;
 }
 
 function apriSh(id){
@@ -3530,7 +3555,7 @@ async function generaImmagineGalassia(){
   ctx.textAlign='center';
   ctx.fillStyle='rgba(255,255,255,.26)';
   ctx.font='19px Arial, sans-serif';
-  ctx.fillText('Rete Bibliotecaria Bresciana e Cremonese',W/2,H-46);
+  ctx.fillText((RETI[G.rete]||RETI.rbbc).label,W/2,H-46);
 
   return canvas;
 }
@@ -3607,10 +3632,11 @@ function _intestazioneCard(ctx,W,titolo,sottotitolo){
   ctx.fillText(sottotitolo,W/2,188);
 }
 function _piePaginaCard(ctx,W,H){
+  const info=RETI[G.rete]||RETI.rbbc;
   ctx.textAlign='center';
   ctx.fillStyle='rgba(255,255,255,.26)';
   ctx.font='19px Arial, sans-serif';
-  ctx.fillText('Rete Bibliotecaria Bresciana e Cremonese',W/2,H-46);
+  ctx.fillText(info.label,W/2,H-46);
 }
 
 async function generaImmaginePantheon(){
