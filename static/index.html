@@ -92,7 +92,8 @@ body.dark .imval,body.dark .imarr,body.dark .cc,
 body.dark .bric,
 body.dark .vp,
 body.dark .dde,body.dark .ci,body.dark .cri,body.dark .adv span,
-body.dark .cost-info-a,body.dark .cost-prog-txt{color:var(--ink3)}
+body.dark .cost-info-a,body.dark .cost-prog-txt,
+body.dark .leg-desc,body.dark .leg-arm-tema{color:var(--ink3)}
 body.dark .bric{border-color:var(--av3)}
 body.dark .bric:hover{border-color:var(--bosco-2);color:var(--oro-2)}
 body.dark .sh3{color:var(--oro-2);border-bottom-color:var(--av3)}
@@ -715,6 +716,11 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
 }
 .bdg-cer-btn:hover{box-shadow:0 6px 28px rgba(200,164,74,.45);}
 .bdg-cer-btn:active{transform:scale(.95);}
+.bdg-cer-btns{display:flex;gap:10px;width:100%}
+.bdg-cer-btns .bdg-cer-btn{flex:1;padding-left:0;padding-right:0}
+.bdg-cer-btn-ghost{background:transparent!important;border:1.5px solid rgba(200,164,74,.4);color:var(--oro-2)!important;box-shadow:none!important}
+.bdg-cer-btn-ghost:hover{box-shadow:0 0 0 1px rgba(200,164,74,.2)!important}
+.bdg-cer-btn:disabled{opacity:.55;cursor:default}
 /* canvas particelle cerimonia */
 #bdg-cer-canvas{
   position:fixed;inset:0;z-index:1001;
@@ -730,9 +736,14 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
 .cost-badge-hint{font-size:.68rem;color:#bbb;margin-bottom:10px;font-style:italic}
 .cost-wrap{background:#05070d;border-radius:var(--r);overflow:hidden;position:relative;border:1px solid rgba(201,168,76,.1);background-image:radial-gradient(ellipse at 50% 0%,rgba(40,55,90,.35) 0%,transparent 60%)}
 .cost-wrap svg{width:100%;display:block}
+#svg-galassia,#svg-galassia-fs{transition:transform .18s var(--ease-out-expo);touch-action:none}
+.cost-zoom-ctrl{position:absolute;top:8px;right:8px;z-index:10;display:flex;flex-direction:column;gap:4px}
+.cost-zbtn{width:28px;height:28px;background:rgba(15,34,16,.72);border:1px solid rgba(201,168,76,.3);border-radius:6px;color:var(--oro);font-size:.9rem;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent;font-family:'Inter',sans-serif;line-height:1}
+.cost-zbtn:active{background:rgba(15,34,16,.9)}
+.cost-zbtn-reset{font-size:.68rem}
 /* collegamenti tra stelle */
 .cost-link{stroke:rgba(201,168,76,.15);stroke-width:1;stroke-dasharray:4 3;transition:stroke .8s,stroke-width .8s,filter .8s}
-.cost-link.lit{stroke:rgba(255,224,102,.75);stroke-width:1.8;stroke-dasharray:none;filter:drop-shadow(0 0 4px rgba(255,224,102,.65))}
+.cost-link.lit{stroke:var(--bc,rgba(255,224,102,.75));stroke-width:1.8;stroke-dasharray:none;filter:drop-shadow(0 0 4px var(--bc-glow,rgba(255,224,102,.65)))}
 /* stelline a 5 punte */
 .cost-star{cursor:pointer}
 .cost-star .spt{
@@ -744,16 +755,16 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
   transform-box:fill-box;
 }
 .cost-star.lit .spt{
-  fill:#ffe066;
+  fill:var(--bc,#ffe066);
   stroke:#fff6cf;
-  filter:drop-shadow(0 0 5px #ffe066) drop-shadow(0 0 12px rgba(255,200,50,.5));
+  filter:drop-shadow(0 0 5px var(--bc,#ffe066)) drop-shadow(0 0 12px var(--bc-glow,rgba(255,200,50,.5)));
   animation:twinkle 2.4s ease-in-out infinite;
 }
 .cost-star .hit{fill:transparent;cursor:pointer}
 @keyframes twinkle{
-  0%,100%{opacity:1;filter:drop-shadow(0 0 5px #ffe066) drop-shadow(0 0 12px rgba(255,200,50,.5));transform:scale(1)}
-  40%{opacity:.7;filter:drop-shadow(0 0 2px #ffe066) drop-shadow(0 0 4px rgba(255,200,50,.3));transform:scale(.94)}
-  70%{opacity:.95;filter:drop-shadow(0 0 8px #ffe066) drop-shadow(0 0 18px rgba(255,200,50,.6));transform:scale(1.04)}
+  0%,100%{opacity:1;filter:drop-shadow(0 0 5px var(--bc,#ffe066)) drop-shadow(0 0 12px var(--bc-glow,rgba(255,200,50,.5)));transform:scale(1)}
+  40%{opacity:.7;filter:drop-shadow(0 0 2px var(--bc,#ffe066)) drop-shadow(0 0 4px var(--bc-glow,rgba(255,200,50,.5)));transform:scale(.94)}
+  70%{opacity:.95;filter:drop-shadow(0 0 8px var(--bc,#ffe066)) drop-shadow(0 0 18px var(--bc-glow,rgba(255,200,50,.6)));transform:scale(1.04)}
 }
 /* micro stelle di sfondo */
 .cost-bg-star{fill:rgba(255,255,255,.55);animation:bgTwinkle var(--dur,3s) ease-in-out infinite var(--del,0s)}
@@ -763,32 +774,34 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
 .cost-link-doppia.lit{stroke:#ffb877;stroke-width:2;stroke-dasharray:none;filter:drop-shadow(0 0 5px rgba(255,184,119,.7))}
 /* Galassia: nuclei di braccio — alone proprio più intenso */
 .cost-star.nucleo .spt{stroke-width:.7}
-.cost-star.nucleo.lit .spt{filter:drop-shadow(0 0 7px #ffe066) drop-shadow(0 0 16px rgba(255,200,50,.65))}
+.cost-star.nucleo.lit .spt{filter:drop-shadow(0 0 7px var(--bc,#ffe066)) drop-shadow(0 0 16px var(--bc-glow,rgba(255,200,50,.65)))}
 /* Galassia: nebulose — cerchio sfumato invece di stella a punte */
 .cost-nebula{cursor:pointer}
-.cost-nebula circle.neb-glow{fill:rgba(180,160,255,.16);transition:fill .8s,opacity .8s}
-.cost-nebula.lit circle.neb-glow{fill:rgba(200,180,255,.4);animation:nebPulse 3.2s ease-in-out infinite}
-.cost-nebula circle.neb-core{fill:rgba(220,205,255,.5);transition:fill .8s}
-.cost-nebula.lit circle.neb-core{fill:#e9defe;filter:drop-shadow(0 0 6px rgba(210,190,255,.8))}
-@keyframes nebPulse{0%,100%{opacity:.75}50%{opacity:1}}
+.cost-nebula circle.neb-ring{fill:none;stroke:rgba(210,180,255,.55);stroke-width:1;stroke-dasharray:2.5 2.5;transition:stroke .8s,opacity .8s}
+.cost-nebula.lit circle.neb-ring{stroke:rgba(230,205,255,.85);stroke-dasharray:none}
+.cost-nebula circle.neb-glow{fill:rgba(196,168,255,.4);transition:fill .8s,opacity .8s}
+.cost-nebula.lit circle.neb-glow{fill:rgba(224,200,255,.7);animation:nebPulse 3.2s ease-in-out infinite}
+.cost-nebula circle.neb-core{fill:rgba(238,225,255,.95);stroke:rgba(255,255,255,.6);stroke-width:.6;transition:fill .8s}
+.cost-nebula.lit circle.neb-core{fill:#fbf7ff;filter:drop-shadow(0 0 8px rgba(224,200,255,.95)) drop-shadow(0 0 18px rgba(196,168,255,.6))}
+@keyframes nebPulse{0%,100%{opacity:.8}50%{opacity:1}}
 /* Galassia: etichette dei bracci */
-.cost-arm-label{font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:600;fill:rgba(228,196,94,.55);letter-spacing:.04em}
+.cost-arm-label{font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:600;fill:var(--lbl-c,rgba(228,196,94,.55));opacity:.8;letter-spacing:.04em}
 .cost-core-glow{fill:rgba(228,196,94,.1)}
 /* Riepilogo bracci sotto la mappa */
 .arm-summary{display:flex;flex-direction:column;gap:6px;margin-top:16px}
 .arm-row{display:flex;align-items:center;gap:10px;background:#fff;border-radius:var(--rs);padding:9px 12px;box-shadow:var(--sh-s);cursor:pointer;transition:box-shadow .2s,transform .15s var(--ease-spring)}
 .arm-row:active{transform:scale(.98)}
 body.dark .arm-row{background:#121f13}
-.arm-row.done{border-left:3px solid var(--oro)}
+.arm-row.done{border-left:3px solid var(--bc,var(--oro))}
 .arm-row-dot{width:8px;height:8px;border-radius:50%;background:var(--av3);flex-shrink:0}
-.arm-row.done .arm-row-dot{background:var(--oro);box-shadow:0 0 5px rgba(200,164,74,.7)}
+.arm-row.done .arm-row-dot{background:var(--bc,var(--oro));box-shadow:0 0 5px var(--bc-glow,rgba(200,164,74,.7))}
 .arm-row-txt{flex:1;min-width:0}
 .arm-row-nome{font-family:'Cormorant Garamond',serif;font-size:.92rem;font-weight:600;color:var(--ink)}
 .arm-row-sub{font-size:.66rem;color:#aaa}
 .arm-row-count{font-size:.68rem;font-weight:700;color:var(--bosco-2);flex-shrink:0}
 body.dark .arm-row-count{color:var(--oro-2)}
-.arm-row.active{box-shadow:0 0 0 2px var(--oro),var(--sh-m)}
-.arm-row.active .arm-row-dot{background:var(--oro);box-shadow:0 0 6px rgba(200,164,74,.8)}
+.arm-row.active{box-shadow:0 0 0 2px var(--bc,var(--oro)),var(--sh-m)}
+.arm-row.active .arm-row-dot{background:var(--bc,var(--oro));box-shadow:0 0 6px var(--bc-glow,rgba(200,164,74,.8))}
 .cost-arm-label{cursor:pointer;transition:opacity .35s ease,fill .35s ease}
 .cost-arm-label:hover{fill:rgba(228,196,94,.85)}
 .cost-arm-label.active{fill:var(--oro-2);font-weight:700}
@@ -826,6 +839,20 @@ body.dark .arm-row-count{color:var(--oro-2)}
 @keyframes shup{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
 .shhnd{width:36px;height:4px;background:var(--av3);border-radius:2px;margin:14px auto 18px}
 .shtit{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:600;color:var(--bosco);margin-bottom:16px}
+.sh-close{width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:var(--av2);border:1px solid var(--av3);border-radius:50%;color:var(--ink3);font-size:.82rem;cursor:pointer;flex-shrink:0;transition:background .2s,color .2s}
+.sh-close:hover{background:var(--av3);color:var(--ink)}
+.leg-sec{margin-bottom:18px}
+.leg-sec-tit{font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--oro);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--av3)}
+.leg-item{display:flex;gap:12px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--av2)}
+.leg-item:last-child{border-bottom:none}
+.leg-ico{width:24px;flex-shrink:0;text-align:center;font-size:1rem;color:var(--oro);padding-top:1px}
+.leg-txt{flex:1;min-width:0}
+.leg-tit{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:.87rem;color:var(--ink);margin-bottom:2px}
+.leg-desc{font-size:.74rem;color:#999;line-height:1.5}
+.leg-arm-row{display:flex;align-items:flex-start;gap:10px;padding:7px 0}
+.leg-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.leg-arm-nome{font-family:'Cormorant Garamond',serif;font-size:.9rem;font-weight:600;color:var(--ink)}
+.leg-arm-tema{font-size:.72rem;color:#aaa;margin-top:1px}
 
 .ec{background:#fff;border-radius:0 var(--r) var(--r) 0;border-left:3px solid var(--oro);box-shadow:var(--sh-m);overflow:hidden;margin-bottom:16px;animation:up .3s ease both}
 .ech{padding:16px 16px 12px}
@@ -1139,6 +1166,7 @@ body.dark .arm-row-count{color:var(--oro-2)}
     </div>
     <div class="psez">
       <div class="sh3">Badge sbloccati e in attesa</div>
+      <button class="bsm bsmg" style="width:100%;margin-bottom:16px" id="btnCondividiPant" onclick="condividiPantheon()">✦ Condividi il mio Pantheon</button>
       <div class="bgr" id="pant-bgr">
         <!-- badge renderizzati da JS -->
       </div>
@@ -1162,7 +1190,11 @@ body.dark .arm-row-count{color:var(--oro-2)}
       <div class="etn">Lapides Miliarii</div><div class="eto">Dal latino · Pietre miliari</div>
       <p class="etd">Non una cronologia, ma sei archetipi che attraversano i secoli: il viaggio, la tragedia, la lirica, l'utopia, il pensiero, la condizione umana. Ogni braccio della galassia parte da un nucleo antico e si allontana fino alla periferia contemporanea. Ogni opera letta accende una stella; le nebulose sono testi perduti o frammentari; le stelle doppie collegano opere lontane che dialogano tra loro. Completa un braccio per ottenere il suo badge.</p>
     </div>
-    <button class="bsm bsmp" style="margin-bottom:20px" onclick="apriLetturaManuale()">+ Aggiungi lettura passata</button>
+    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+      <button class="bsm bsmp" style="flex:1 1 100%" onclick="apriLetturaManuale()">+ Aggiungi lettura</button>
+      <button class="bsm bsmg" style="flex:1" onclick="apriLegenda()">📖 Legenda</button>
+      <button class="bsm bsmg" style="flex:1" id="btnCondividiGal" onclick="condividiGalassia()">✦ Condividi</button>
+    </div>
     <div id="cost-container"><!-- costellazioni renderizzate da JS --></div>
   </div>
 </div>
@@ -1269,6 +1301,68 @@ body.dark .arm-row-count{color:var(--oro-2)}
   </div>
 </div>
 
+<!-- LEGENDA LAPIDES MILIARII -->
+<div class="shovr" id="shlegenda" onclick="chiudiSh('shlegenda',event)">
+  <div class="sh">
+    <div class="shhnd"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div class="shtit" style="margin-bottom:0">📖 Legenda della galassia</div>
+      <button class="sh-close" onclick="chiudiSh('shlegenda')" title="Chiudi">✕</button>
+    </div>
+
+    <div class="leg-sec">
+      <div class="leg-sec-tit">I sei bracci</div>
+      <div id="legArmColors"></div>
+    </div>
+
+    <div class="leg-sec">
+      <div class="leg-sec-tit">Tipi di stella</div>
+      <div class="leg-item">
+        <div class="leg-ico">✦</div>
+        <div class="leg-txt"><div class="leg-tit">Nucleo</div><div class="leg-desc">La stella più grande, all'origine del braccio: l'opera fondativa dell'archetipo.</div></div>
+      </div>
+      <div class="leg-item">
+        <div class="leg-ico">★</div>
+        <div class="leg-txt"><div class="leg-tit">Stella</div><div class="leg-desc">Un'opera successiva lungo il braccio, via via più lontana dal nucleo nel tempo.</div></div>
+      </div>
+      <div class="leg-item" style="border-bottom:none">
+        <div class="leg-ico" style="color:#c4a8ff">✧</div>
+        <div class="leg-txt"><div class="leg-tit">Nebulosa</div><div class="leg-desc">Un alone violaceo sfumato: un testo perduto o giunto solo in frammenti.</div></div>
+      </div>
+    </div>
+
+    <div class="leg-sec">
+      <div class="leg-sec-tit">Collegamenti</div>
+      <div class="leg-item">
+        <div class="leg-ico">┈</div>
+        <div class="leg-txt"><div class="leg-tit">Spina dorsale</div><div class="leg-desc">Collega le stelle consecutive dello stesso braccio, nel suo colore.</div></div>
+      </div>
+      <div class="leg-item" style="border-bottom:none">
+        <div class="leg-ico" style="color:#ffb877">╌</div>
+        <div class="leg-txt"><div class="leg-tit">Stella doppia</div><div class="leg-desc">Un collegamento caldo, anche fra bracci diversi: opere che dialogano tra loro.</div></div>
+      </div>
+    </div>
+
+    <div class="leg-sec" style="margin-bottom:6px">
+      <div class="leg-sec-tit">Come esplorare</div>
+      <div class="leg-item">
+        <div class="leg-ico">👆</div>
+        <div class="leg-txt"><div class="leg-tit">Tocca una stella</div><div class="leg-desc">Vedi titolo, autore e link al catalogo — e puoi segnarla subito come letta, da lì.</div></div>
+      </div>
+      <div class="leg-item">
+        <div class="leg-ico">🔍</div>
+        <div class="leg-txt"><div class="leg-tit">Zoom e schermo intero</div><div class="leg-desc">Usa + / − / ⟳ per ingrandire e trascinare, oppure ⤢ per aprire la mappa a tutto schermo.</div></div>
+      </div>
+      <div class="leg-item" style="border-bottom:none">
+        <div class="leg-ico">🏅</div>
+        <div class="leg-txt"><div class="leg-tit">Badge</div><div class="leg-desc">Completa tutte le stelle di un braccio per sbloccare il suo badge nel Pantheon.</div></div>
+      </div>
+    </div>
+
+    <button class="bsm bsmg" style="width:100%" onclick="chiudiSh('shlegenda')">Chiudi</button>
+  </div>
+</div>
+
 <!-- MAPPA FULLSCREEN OVERLAY -->
 <div class="map-fs-ovr" id="mapFsOvr">
   <div class="map-fs-bar">
@@ -1293,7 +1387,10 @@ body.dark .arm-row-count{color:var(--oro-2)}
     </div>
     <div class="bdg-cer-nome" id="bdgCerNome"></div>
     <div class="bdg-cer-desc" id="bdgCerDesc"></div>
-    <button class="bdg-cer-btn" onclick="chiudiBadgeCeremony()">Continua →</button>
+    <div class="bdg-cer-btns">
+      <button class="bdg-cer-btn bdg-cer-btn-ghost" id="btnCerCondividi" onclick="condividiSblocco()">✦ Condividi</button>
+      <button class="bdg-cer-btn" onclick="chiudiBadgeCeremony()">Continua →</button>
+    </div>
   </div>
 </div>
 
@@ -1343,11 +1440,10 @@ let G={u:null,bib:'',rete:'rbbc',letti:new Set(),lettiData:[]};
 /* ── RETI BIBLIOTECARIE ──────────────────────────────────────────────────
    RBBC resta con l'elenco biblioteche statico qui sotto (BIBS): è già
    testato e non c'è motivo di introdurre una dipendenza di rete in più per
-   qualcosa che funziona. Le altre reti (per ora Comasca, come rete di prova)
-   caricano l'elenco biblioteche dinamicamente da /api/biblioteche — vedi
-   caricaBiblioteche(). L'elenco delle reti disponibili viene comunque letto
-   da /api/reti al boot, così attivare Mantovana/Bergamasca in futuro non
-   richiede toccare il frontend: basta scommentarle in app.py. */
+   qualcosa che funziona. Le altre reti caricano l'elenco biblioteche
+   dinamicamente da /api/biblioteche — vedi caricaBiblioteche(). L'elenco
+   delle reti disponibili viene comunque letto da /api/reti al boot, così
+   attivare nuove reti in futuro non richiede toccare il frontend. */
 let RETI={rbbc:{label:'Rete Bibliotecaria Bresciana e Cremonese',short:'RBBC'}};
 let _retiCaricate=false;
 async function caricaReti(){
@@ -1388,9 +1484,7 @@ async function caricaBiblioteche(rete){
 /* Elenco "correntemente attivo" per gli autocomplete: viene ripopolato da
    selezionaRete()/preparaCampoBiblioteca() ogni volta che cambia la rete
    scelta in un dato form. Tenuto per-contesto (non globale) perché più
-   form possono avere reti diverse selezionate nello stesso momento
-   (es. si sta cambiando rete dal profilo mentre si è ancora iscritti
-   a un'altra rete). */
+   form possono avere reti diverse selezionate nello stesso momento. */
 const _bibListePerContesto={};
 async function preparaCampoBiblioteca(ctx,rete){
   const lista=await caricaBiblioteche(rete);
@@ -1883,8 +1977,7 @@ function setupAC(inpId,ddId,onSel,ctx){
   // ad ogni tasto premuto da _bibListePerContesto[ctx], che selezionaRete()
   // aggiorna quando l'utente cambia rete: così l'autocomplete resta sempre
   // coerente con la rete scelta in quel form. Senza contesto si usa BIBS
-  // (comportamento invariato, non dovrebbe più capitare ma resta come
-  // fallback di sicurezza).
+  // (fallback di sicurezza).
   const listaAttuale=()=>ctx?(_bibListePerContesto[ctx]||[]):BIBS;
   inp.addEventListener('input',()=>{
     const q=inp.value.trim();onSel(null);ih=-1;
@@ -1911,8 +2004,7 @@ setupAC('pbi','ddpb',()=>{},'cambiabibProf');
 
 /* Precarica la lista RBBC (sincrona, nessuna chiamata di rete) nei contesti
    dei form, così l'autocomplete funziona da subito anche prima che l'utente
-   tocchi il selettore di rete — il default resta RBBC come prima di questa
-   modifica. */
+   tocchi il selettore di rete — il default resta RBBC. */
 ['guest','registra','cambiabib','cambiabibProf'].forEach(ctx=>{preparaCampoBiblioteca(ctx,'rbbc');});
 renderSelettoriRete();
 
@@ -1976,6 +2068,23 @@ async function togLetto(btn,libro){
     }
     renderCostellazioni();renderPantheon();
   }catch(e){console.error('togLetto',e);}
+}
+function apriLegenda(){
+  tap('light');
+  const cont=document.getElementById('legArmColors');
+  if(cont){
+    cont.innerHTML=COSTELLAZIONI.map(b=>{
+      const col=BRACCIO_COLORI[b.id]||BRACCIO_COLORI.ursa_maior;
+      return `<div class="leg-arm-row">
+        <span class="leg-dot" style="background:${col.c};box-shadow:0 0 6px ${col.g}"></span>
+        <div>
+          <div class="leg-arm-nome">${b.label} <span style="font-weight:400;color:#aaa">— ${b.nome}</span></div>
+          <div class="leg-arm-tema">${b.tema}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  apriSh('shlegenda');
 }
 function apriLetturaManuale(){
   if(!G.u){vai('sa','login');return;}
@@ -2680,6 +2789,16 @@ const COSTELLAZIONI=[
   },
 ];
 
+/* Colore distintivo per ciascun braccio/costellazione: usato su stelle, link ed etichette */
+const BRACCIO_COLORI={
+  ursa_maior:{c:'#ffe066',g:'rgba(255,224,102,.55)'},
+  phoenix:   {c:'#ff7a5c',g:'rgba(255,122,92,.55)'},
+  cygnus:    {c:'#ff8fd0',g:'rgba(255,143,208,.55)'},
+  pegasus:   {c:'#6fd6ff',g:'rgba(111,214,255,.55)'},
+  orion:     {c:'#7dffb0',g:'rgba(125,255,176,.55)'},
+  andromeda: {c:'#b39dff',g:'rgba(179,157,255,.55)'},
+};
+
 /* "Stelle Doppie": coppie di opere — anche di bracci diversi — che dialogano
    tra loro. Disegnate come collegamento dorato extra sulla mappa. Per
    aggiungerne una basta una riga qui: [id1, id2]. */
@@ -2903,26 +3022,71 @@ function toggleFocusBraccio(id){
   applyFocusBraccio();
 }
 function applyFocusBraccio(){
-  const svg=document.getElementById('svg-galassia');
-  if(svg)svg.querySelectorAll('[data-braccio]').forEach(el=>{
-    el.style.opacity=!_bracciFocus?'':(el.dataset.braccio===_bracciFocus?'1':'.15');
+  ['svg-galassia','svg-galassia-fs'].forEach(id=>{
+    const svg=document.getElementById(id);
+    if(svg)svg.querySelectorAll('[data-braccio]').forEach(el=>{
+      el.style.opacity=!_bracciFocus?'':(el.dataset.braccio===_bracciFocus?'1':'.15');
+    });
   });
   document.querySelectorAll('.cost-arm-label').forEach(t=>t.classList.toggle('active',t.dataset.braccio===_bracciFocus));
   document.querySelectorAll('.arm-row').forEach(r=>r.classList.toggle('active',r.dataset.braccio===_bracciFocus));
 }
 
+/* ── ZOOM & PAN galassia (usato sia inline che fullscreen) ── */
+const _galZoomState={main:{scale:1,tx:0,ty:0},fs:{scale:1,tx:0,ty:0}};
+function _applyGalZoom(ctx,svgSel){
+  const st=_galZoomState[ctx];
+  const svg=document.querySelector(svgSel);
+  if(!svg)return;
+  svg.style.transform=`translate(${st.tx}px,${st.ty}px) scale(${st.scale})`;
+  svg.style.transformOrigin='50% 50%';
+}
+function galZoom(ctx,svgSel,dir){
+  tap('light');
+  const st=_galZoomState[ctx];
+  st.scale=Math.max(1,Math.min(2.6,+(st.scale+dir*0.35).toFixed(2)));
+  if(st.scale===1){st.tx=0;st.ty=0;}
+  _applyGalZoom(ctx,svgSel);
+}
+function galZoomReset(ctx,svgSel){
+  tap('light');
+  _galZoomState[ctx]={scale:1,tx:0,ty:0};
+  _applyGalZoom(ctx,svgSel);
+}
+function _setupGalPan(ctx,wrapSel,svgSel){
+  const wrap=document.querySelector(wrapSel);
+  if(!wrap)return;
+  let dragging=false,sx=0,sy=0,ox=0,oy=0;
+  wrap.onpointerdown=e=>{
+    if(_galZoomState[ctx].scale<=1)return;
+    dragging=true;sx=e.clientX;sy=e.clientY;ox=_galZoomState[ctx].tx;oy=_galZoomState[ctx].ty;
+    wrap.setPointerCapture(e.pointerId);
+  };
+  wrap.onpointermove=e=>{
+    if(!dragging)return;
+    _galZoomState[ctx].tx=ox+(e.clientX-sx);_galZoomState[ctx].ty=oy+(e.clientY-sy);
+    _applyGalZoom(ctx,svgSel);
+  };
+  wrap.onpointerup=()=>{dragging=false;};
+  wrap.onpointercancel=()=>{dragging=false;};
+}
+
 function renderCostellazioni(){
   const cont=document.getElementById('cost-container');if(!cont)return;
-  const litAuto=getAutoLitStars();
-  const lit=litAuto;
-  const pos=calcolaPosizioniGalassia();
   cont.innerHTML='';
   _bracciFocus=null;
 
   // ── Struttura: una mappa unica + pannello info condiviso + riepilogo bracci ──
   const mapWrap=document.createElement('div');
   mapWrap.className='cost-wrap';
-  mapWrap.innerHTML=`<svg viewBox="0 0 900 900" xmlns="http://www.w3.org/2000/svg" id="svg-galassia"></svg>`;
+  mapWrap.innerHTML=`
+    <div class="cost-zoom-ctrl">
+      <button class="cost-zbtn" onclick="galZoom('main','#svg-galassia',1)" title="Zoom avanti">+</button>
+      <button class="cost-zbtn cost-zbtn-reset" onclick="galZoomReset('main','#svg-galassia')" title="Reset zoom">⟳</button>
+      <button class="cost-zbtn" onclick="galZoom('main','#svg-galassia',-1)" title="Zoom indietro">−</button>
+    </div>
+    <button class="map-expand" style="left:8px;right:auto" onclick="apriGalassiaFS()" title="Schermo intero">⤢</button>
+    <svg viewBox="0 0 900 900" xmlns="http://www.w3.org/2000/svg" id="svg-galassia"></svg>`;
   cont.appendChild(mapWrap);
 
   const infoBox=document.createElement('div');
@@ -2932,11 +3096,27 @@ function renderCostellazioni(){
 
   const summary=document.createElement('div');
   summary.className='arm-summary';
+  summary.id='arm-summary-main';
   cont.appendChild(summary);
 
-  const svg=document.getElementById('svg-galassia');
+  disegnaGalassiaIn('svg-galassia','ci-galassia');
+  renderArmSummary(summary,'ci-galassia',mapWrap);
+  _setupGalPan('main','.cost-wrap','#svg-galassia');
+  galZoomReset('main','#svg-galassia');
+}
 
-  // Micro-stelle di sfondo decorative sparse su tutta la galassia (sempre visibili, non fanno parte di un braccio)
+/* Disegna (o ridisegna) la galassia dentro l'SVG indicato: usata sia per la
+   mappa inline sia per la versione a schermo intero. I click sulle stelle
+   aggiornano il pannello info con l'id passato. */
+function disegnaGalassiaIn(svgId,infoBoxId){
+  const svg=document.getElementById(svgId);
+  if(!svg)return;
+  svg.innerHTML='';
+  const litAuto=getAutoLitStars();
+  const lit=litAuto;
+  const pos=calcolaPosizioniGalassia();
+
+  // Micro-stelle di sfondo decorative sparse su tutta la galassia
   for(let i=0;i<90;i++){
     const bx=(i*53.7)%900, by=(i*37.3+i*i*.6)%900;
     const r=(i%4===0)?1.4:0.7;
@@ -2954,6 +3134,7 @@ function renderCostellazioni(){
   svg.appendChild(coreGlow);
 
   COSTELLAZIONI.forEach(braccio=>{
+    const col=BRACCIO_COLORI[braccio.id]||BRACCIO_COLORI.ursa_maior;
     // Spina dorsale: collega gli step consecutivi dello stesso braccio
     for(let i=0;i<braccio.stars.length-1;i++){
       const a=braccio.stars[i],b=braccio.stars[i+1];
@@ -2964,6 +3145,7 @@ function renderCostellazioni(){
       line.setAttribute('x2',pb.x);line.setAttribute('y2',pb.y);
       line.setAttribute('class',`cost-link${bothLit?' lit':''}`);
       line.dataset.braccio=braccio.id;
+      line.style.setProperty('--bc',col.c);line.style.setProperty('--bc-glow',col.g);
       svg.appendChild(line);
     }
     // Etichetta del braccio: subito dopo l'ultima stella, sulla stessa curva (nessun jitter)
@@ -2974,6 +3156,7 @@ function renderCostellazioni(){
     txt.setAttribute('class','cost-arm-label');
     txt.setAttribute('text-anchor','middle');
     txt.dataset.braccio=braccio.id;
+    txt.style.setProperty('--lbl-c',col.c);
     txt.textContent=braccio.label;
     txt.addEventListener('click',()=>{tap('light');toggleFocusBraccio(braccio.id);});
     svg.appendChild(txt);
@@ -2993,6 +3176,7 @@ function renderCostellazioni(){
 
   // Stelle di ogni braccio (disegnate per ultime, così restano sopra i collegamenti)
   COSTELLAZIONI.forEach(braccio=>{
+    const col=BRACCIO_COLORI[braccio.id]||BRACCIO_COLORI.ursa_maior;
     braccio.stars.forEach(star=>{
       const p=pos[star.id];
       const isLit=lit.has(star.id);
@@ -3005,18 +3189,22 @@ function renderCostellazioni(){
         g.setAttribute('class',`cost-nebula${isLit?' lit':''}`);
         g.dataset.id=star.id;
         g.dataset.braccio=braccio.id;
+        const ring=document.createElementNS('http://www.w3.org/2000/svg','circle');
+        ring.setAttribute('cx',p.x);ring.setAttribute('cy',p.y);ring.setAttribute('r',isLit?13:10);
+        ring.setAttribute('class','neb-ring');
+        g.appendChild(ring);
         const glow=document.createElementNS('http://www.w3.org/2000/svg','circle');
-        glow.setAttribute('cx',p.x);glow.setAttribute('cy',p.y);glow.setAttribute('r',isLit?15:11);
+        glow.setAttribute('cx',p.x);glow.setAttribute('cy',p.y);glow.setAttribute('r',isLit?18:13);
         glow.setAttribute('class','neb-glow');
         g.appendChild(glow);
         const core=document.createElementNS('http://www.w3.org/2000/svg','circle');
-        core.setAttribute('cx',p.x);core.setAttribute('cy',p.y);core.setAttribute('r',isLit?4:3);
+        core.setAttribute('cx',p.x);core.setAttribute('cy',p.y);core.setAttribute('r',isLit?5:4);
         core.setAttribute('class','neb-core');
         g.appendChild(core);
         const hit=document.createElementNS('http://www.w3.org/2000/svg','circle');
         hit.setAttribute('cx',p.x);hit.setAttribute('cy',p.y);hit.setAttribute('r',18);hit.setAttribute('class','hit');
         g.appendChild(hit);
-        g.addEventListener('click',()=>clickStar(braccio,star));
+        g.addEventListener('click',()=>clickStar(braccio,star,infoBoxId));
         svg.appendChild(g);
       }else{
         const g=document.createElementNS('http://www.w3.org/2000/svg','g');
@@ -3024,6 +3212,7 @@ function renderCostellazioni(){
         g.dataset.id=star.id;
         g.dataset.braccio=braccio.id;
         if(isAuto)g.dataset.auto='1';
+        g.style.setProperty('--bc',col.c);g.style.setProperty('--bc-glow',col.g);
         const raggio=isNucleo?(isLit?11:9):(isLit?8:6);
         const path=document.createElementNS('http://www.w3.org/2000/svg','path');
         path.setAttribute('d',stellaPath(p.x,p.y,raggio));
@@ -3032,18 +3221,27 @@ function renderCostellazioni(){
         const hit=document.createElementNS('http://www.w3.org/2000/svg','circle');
         hit.setAttribute('cx',p.x);hit.setAttribute('cy',p.y);hit.setAttribute('r',18);hit.setAttribute('class','hit');
         g.appendChild(hit);
-        g.addEventListener('click',()=>clickStar(braccio,star));
+        g.addEventListener('click',()=>clickStar(braccio,star,infoBoxId));
         svg.appendChild(g);
       }
     });
+  });
+}
 
-    // Riepilogo braccio + badge
+/* Riepilogo bracci (righe cliccabili sotto la mappa) — solo per la vista inline */
+function renderArmSummary(summaryEl,infoBoxId,scrollTarget){
+  if(!summaryEl)return;
+  summaryEl.innerHTML='';
+  const lit=getAutoLitStars();
+  COSTELLAZIONI.forEach(braccio=>{
+    const col=BRACCIO_COLORI[braccio.id]||BRACCIO_COLORI.ursa_maior;
     const litCount=braccio.stars.filter(s=>lit.has(s.id)).length;
     const total=braccio.stars.length;
     const completed=litCount===total;
     const row=document.createElement('div');
     row.className=`arm-row${completed?' done':''}`;
     row.dataset.braccio=braccio.id;
+    row.style.setProperty('--bc',col.c);row.style.setProperty('--bc-glow',col.g);
     row.innerHTML=`
       <div class="arm-row-dot"></div>
       <div class="arm-row-txt">
@@ -3055,25 +3253,28 @@ function renderCostellazioni(){
     row.addEventListener('click',()=>{
       tap('light');
       toggleFocusBraccio(braccio.id);
-      // mostra anche il nucleo del braccio nel pannello info
       const nucleo=braccio.stars.find(s=>(s.tipo||'').includes('nucleo'))||braccio.stars[0];
-      mostraInfoStella(braccio,nucleo,litAuto.has(nucleo.id));
-      mapWrap.scrollIntoView({behavior:'smooth',block:'center'});
+      mostraInfoStella(braccio,nucleo,lit.has(nucleo.id),infoBoxId);
+      (scrollTarget||summaryEl).scrollIntoView({behavior:'smooth',block:'center'});
     });
-    summary.appendChild(row);
-
+    summaryEl.appendChild(row);
     if(completed)unlockAndCeremony(braccio.badge);
   });
 }
 
-function clickStar(braccio,star){
+function clickStar(braccio,star,infoBoxId='ci-galassia'){
   tap('light');
   const litAuto=getAutoLitStars();
-  mostraInfoStella(braccio,star,litAuto.has(star.id));
+  mostraInfoStella(braccio,star,litAuto.has(star.id),infoBoxId);
 }
 
-function mostraInfoStella(braccio,star,isAuto){
-  const infoBox=document.getElementById('ci-galassia');
+/* Ricorda l'ultima stella mostrata nel pannello info, per poterla segnare
+   come letta direttamente da lì e per ridisegnare il pannello dopo il toggle. */
+let _infoBraccio=null,_infoStar=null,_infoBoxId='ci-galassia';
+
+function mostraInfoStella(braccio,star,isAuto,infoBoxId='ci-galassia'){
+  _infoBraccio=braccio;_infoStar=star;_infoBoxId=infoBoxId;
+  const infoBox=document.getElementById(infoBoxId);
   if(!infoBox)return;
   infoBox.className='cost-info on';
   let statoMsg;
@@ -3083,6 +3284,9 @@ function mostraInfoStella(braccio,star,isAuto){
     statoMsg='<div style="font-size:.7rem;color:#bbb;margin-top:5px">Non ancora letto</div>';
   }
   const tipoLabel=(star.tipo||'').includes('nebulosa')?'<div style="font-size:.63rem;color:#9a8fd6;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">✧ Nebulosa — testo perduto o frammentario</div>':'';
+  const btnHtml=G.u
+    ?`<button class="bsalv bletto${isAuto?' on':''}" style="margin-top:10px" onclick="segnaLettoStellaInfo()">${isAuto?'✓ Letto':'○ Segna come letto'}</button>`
+    :`<div style="font-size:.68rem;color:#bbb;margin-top:10px;font-style:italic">Accedi per segnare le tue letture.</div>`;
   infoBox.innerHTML=`
     <div style="font-size:.62rem;color:var(--oro);letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-bottom:6px">${braccio.label} · ${braccio.nome}</div>
     ${tipoLabel}
@@ -3090,7 +3294,448 @@ function mostraInfoStella(braccio,star,isAuto){
     <div class="cost-info-a">${star.a}</div>
     <a class="cost-info-url" href="${star.url}" target="_blank" rel="noopener">🔍 Cerca nel catalogo RBBC →</a>
     ${statoMsg}
+    ${btnHtml}
   `;
+}
+
+/* Segna/rimuove come letta la stella attualmente mostrata nel pannello info,
+   senza dover passare da Alexandria: chiama direttamente l'API dei "letti". */
+async function segnaLettoStellaInfo(){
+  if(!_infoStar||!_infoBraccio)return;
+  if(!G.u){vai('sa','login');return;}
+  tap('medium');
+  const star=_infoStar,braccio=_infoBraccio,infoBoxId=_infoBoxId;
+  const url=star.url;
+  const giaLetto=G.letti.has(url);
+  try{
+    if(!giaLetto){
+      const r=await fetch('/api/letti',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({titolo:star.t,autore:star.a||'',url_opac:url,biblioteca:G.bib||''})});
+      if(!r.ok){const e=await r.json();throw new Error(e.error);}
+      G.letti.add(url);G.lettiData.push({titolo:star.t,autore:star.a||'',url_opac:url,biblioteca:G.bib||''});
+      if(star.a)fetchNazioneWikidata(star.a).then(()=>renderPantheon());
+    }else{
+      const r=await fetch(`/api/letti/${encodeURIComponent(url)}`,{method:'DELETE'});
+      if(!r.ok)throw new Error('delete failed');
+      G.letti.delete(url);G.lettiData=G.lettiData.filter(l=>l.url_opac!==url);
+    }
+    // Ridisegna mappa/e (inline + eventuale fullscreen) e il riepilogo bracci
+    disegnaGalassiaIn('svg-galassia','ci-galassia');
+    if(document.getElementById('svg-galassia-fs'))disegnaGalassiaIn('svg-galassia-fs','mapFsInfo');
+    const summ=document.getElementById('arm-summary-main');
+    if(summ)renderArmSummary(summ,'ci-galassia');
+    applyFocusBraccio();
+    const litAuto=getAutoLitStars();
+    mostraInfoStella(braccio,star,litAuto.has(star.id),infoBoxId);
+    renderPantheon();
+  }catch(e){console.error('segnaLettoStellaInfo',e);}
+}
+
+/* Apre la galassia a schermo intero, riusando l'overlay già usato per l'Atlante */
+function apriGalassiaFS(){
+  tap('light');
+  _fsType='galassia';
+  const ovr=document.getElementById('mapFsOvr');
+  const wrap=document.getElementById('mapFsSvgWrap');
+  const info=document.getElementById('mapFsInfo');
+  const title=document.getElementById('mapFsTitle');
+  ovr.classList.add('on');
+  title.textContent='Lapides Miliarii — Galassia';
+  wrap.innerHTML=`
+    <div class="cost-zoom-ctrl">
+      <button class="cost-zbtn" onclick="galZoom('fs','#svg-galassia-fs',1)" title="Zoom avanti">+</button>
+      <button class="cost-zbtn cost-zbtn-reset" onclick="galZoomReset('fs','#svg-galassia-fs')" title="Reset zoom">⟳</button>
+      <button class="cost-zbtn" onclick="galZoom('fs','#svg-galassia-fs',-1)" title="Zoom indietro">−</button>
+    </div>
+    <svg viewBox="0 0 900 900" xmlns="http://www.w3.org/2000/svg" id="svg-galassia-fs" style="background:#05070d;border-radius:8px"></svg>`;
+  info.innerHTML='<p class="map-fs-hint">Tocca una stella per scoprire l\'opera e segnarla come letta.</p>';
+  disegnaGalassiaIn('svg-galassia-fs','mapFsInfo');
+  applyFocusBraccio();
+  _setupGalPan('fs','#mapFsSvgWrap','#svg-galassia-fs');
+  galZoomReset('fs','#svg-galassia-fs');
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   CONDIVISIONE SOCIAL — genera una card immagine della propria galassia
+   Lapides Miliarii (con statistiche) e la condivide via Web Share API,
+   con fallback al download del PNG sui browser che non la supportano.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Converte l'SVG della galassia in un'immagine rasterizzata, incorporando
+   uno stile minimale: l'SVG isolato non ha accesso al foglio di stile della
+   pagina, quindi le regole necessarie (colori, forme delle stelle) vanno
+   duplicate qui. I custom property (--bc, --lbl-c…) sono già inline sugli
+   elementi (impostati via JS), quindi il clone li porta con sé. */
+function svgToImage(svgEl){
+  return new Promise((resolve,reject)=>{
+    if(!svgEl){reject(new Error('SVG galassia non trovato'));return;}
+    const clone=svgEl.cloneNode(true);
+    clone.setAttribute('xmlns','http://www.w3.org/2000/svg');
+    if(!clone.getAttribute('viewBox'))clone.setAttribute('viewBox','0 0 900 900');
+    const bgRect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    bgRect.setAttribute('x','0');bgRect.setAttribute('y','0');
+    bgRect.setAttribute('width','900');bgRect.setAttribute('height','900');
+    bgRect.setAttribute('fill','#05070d');
+    clone.insertBefore(bgRect,clone.firstChild);
+    const style=document.createElementNS('http://www.w3.org/2000/svg','style');
+    style.textContent=`
+      text{font-family:Georgia,serif}
+      .cost-bg-star{fill:rgba(255,255,255,.55)}
+      .cost-core-glow{fill:rgba(228,196,94,.12)}
+      .cost-link{stroke:rgba(201,168,76,.15);stroke-width:1}
+      .cost-link.lit{stroke:var(--bc,#ffe066);stroke-width:2}
+      .cost-link-doppia{stroke:rgba(224,140,90,.22);stroke-width:1.2}
+      .cost-link-doppia.lit{stroke:#ffb877;stroke-width:2.2}
+      .cost-star .spt{fill:rgba(255,255,255,.28);stroke:rgba(255,255,255,.4);stroke-width:.5}
+      .cost-star.lit .spt{fill:var(--bc,#ffe066);stroke:#fff6cf}
+      .cost-star .hit{fill:transparent}
+      .cost-nebula circle.neb-ring{fill:none;stroke:rgba(210,180,255,.55);stroke-width:1}
+      .cost-nebula.lit circle.neb-ring{stroke:rgba(230,205,255,.9)}
+      .cost-nebula circle.neb-glow{fill:rgba(196,168,255,.4)}
+      .cost-nebula.lit circle.neb-glow{fill:rgba(224,200,255,.75)}
+      .cost-nebula circle.neb-core{fill:rgba(238,225,255,.95);stroke:rgba(255,255,255,.6);stroke-width:.6}
+      .cost-nebula.lit circle.neb-core{fill:#fbf7ff}
+      .cost-arm-label{font-weight:600;fill:var(--lbl-c,rgba(228,196,94,.6));opacity:.85}
+    `;
+    clone.insertBefore(style,clone.firstChild);
+    const xml=new XMLSerializer().serializeToString(clone);
+    const svg64=btoa(unescape(encodeURIComponent(xml)));
+    const img=new Image();
+    img.onload=()=>resolve(img);
+    img.onerror=()=>reject(new Error('Errore rendering SVG'));
+    img.src='data:image/svg+xml;base64,'+svg64;
+  });
+}
+
+function _statGal(ctx,x,y,valore,label){
+  ctx.textAlign='center';
+  ctx.fillStyle='#f0d98a';
+  ctx.font='700 46px Georgia, serif';
+  ctx.fillText(valore,x,y);
+  ctx.fillStyle='rgba(255,255,255,.42)';
+  ctx.font='600 17px Arial, sans-serif';
+  ctx.fillText(label.toUpperCase(),x,y+30);
+}
+
+/* Costruisce la card 1080×1350 pronta per essere condivisa o scaricata.
+   Se la galassia non è mai stata disegnata in questa sessione (l'utente
+   non ha ancora aperto Lapides Miliarii), la renderizza al volo fuori
+   schermo così la condivisione funziona da qualunque pagina — ad esempio
+   subito dopo lo sblocco di un badge nella cerimonia. */
+async function generaImmagineGalassia(){
+  let svgSrc=document.getElementById('svg-galassia')||document.getElementById('svg-galassia-fs');
+  let tempWrap=null;
+  if(!svgSrc){
+    tempWrap=document.createElement('div');
+    tempWrap.style.cssText='position:fixed;left:-9999px;top:-9999px;width:900px;height:900px;pointer-events:none';
+    tempWrap.innerHTML='<svg viewBox="0 0 900 900" xmlns="http://www.w3.org/2000/svg" id="svg-galassia-temp"></svg>';
+    document.body.appendChild(tempWrap);
+    disegnaGalassiaIn('svg-galassia-temp','__headless__');
+    svgSrc=document.getElementById('svg-galassia-temp');
+  }
+  let galImg;
+  try{
+    galImg=await svgToImage(svgSrc);
+  }finally{
+    if(tempWrap)tempWrap.remove();
+  }
+
+  const W=1080,H=1350;
+  const canvas=document.createElement('canvas');
+  canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');
+
+  // Sfondo
+  const bgGrad=ctx.createRadialGradient(W/2,H*0.3,60,W/2,H*0.3,W*0.95);
+  bgGrad.addColorStop(0,'#152616');
+  bgGrad.addColorStop(1,'#04070a');
+  ctx.fillStyle=bgGrad;ctx.fillRect(0,0,W,H);
+
+  // Micro stelle di sfondo decorative
+  for(let i=0;i<150;i++){
+    const x=(i*137.5)%W, y=(i*97.3+i*i*.7)%(H*0.92);
+    const r=i%9===0?1.7:0.8;
+    ctx.globalAlpha=0.15+((i*53)%40)/100;
+    ctx.fillStyle='#fff';
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+
+  // Cornice sottile dorata
+  ctx.strokeStyle='rgba(200,164,74,.18)';
+  ctx.lineWidth=2;
+  ctx.strokeRect(16,16,W-32,H-32);
+
+  // Intestazione
+  ctx.textAlign='center';
+  ctx.fillStyle='rgba(228,196,94,.75)';
+  ctx.font='700 24px Arial, sans-serif';
+  ctx.fillText('L A   B I B L I O T E C A   D I   B A B E L E',W/2,84);
+
+  ctx.fillStyle='#f0d98a';
+  ctx.font='italic 300 58px Georgia, serif';
+  ctx.fillText('La mia Galassia Letteraria',W/2,150);
+
+  const nomeUtente=G.u?.nome?G.u.nome.split(' ')[0]:'Lettore';
+  const dataOggi=new Date().toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'});
+  ctx.fillStyle='rgba(255,255,255,.42)';
+  ctx.font='22px Georgia, serif';
+  ctx.fillText(`di ${nomeUtente} · ${dataOggi}`,W/2,188);
+
+  // Galassia (ritagliata in cerchio)
+  const galSize=760, galX=(W-galSize)/2, galY=228;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(W/2,galY+galSize/2,galSize/2,0,Math.PI*2);
+  ctx.closePath();
+  ctx.clip();
+  ctx.drawImage(galImg,galX,galY,galSize,galSize);
+  ctx.restore();
+  ctx.strokeStyle='rgba(200,164,74,.45)';
+  ctx.lineWidth=3;
+  ctx.beginPath();ctx.arc(W/2,galY+galSize/2,galSize/2,0,Math.PI*2);ctx.stroke();
+
+  // Statistiche
+  const lit=getAutoLitStars();
+  const totStars=COSTELLAZIONI.reduce((s,b)=>s+b.stars.length,0);
+  const bracciCompletati=COSTELLAZIONI.filter(b=>b.stars.every(s=>lit.has(s.id))).length;
+  const badgeCount=getBadgeUnlocked().size;
+
+  const statsY=galY+galSize+95;
+  _statGal(ctx,W*0.2,statsY,`${lit.size}/${totStars}`,'Opere illuminate');
+  _statGal(ctx,W*0.5,statsY,`${bracciCompletati}/${COSTELLAZIONI.length}`,'Costellazioni');
+  _statGal(ctx,W*0.8,statsY,`${badgeCount}`,'Badge sbloccati');
+
+  // Riepilogo bracci (due colonne)
+  const legY0=statsY+70, rowH=46, colW=W*0.44, colX=[W*0.09,W*0.53];
+  ctx.textAlign='left';
+  COSTELLAZIONI.forEach((b,i)=>{
+    const col=i%2, row=Math.floor(i/2);
+    const x=colX[col], y=legY0+row*rowH+30;
+    const col2=BRACCIO_COLORI[b.id]?.c||'#ffe066';
+    const n=b.stars.filter(s=>lit.has(s.id)).length;
+    ctx.fillStyle=col2;
+    ctx.beginPath();ctx.arc(x+7,y-8,7,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.85)';
+    ctx.font='600 24px Georgia, serif';
+    ctx.fillText(b.label,x+26,y);
+    ctx.textAlign='right';
+    ctx.fillStyle='rgba(255,255,255,.4)';
+    ctx.font='19px Arial, sans-serif';
+    ctx.fillText(`${n}/${b.stars.length}`,x+colW-14,y);
+    ctx.textAlign='left';
+  });
+
+  // Piè di pagina
+  ctx.textAlign='center';
+  ctx.fillStyle='rgba(255,255,255,.26)';
+  ctx.font='19px Arial, sans-serif';
+  ctx.fillText('Rete Bibliotecaria Bresciana e Cremonese',W/2,H-46);
+
+  return canvas;
+}
+
+async function condividiGalassia(){
+  tap('medium');
+  const btn=document.getElementById('btnCondividiGal');
+  const testoOrig=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='Genero…';}
+  try{
+    const canvas=await generaImmagineGalassia();
+    canvas.toBlob(async blob=>{
+      if(!blob){if(btn){btn.disabled=false;btn.textContent=testoOrig;}return;}
+      const file=new File([blob],'la-mia-galassia-babele.png',{type:'image/png'});
+      const shareData={
+        files:[file],
+        title:'La mia Galassia Letteraria',
+        text:'Ecco la mia Galassia Letteraria su La Biblioteca di Babele ✦📚'
+      };
+      let condiviso=false;
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        try{await navigator.share(shareData);condiviso=true;}
+        catch(e){if(e.name==='AbortError')condiviso=true;}
+      }
+      if(!condiviso){
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');
+        a.href=url;a.download='la-mia-galassia-babele.png';
+        document.body.appendChild(a);a.click();a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),4000);
+      }
+      if(btn){btn.disabled=false;btn.textContent=testoOrig;}
+    },'image/png',0.95);
+  }catch(e){
+    console.error('condividiGalassia',e);
+    if(btn){btn.disabled=false;btn.textContent=testoOrig;}
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   CONDIVISIONE PANTHEON — card con la propria collezione di badge,
+   raggruppata per categoria come nella schermata reale. Non dipende da
+   alcun elemento del DOM (i badge sbloccati vivono in getBadgeUnlocked),
+   quindi funziona da qualsiasi pagina dell'app. */
+const SEGRETI_IDS_SHARE=['walden','macondo','pequod','vronskij','boxer','manoscritto','fuoco_alessandria','mulino_acqua'];
+
+function _sfondoCardCosmico(ctx,W,H){
+  const bgGrad=ctx.createRadialGradient(W/2,H*0.26,60,W/2,H*0.26,Math.max(W,H)*0.85);
+  bgGrad.addColorStop(0,'#152616');
+  bgGrad.addColorStop(1,'#04070a');
+  ctx.fillStyle=bgGrad;ctx.fillRect(0,0,W,H);
+  for(let i=0;i<190;i++){
+    const x=(i*137.5)%W, y=(i*97.3+i*i*.7)%H;
+    const r=i%9===0?1.7:0.8;
+    ctx.globalAlpha=0.12+((i*53)%40)/100;
+    ctx.fillStyle='#fff';
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  ctx.strokeStyle='rgba(200,164,74,.18)';
+  ctx.lineWidth=2;
+  ctx.strokeRect(16,16,W-32,H-32);
+}
+function _intestazioneCard(ctx,W,titolo,sottotitolo){
+  ctx.textAlign='center';
+  ctx.fillStyle='rgba(228,196,94,.75)';
+  ctx.font='700 24px Arial, sans-serif';
+  ctx.fillText('L A   B I B L I O T E C A   D I   B A B E L E',W/2,84);
+  ctx.fillStyle='#f0d98a';
+  ctx.font='italic 300 56px Georgia, serif';
+  ctx.fillText(titolo,W/2,150);
+  ctx.fillStyle='rgba(255,255,255,.42)';
+  ctx.font='22px Georgia, serif';
+  ctx.fillText(sottotitolo,W/2,188);
+}
+function _piePaginaCard(ctx,W,H){
+  ctx.textAlign='center';
+  ctx.fillStyle='rgba(255,255,255,.26)';
+  ctx.font='19px Arial, sans-serif';
+  ctx.fillText('Rete Bibliotecaria Bresciana e Cremonese',W/2,H-46);
+}
+
+async function generaImmaginePantheon(){
+  const unl=getBadgeUnlocked();
+  const W=1080;
+  const cols=6,d=110,gap=26;
+  const gridW=cols*d+(cols-1)*gap;
+  const gridX=(W-gridW)/2;
+  const headerH=250, catHeaderH=52, catSpacing=42, footerH=100;
+
+  // Prima passata: calcola l'altezza totale scorrendo le categorie
+  let cursor=headerH;
+  const layout=BADGE_CATEGORIE.map(cat=>{
+    const ids=cat.ids;
+    const rows=Math.ceil(ids.length/cols);
+    const gridH=rows*d+(rows-1)*gap;
+    const catY=cursor+catHeaderH;
+    cursor=catY+gridH+catSpacing;
+    return{cat,catY,gridH};
+  });
+  const H=Math.ceil(cursor+footerH);
+
+  const canvas=document.createElement('canvas');
+  canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext('2d');
+
+  _sfondoCardCosmico(ctx,W,H);
+  const totBadge=TUTTI_BADGE.length;
+  _intestazioneCard(ctx,W,'Il mio Pantheon',`${unl.size}/${totBadge} badge sbloccati`);
+
+  layout.forEach(({cat,catY,gridH})=>{
+    const badgesInCat=cat.ids.map(id=>TUTTI_BADGE.find(b=>b.id===id)).filter(Boolean);
+    const nUnl=badgesInCat.filter(b=>unl.has(b.id)).length;
+
+    ctx.textAlign='left';
+    ctx.fillStyle='rgba(228,196,94,.85)';
+    ctx.font='700 25px Arial, sans-serif';
+    ctx.fillText(`${cat.ico}  ${cat.label}`,gridX,catY-18);
+    ctx.textAlign='right';
+    ctx.fillStyle='rgba(255,255,255,.4)';
+    ctx.font='19px Arial, sans-serif';
+    ctx.fillText(`${nUnl}/${badgesInCat.length}`,gridX+gridW,catY-18);
+    ctx.strokeStyle='rgba(200,164,74,.16)';
+    ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(gridX,catY-6);ctx.lineTo(gridX+gridW,catY-6);ctx.stroke();
+
+    badgesInCat.forEach((b,i)=>{
+      const col=i%cols,row=Math.floor(i/cols);
+      const cx=gridX+col*(d+gap)+d/2;
+      const cy=catY+row*(d+gap)+d/2;
+      const isOk=unl.has(b.id);
+      const isSecret=SEGRETI_IDS_SHARE.includes(b.id);
+
+      const grad=ctx.createRadialGradient(cx,cy,4,cx,cy,d/2);
+      if(isOk){grad.addColorStop(0,'rgba(200,164,74,.32)');grad.addColorStop(1,'rgba(200,164,74,.04)');}
+      else{grad.addColorStop(0,'rgba(255,255,255,.06)');grad.addColorStop(1,'rgba(255,255,255,.015)');}
+      ctx.fillStyle=grad;
+      ctx.beginPath();ctx.arc(cx,cy,d/2,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle=isOk?'rgba(200,164,74,.55)':'rgba(255,255,255,.1)';
+      ctx.lineWidth=isOk?2:1.4;
+      ctx.stroke();
+
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.font=`${Math.round(d*0.4)}px Arial`;
+      ctx.globalAlpha=isOk?1:0.3;
+      ctx.fillText(isOk?b.ico:(isSecret?'?':b.ico),cx,cy+2);
+      ctx.globalAlpha=1;
+      ctx.textBaseline='alphabetic';
+    });
+  });
+
+  _piePaginaCard(ctx,W,H);
+  return canvas;
+}
+
+async function condividiPantheon(){
+  tap('medium');
+  const btn=document.getElementById('btnCondividiPant');
+  const testoOrig=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='Genero…';}
+  try{
+    const canvas=await generaImmaginePantheon();
+    canvas.toBlob(async blob=>{
+      if(!blob){if(btn){btn.disabled=false;btn.textContent=testoOrig;}return;}
+      const file=new File([blob],'il-mio-pantheon-babele.png',{type:'image/png'});
+      const shareData={
+        files:[file],
+        title:'Il mio Pantheon',
+        text:'Ecco il mio Pantheon di badge su La Biblioteca di Babele 🏛️✦'
+      };
+      let condiviso=false;
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        try{await navigator.share(shareData);condiviso=true;}
+        catch(e){if(e.name==='AbortError')condiviso=true;}
+      }
+      if(!condiviso){
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');
+        a.href=url;a.download='il-mio-pantheon-babele.png';
+        document.body.appendChild(a);a.click();a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),4000);
+      }
+      if(btn){btn.disabled=false;btn.textContent=testoOrig;}
+    },'image/png',0.95);
+  }catch(e){
+    console.error('condividiPantheon',e);
+    if(btn){btn.disabled=false;btn.textContent=testoOrig;}
+  }
+}
+
+/* Dispatcher contestuale usato dal bottone "✦ Condividi" nella cerimonia di
+   sblocco: se il badge appena sbloccato è quello di completamento di un
+   braccio della galassia, condivide la galassia (più pertinente in quel
+   momento); per tutti gli altri badge condivide il Pantheon. */
+async function condividiSblocco(){
+  tap('light');
+  const btn=document.getElementById('btnCerCondividi');
+  const testoOrig=btn?btn.textContent:'';
+  if(btn){btn.disabled=true;btn.textContent='Genero…';}
+  try{
+    const armBadgeIds=COSTELLAZIONI.map(c=>c.badge);
+    if(_cerBadgeIdCorrente&&armBadgeIds.includes(_cerBadgeIdCorrente))await condividiGalassia();
+    else await condividiPantheon();
+  }catch(e){console.error('condividiSblocco',e);}
+  finally{if(btn){btn.disabled=false;btn.textContent=testoOrig;}}
 }
 
 /* Verifica badge alexandrino (50 ricerche) tramite storico API */
@@ -3239,8 +3884,10 @@ function badgeCeremony(badgeId){
   }
 }
 
+let _cerBadgeIdCorrente=null;
 function showBadgeToast(badge){
   if(!badge)return;
+  _cerBadgeIdCorrente=badge.id;
   badgeCeremony(badge.id);
   const ovr=document.getElementById('bdgCerOvr');
   if(!ovr)return;
@@ -3916,6 +4563,7 @@ function chiudiMappaFS(){
   document.getElementById('mapFsOvr').classList.remove('on');
   document.getElementById('mapFsSvgWrap').innerHTML='';
   _fsType=null;
+  _galZoomState.fs={scale:1,tx:0,ty:0};
 }
 function _disegnaMappFS(svgId,infoEl){
   const svg=document.getElementById(svgId);
