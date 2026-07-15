@@ -730,9 +730,14 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
 .cost-badge-hint{font-size:.68rem;color:#bbb;margin-bottom:10px;font-style:italic}
 .cost-wrap{background:#05070d;border-radius:var(--r);overflow:hidden;position:relative;border:1px solid rgba(201,168,76,.1);background-image:radial-gradient(ellipse at 50% 0%,rgba(40,55,90,.35) 0%,transparent 60%)}
 .cost-wrap svg{width:100%;display:block}
+#svg-galassia,#svg-galassia-fs{transition:transform .18s var(--ease-out-expo);touch-action:none}
+.cost-zoom-ctrl{position:absolute;top:8px;right:8px;z-index:10;display:flex;flex-direction:column;gap:4px}
+.cost-zbtn{width:28px;height:28px;background:rgba(15,34,16,.72);border:1px solid rgba(201,168,76,.3);border-radius:6px;color:var(--oro);font-size:.9rem;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(4px);-webkit-tap-highlight-color:transparent;font-family:'Inter',sans-serif;line-height:1}
+.cost-zbtn:active{background:rgba(15,34,16,.9)}
+.cost-zbtn-reset{font-size:.68rem}
 /* collegamenti tra stelle */
 .cost-link{stroke:rgba(201,168,76,.15);stroke-width:1;stroke-dasharray:4 3;transition:stroke .8s,stroke-width .8s,filter .8s}
-.cost-link.lit{stroke:rgba(255,224,102,.75);stroke-width:1.8;stroke-dasharray:none;filter:drop-shadow(0 0 4px rgba(255,224,102,.65))}
+.cost-link.lit{stroke:var(--bc,rgba(255,224,102,.75));stroke-width:1.8;stroke-dasharray:none;filter:drop-shadow(0 0 4px var(--bc-glow,rgba(255,224,102,.65)))}
 /* stelline a 5 punte */
 .cost-star{cursor:pointer}
 .cost-star .spt{
@@ -744,16 +749,16 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
   transform-box:fill-box;
 }
 .cost-star.lit .spt{
-  fill:#ffe066;
+  fill:var(--bc,#ffe066);
   stroke:#fff6cf;
-  filter:drop-shadow(0 0 5px #ffe066) drop-shadow(0 0 12px rgba(255,200,50,.5));
+  filter:drop-shadow(0 0 5px var(--bc,#ffe066)) drop-shadow(0 0 12px var(--bc-glow,rgba(255,200,50,.5)));
   animation:twinkle 2.4s ease-in-out infinite;
 }
 .cost-star .hit{fill:transparent;cursor:pointer}
 @keyframes twinkle{
-  0%,100%{opacity:1;filter:drop-shadow(0 0 5px #ffe066) drop-shadow(0 0 12px rgba(255,200,50,.5));transform:scale(1)}
-  40%{opacity:.7;filter:drop-shadow(0 0 2px #ffe066) drop-shadow(0 0 4px rgba(255,200,50,.3));transform:scale(.94)}
-  70%{opacity:.95;filter:drop-shadow(0 0 8px #ffe066) drop-shadow(0 0 18px rgba(255,200,50,.6));transform:scale(1.04)}
+  0%,100%{opacity:1;filter:drop-shadow(0 0 5px var(--bc,#ffe066)) drop-shadow(0 0 12px var(--bc-glow,rgba(255,200,50,.5)));transform:scale(1)}
+  40%{opacity:.7;filter:drop-shadow(0 0 2px var(--bc,#ffe066)) drop-shadow(0 0 4px var(--bc-glow,rgba(255,200,50,.5)));transform:scale(.94)}
+  70%{opacity:.95;filter:drop-shadow(0 0 8px var(--bc,#ffe066)) drop-shadow(0 0 18px var(--bc-glow,rgba(255,200,50,.6)));transform:scale(1.04)}
 }
 /* micro stelle di sfondo */
 .cost-bg-star{fill:rgba(255,255,255,.55);animation:bgTwinkle var(--dur,3s) ease-in-out infinite var(--del,0s)}
@@ -763,7 +768,7 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
 .cost-link-doppia.lit{stroke:#ffb877;stroke-width:2;stroke-dasharray:none;filter:drop-shadow(0 0 5px rgba(255,184,119,.7))}
 /* Galassia: nuclei di braccio — alone proprio più intenso */
 .cost-star.nucleo .spt{stroke-width:.7}
-.cost-star.nucleo.lit .spt{filter:drop-shadow(0 0 7px #ffe066) drop-shadow(0 0 16px rgba(255,200,50,.65))}
+.cost-star.nucleo.lit .spt{filter:drop-shadow(0 0 7px var(--bc,#ffe066)) drop-shadow(0 0 16px var(--bc-glow,rgba(255,200,50,.65)))}
 /* Galassia: nebulose — cerchio sfumato invece di stella a punte */
 .cost-nebula{cursor:pointer}
 .cost-nebula circle.neb-ring{fill:none;stroke:rgba(210,180,255,.55);stroke-width:1;stroke-dasharray:2.5 2.5;transition:stroke .8s,opacity .8s}
@@ -774,23 +779,23 @@ body.dark .bc-pill.off{background:#1a2e1c;color:#4a5e4c;border-color:#2a3e2c}
 .cost-nebula.lit circle.neb-core{fill:#fbf7ff;filter:drop-shadow(0 0 8px rgba(224,200,255,.95)) drop-shadow(0 0 18px rgba(196,168,255,.6))}
 @keyframes nebPulse{0%,100%{opacity:.8}50%{opacity:1}}
 /* Galassia: etichette dei bracci */
-.cost-arm-label{font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:600;fill:rgba(228,196,94,.55);letter-spacing:.04em}
+.cost-arm-label{font-family:'Cormorant Garamond',serif;font-size:13px;font-weight:600;fill:var(--lbl-c,rgba(228,196,94,.55));opacity:.8;letter-spacing:.04em}
 .cost-core-glow{fill:rgba(228,196,94,.1)}
 /* Riepilogo bracci sotto la mappa */
 .arm-summary{display:flex;flex-direction:column;gap:6px;margin-top:16px}
 .arm-row{display:flex;align-items:center;gap:10px;background:#fff;border-radius:var(--rs);padding:9px 12px;box-shadow:var(--sh-s);cursor:pointer;transition:box-shadow .2s,transform .15s var(--ease-spring)}
 .arm-row:active{transform:scale(.98)}
 body.dark .arm-row{background:#121f13}
-.arm-row.done{border-left:3px solid var(--oro)}
+.arm-row.done{border-left:3px solid var(--bc,var(--oro))}
 .arm-row-dot{width:8px;height:8px;border-radius:50%;background:var(--av3);flex-shrink:0}
-.arm-row.done .arm-row-dot{background:var(--oro);box-shadow:0 0 5px rgba(200,164,74,.7)}
+.arm-row.done .arm-row-dot{background:var(--bc,var(--oro));box-shadow:0 0 5px var(--bc-glow,rgba(200,164,74,.7))}
 .arm-row-txt{flex:1;min-width:0}
 .arm-row-nome{font-family:'Cormorant Garamond',serif;font-size:.92rem;font-weight:600;color:var(--ink)}
 .arm-row-sub{font-size:.66rem;color:#aaa}
 .arm-row-count{font-size:.68rem;font-weight:700;color:var(--bosco-2);flex-shrink:0}
 body.dark .arm-row-count{color:var(--oro-2)}
-.arm-row.active{box-shadow:0 0 0 2px var(--oro),var(--sh-m)}
-.arm-row.active .arm-row-dot{background:var(--oro);box-shadow:0 0 6px rgba(200,164,74,.8)}
+.arm-row.active{box-shadow:0 0 0 2px var(--bc,var(--oro)),var(--sh-m)}
+.arm-row.active .arm-row-dot{background:var(--bc,var(--oro));box-shadow:0 0 6px var(--bc-glow,rgba(200,164,74,.8))}
 .cost-arm-label{cursor:pointer;transition:opacity .35s ease,fill .35s ease}
 .cost-arm-label:hover{fill:rgba(228,196,94,.85)}
 .cost-arm-label.active{fill:var(--oro-2);font-weight:700}
@@ -2536,6 +2541,16 @@ const COSTELLAZIONI=[
   },
 ];
 
+/* Colore distintivo per ciascun braccio/costellazione: usato su stelle, link ed etichette */
+const BRACCIO_COLORI={
+  ursa_maior:{c:'#ffe066',g:'rgba(255,224,102,.55)'},
+  phoenix:   {c:'#ff7a5c',g:'rgba(255,122,92,.55)'},
+  cygnus:    {c:'#ff8fd0',g:'rgba(255,143,208,.55)'},
+  pegasus:   {c:'#6fd6ff',g:'rgba(111,214,255,.55)'},
+  orion:     {c:'#7dffb0',g:'rgba(125,255,176,.55)'},
+  andromeda: {c:'#b39dff',g:'rgba(179,157,255,.55)'},
+};
+
 /* "Stelle Doppie": coppie di opere — anche di bracci diversi — che dialogano
    tra loro. Disegnate come collegamento dorato extra sulla mappa. Per
    aggiungerne una basta una riga qui: [id1, id2]. */
@@ -2759,26 +2774,71 @@ function toggleFocusBraccio(id){
   applyFocusBraccio();
 }
 function applyFocusBraccio(){
-  const svg=document.getElementById('svg-galassia');
-  if(svg)svg.querySelectorAll('[data-braccio]').forEach(el=>{
-    el.style.opacity=!_bracciFocus?'':(el.dataset.braccio===_bracciFocus?'1':'.15');
+  ['svg-galassia','svg-galassia-fs'].forEach(id=>{
+    const svg=document.getElementById(id);
+    if(svg)svg.querySelectorAll('[data-braccio]').forEach(el=>{
+      el.style.opacity=!_bracciFocus?'':(el.dataset.braccio===_bracciFocus?'1':'.15');
+    });
   });
   document.querySelectorAll('.cost-arm-label').forEach(t=>t.classList.toggle('active',t.dataset.braccio===_bracciFocus));
   document.querySelectorAll('.arm-row').forEach(r=>r.classList.toggle('active',r.dataset.braccio===_bracciFocus));
 }
 
+/* ── ZOOM & PAN galassia (usato sia inline che fullscreen) ── */
+const _galZoomState={main:{scale:1,tx:0,ty:0},fs:{scale:1,tx:0,ty:0}};
+function _applyGalZoom(ctx,svgSel){
+  const st=_galZoomState[ctx];
+  const svg=document.querySelector(svgSel);
+  if(!svg)return;
+  svg.style.transform=`translate(${st.tx}px,${st.ty}px) scale(${st.scale})`;
+  svg.style.transformOrigin='50% 50%';
+}
+function galZoom(ctx,svgSel,dir){
+  tap('light');
+  const st=_galZoomState[ctx];
+  st.scale=Math.max(1,Math.min(2.6,+(st.scale+dir*0.35).toFixed(2)));
+  if(st.scale===1){st.tx=0;st.ty=0;}
+  _applyGalZoom(ctx,svgSel);
+}
+function galZoomReset(ctx,svgSel){
+  tap('light');
+  _galZoomState[ctx]={scale:1,tx:0,ty:0};
+  _applyGalZoom(ctx,svgSel);
+}
+function _setupGalPan(ctx,wrapSel,svgSel){
+  const wrap=document.querySelector(wrapSel);
+  if(!wrap)return;
+  let dragging=false,sx=0,sy=0,ox=0,oy=0;
+  wrap.onpointerdown=e=>{
+    if(_galZoomState[ctx].scale<=1)return;
+    dragging=true;sx=e.clientX;sy=e.clientY;ox=_galZoomState[ctx].tx;oy=_galZoomState[ctx].ty;
+    wrap.setPointerCapture(e.pointerId);
+  };
+  wrap.onpointermove=e=>{
+    if(!dragging)return;
+    _galZoomState[ctx].tx=ox+(e.clientX-sx);_galZoomState[ctx].ty=oy+(e.clientY-sy);
+    _applyGalZoom(ctx,svgSel);
+  };
+  wrap.onpointerup=()=>{dragging=false;};
+  wrap.onpointercancel=()=>{dragging=false;};
+}
+
 function renderCostellazioni(){
   const cont=document.getElementById('cost-container');if(!cont)return;
-  const litAuto=getAutoLitStars();
-  const lit=litAuto;
-  const pos=calcolaPosizioniGalassia();
   cont.innerHTML='';
   _bracciFocus=null;
 
   // ── Struttura: una mappa unica + pannello info condiviso + riepilogo bracci ──
   const mapWrap=document.createElement('div');
   mapWrap.className='cost-wrap';
-  mapWrap.innerHTML=`<svg viewBox="0 0 900 900" xmlns="http://www.w3.org/2000/svg" id="svg-galassia"></svg>`;
+  mapWrap.innerHTML=`
+    <div class="cost-zoom-ctrl">
+      <button class="cost-zbtn" onclick="galZoom('main','#svg-galassia',1)" title="Zoom avanti">+</button>
+      <button class="cost-zbtn cost-zbtn-reset" onclick="galZoomReset('main','#svg-galassia')" title="Reset zoom">⟳</button>
+      <button class="cost-zbtn" onclick="galZoom('main','#svg-galassia',-1)" title="Zoom indietro">−</button>
+    </div>
+    <button class="map-expand" style="left:8px;right:auto" onclick="apriGalassiaFS()" title="Schermo intero">⤢</button>
+    <svg viewBox="0 0 900 900" xmlns="http://www.w3.org/2000/svg" id="svg-galassia"></svg>`;
   cont.appendChild(mapWrap);
 
   const infoBox=document.createElement('div');
@@ -2788,11 +2848,27 @@ function renderCostellazioni(){
 
   const summary=document.createElement('div');
   summary.className='arm-summary';
+  summary.id='arm-summary-main';
   cont.appendChild(summary);
 
-  const svg=document.getElementById('svg-galassia');
+  disegnaGalassiaIn('svg-galassia','ci-galassia');
+  renderArmSummary(summary,'ci-galassia',mapWrap);
+  _setupGalPan('main','.cost-wrap','#svg-galassia');
+  galZoomReset('main','#svg-galassia');
+}
 
-  // Micro-stelle di sfondo decorative sparse su tutta la galassia (sempre visibili, non fanno parte di un braccio)
+/* Disegna (o ridisegna) la galassia dentro l'SVG indicato: usata sia per la
+   mappa inline sia per la versione a schermo intero. I click sulle stelle
+   aggiornano il pannello info con l'id passato. */
+function disegnaGalassiaIn(svgId,infoBoxId){
+  const svg=document.getElementById(svgId);
+  if(!svg)return;
+  svg.innerHTML='';
+  const litAuto=getAutoLitStars();
+  const lit=litAuto;
+  const pos=calcolaPosizioniGalassia();
+
+  // Micro-stelle di sfondo decorative sparse su tutta la galassia
   for(let i=0;i<90;i++){
     const bx=(i*53.7)%900, by=(i*37.3+i*i*.6)%900;
     const r=(i%4===0)?1.4:0.7;
@@ -2810,6 +2886,7 @@ function renderCostellazioni(){
   svg.appendChild(coreGlow);
 
   COSTELLAZIONI.forEach(braccio=>{
+    const col=BRACCIO_COLORI[braccio.id]||BRACCIO_COLORI.ursa_maior;
     // Spina dorsale: collega gli step consecutivi dello stesso braccio
     for(let i=0;i<braccio.stars.length-1;i++){
       const a=braccio.stars[i],b=braccio.stars[i+1];
@@ -2820,6 +2897,7 @@ function renderCostellazioni(){
       line.setAttribute('x2',pb.x);line.setAttribute('y2',pb.y);
       line.setAttribute('class',`cost-link${bothLit?' lit':''}`);
       line.dataset.braccio=braccio.id;
+      line.style.setProperty('--bc',col.c);line.style.setProperty('--bc-glow',col.g);
       svg.appendChild(line);
     }
     // Etichetta del braccio: subito dopo l'ultima stella, sulla stessa curva (nessun jitter)
@@ -2830,6 +2908,7 @@ function renderCostellazioni(){
     txt.setAttribute('class','cost-arm-label');
     txt.setAttribute('text-anchor','middle');
     txt.dataset.braccio=braccio.id;
+    txt.style.setProperty('--lbl-c',col.c);
     txt.textContent=braccio.label;
     txt.addEventListener('click',()=>{tap('light');toggleFocusBraccio(braccio.id);});
     svg.appendChild(txt);
@@ -2849,6 +2928,7 @@ function renderCostellazioni(){
 
   // Stelle di ogni braccio (disegnate per ultime, così restano sopra i collegamenti)
   COSTELLAZIONI.forEach(braccio=>{
+    const col=BRACCIO_COLORI[braccio.id]||BRACCIO_COLORI.ursa_maior;
     braccio.stars.forEach(star=>{
       const p=pos[star.id];
       const isLit=lit.has(star.id);
@@ -2876,7 +2956,7 @@ function renderCostellazioni(){
         const hit=document.createElementNS('http://www.w3.org/2000/svg','circle');
         hit.setAttribute('cx',p.x);hit.setAttribute('cy',p.y);hit.setAttribute('r',18);hit.setAttribute('class','hit');
         g.appendChild(hit);
-        g.addEventListener('click',()=>clickStar(braccio,star));
+        g.addEventListener('click',()=>clickStar(braccio,star,infoBoxId));
         svg.appendChild(g);
       }else{
         const g=document.createElementNS('http://www.w3.org/2000/svg','g');
@@ -2884,6 +2964,7 @@ function renderCostellazioni(){
         g.dataset.id=star.id;
         g.dataset.braccio=braccio.id;
         if(isAuto)g.dataset.auto='1';
+        g.style.setProperty('--bc',col.c);g.style.setProperty('--bc-glow',col.g);
         const raggio=isNucleo?(isLit?11:9):(isLit?8:6);
         const path=document.createElementNS('http://www.w3.org/2000/svg','path');
         path.setAttribute('d',stellaPath(p.x,p.y,raggio));
@@ -2892,18 +2973,27 @@ function renderCostellazioni(){
         const hit=document.createElementNS('http://www.w3.org/2000/svg','circle');
         hit.setAttribute('cx',p.x);hit.setAttribute('cy',p.y);hit.setAttribute('r',18);hit.setAttribute('class','hit');
         g.appendChild(hit);
-        g.addEventListener('click',()=>clickStar(braccio,star));
+        g.addEventListener('click',()=>clickStar(braccio,star,infoBoxId));
         svg.appendChild(g);
       }
     });
+  });
+}
 
-    // Riepilogo braccio + badge
+/* Riepilogo bracci (righe cliccabili sotto la mappa) — solo per la vista inline */
+function renderArmSummary(summaryEl,infoBoxId,scrollTarget){
+  if(!summaryEl)return;
+  summaryEl.innerHTML='';
+  const lit=getAutoLitStars();
+  COSTELLAZIONI.forEach(braccio=>{
+    const col=BRACCIO_COLORI[braccio.id]||BRACCIO_COLORI.ursa_maior;
     const litCount=braccio.stars.filter(s=>lit.has(s.id)).length;
     const total=braccio.stars.length;
     const completed=litCount===total;
     const row=document.createElement('div');
     row.className=`arm-row${completed?' done':''}`;
     row.dataset.braccio=braccio.id;
+    row.style.setProperty('--bc',col.c);row.style.setProperty('--bc-glow',col.g);
     row.innerHTML=`
       <div class="arm-row-dot"></div>
       <div class="arm-row-txt">
@@ -2915,25 +3005,28 @@ function renderCostellazioni(){
     row.addEventListener('click',()=>{
       tap('light');
       toggleFocusBraccio(braccio.id);
-      // mostra anche il nucleo del braccio nel pannello info
       const nucleo=braccio.stars.find(s=>(s.tipo||'').includes('nucleo'))||braccio.stars[0];
-      mostraInfoStella(braccio,nucleo,litAuto.has(nucleo.id));
-      mapWrap.scrollIntoView({behavior:'smooth',block:'center'});
+      mostraInfoStella(braccio,nucleo,lit.has(nucleo.id),infoBoxId);
+      (scrollTarget||summaryEl).scrollIntoView({behavior:'smooth',block:'center'});
     });
-    summary.appendChild(row);
-
+    summaryEl.appendChild(row);
     if(completed)unlockAndCeremony(braccio.badge);
   });
 }
 
-function clickStar(braccio,star){
+function clickStar(braccio,star,infoBoxId='ci-galassia'){
   tap('light');
   const litAuto=getAutoLitStars();
-  mostraInfoStella(braccio,star,litAuto.has(star.id));
+  mostraInfoStella(braccio,star,litAuto.has(star.id),infoBoxId);
 }
 
-function mostraInfoStella(braccio,star,isAuto){
-  const infoBox=document.getElementById('ci-galassia');
+/* Ricorda l'ultima stella mostrata nel pannello info, per poterla segnare
+   come letta direttamente da lì e per ridisegnare il pannello dopo il toggle. */
+let _infoBraccio=null,_infoStar=null,_infoBoxId='ci-galassia';
+
+function mostraInfoStella(braccio,star,isAuto,infoBoxId='ci-galassia'){
+  _infoBraccio=braccio;_infoStar=star;_infoBoxId=infoBoxId;
+  const infoBox=document.getElementById(infoBoxId);
   if(!infoBox)return;
   infoBox.className='cost-info on';
   let statoMsg;
@@ -2943,6 +3036,9 @@ function mostraInfoStella(braccio,star,isAuto){
     statoMsg='<div style="font-size:.7rem;color:#bbb;margin-top:5px">Non ancora letto</div>';
   }
   const tipoLabel=(star.tipo||'').includes('nebulosa')?'<div style="font-size:.63rem;color:#9a8fd6;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">✧ Nebulosa — testo perduto o frammentario</div>':'';
+  const btnHtml=G.u
+    ?`<button class="bsalv bletto${isAuto?' on':''}" style="margin-top:10px" onclick="segnaLettoStellaInfo()">${isAuto?'✓ Letto':'○ Segna come letto'}</button>`
+    :`<div style="font-size:.68rem;color:#bbb;margin-top:10px;font-style:italic">Accedi per segnare le tue letture.</div>`;
   infoBox.innerHTML=`
     <div style="font-size:.62rem;color:var(--oro);letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-bottom:6px">${braccio.label} · ${braccio.nome}</div>
     ${tipoLabel}
@@ -2950,7 +3046,65 @@ function mostraInfoStella(braccio,star,isAuto){
     <div class="cost-info-a">${star.a}</div>
     <a class="cost-info-url" href="${star.url}" target="_blank" rel="noopener">🔍 Cerca nel catalogo RBBC →</a>
     ${statoMsg}
+    ${btnHtml}
   `;
+}
+
+/* Segna/rimuove come letta la stella attualmente mostrata nel pannello info,
+   senza dover passare da Alexandria: chiama direttamente l'API dei "letti". */
+async function segnaLettoStellaInfo(){
+  if(!_infoStar||!_infoBraccio)return;
+  if(!G.u){vai('sa','login');return;}
+  tap('medium');
+  const star=_infoStar,braccio=_infoBraccio,infoBoxId=_infoBoxId;
+  const url=star.url;
+  const giaLetto=G.letti.has(url);
+  try{
+    if(!giaLetto){
+      const r=await fetch('/api/letti',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({titolo:star.t,autore:star.a||'',url_opac:url,biblioteca:G.bib||''})});
+      if(!r.ok){const e=await r.json();throw new Error(e.error);}
+      G.letti.add(url);G.lettiData.push({titolo:star.t,autore:star.a||'',url_opac:url,biblioteca:G.bib||''});
+      if(star.a)fetchNazioneWikidata(star.a).then(()=>renderPantheon());
+    }else{
+      const r=await fetch(`/api/letti/${encodeURIComponent(url)}`,{method:'DELETE'});
+      if(!r.ok)throw new Error('delete failed');
+      G.letti.delete(url);G.lettiData=G.lettiData.filter(l=>l.url_opac!==url);
+    }
+    // Ridisegna mappa/e (inline + eventuale fullscreen) e il riepilogo bracci
+    disegnaGalassiaIn('svg-galassia','ci-galassia');
+    if(document.getElementById('svg-galassia-fs'))disegnaGalassiaIn('svg-galassia-fs','mapFsInfo');
+    const summ=document.getElementById('arm-summary-main');
+    if(summ)renderArmSummary(summ,'ci-galassia');
+    applyFocusBraccio();
+    const litAuto=getAutoLitStars();
+    mostraInfoStella(braccio,star,litAuto.has(star.id),infoBoxId);
+    renderPantheon();
+  }catch(e){console.error('segnaLettoStellaInfo',e);}
+}
+
+/* Apre la galassia a schermo intero, riusando l'overlay già usato per l'Atlante */
+function apriGalassiaFS(){
+  tap('light');
+  _fsType='galassia';
+  const ovr=document.getElementById('mapFsOvr');
+  const wrap=document.getElementById('mapFsSvgWrap');
+  const info=document.getElementById('mapFsInfo');
+  const title=document.getElementById('mapFsTitle');
+  ovr.classList.add('on');
+  title.textContent='Lapides Miliarii — Galassia';
+  wrap.innerHTML=`
+    <div class="cost-zoom-ctrl">
+      <button class="cost-zbtn" onclick="galZoom('fs','#svg-galassia-fs',1)" title="Zoom avanti">+</button>
+      <button class="cost-zbtn cost-zbtn-reset" onclick="galZoomReset('fs','#svg-galassia-fs')" title="Reset zoom">⟳</button>
+      <button class="cost-zbtn" onclick="galZoom('fs','#svg-galassia-fs',-1)" title="Zoom indietro">−</button>
+    </div>
+    <svg viewBox="0 0 900 900" xmlns="http://www.w3.org/2000/svg" id="svg-galassia-fs" style="background:#05070d;border-radius:8px"></svg>`;
+  info.innerHTML='<p class="map-fs-hint">Tocca una stella per scoprire l\'opera e segnarla come letta.</p>';
+  disegnaGalassiaIn('svg-galassia-fs','mapFsInfo');
+  applyFocusBraccio();
+  _setupGalPan('fs','#mapFsSvgWrap','#svg-galassia-fs');
+  galZoomReset('fs','#svg-galassia-fs');
 }
 
 /* Verifica badge alexandrino (50 ricerche) tramite storico API */
@@ -3776,6 +3930,7 @@ function chiudiMappaFS(){
   document.getElementById('mapFsOvr').classList.remove('on');
   document.getElementById('mapFsSvgWrap').innerHTML='';
   _fsType=null;
+  _galZoomState.fs={scale:1,tx:0,ty:0};
 }
 function _disegnaMappFS(svgId,infoEl){
   const svg=document.getElementById(svgId);
