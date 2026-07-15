@@ -36,12 +36,11 @@ BASE_URL    = "https://opac.provincia.brescia.it"  # mantenuto per compatibilit�
 # Ogni istanza DiscoveryNG ha anche un proprio "codename" di catalogo negli
 # URL dei risultati di ricerca (es. "opac/detail/view/<codename>:catalog:123").
 # Non è "test" per tutte le reti come si era assunto inizialmente: RBBC usa
-# "test", Como usa "como" (verificato dal vivo). "catalog_code" imposta questo
-# valore per rete. Per Mantovana/Bergamasca non è ancora stato verificato
-# (nessuna ricerca libri testata con successo finora): resta "test" come
-# default finché non abbiamo un caso reale da controllare — se la ricerca su
-# quelle reti risulta vuota nonostante una risposta di rete valida, il primo
-# sospetto è proprio questo valore.
+# "test", Como usa "como", Mantova usa "mn" (tutti verificati dal vivo tramite
+# i log di cerca_titolo). Per Bergamasca non è ancora stato verificato, dato
+# che la rete è irraggiungibile dal server (blocco a livello di connessione,
+# vedi /api/debug/rete-check): resta "test" come placeholder finché il
+# problema di rete non è risolto e si può fare un test reale.
 RETI = {
     "rbbc": {
         "label": "Rete Bibliotecaria Bresciana e Cremonese",
@@ -62,14 +61,14 @@ RETI = {
         "short": "Mantovana",
         "base_url": "https://opac.provincia.mantova.it",
         "lib_path": "/la-rete-delle-biblioteche/",
-        "catalog_code": "test",  # non ancora verificato, vedi nota sopra
+        "catalog_code": "mn",
     },
     "bergamasca": {
         "label": "Rete Bibliotecaria Bergamasca",
         "short": "Bergamasca",
         "base_url": "https://opacbg.provincia.brescia.it",
         "lib_path": "/library/",
-        "catalog_code": "test",  # non ancora verificato, vedi nota sopra
+        "catalog_code": "test",  # placeholder, da verificare quando la rete sarà raggiungibile
     },
 }
 RETE_DEFAULT = "rbbc"
