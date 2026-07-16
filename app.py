@@ -322,6 +322,12 @@ def init_db():
                 ALTER TABLE letti ADD COLUMN IF NOT EXISTS rete VARCHAR(32) NOT NULL DEFAULT 'rbbc';
             """)
 
+            # Diario personale: una nota/recensione libera per ogni libro letto,
+            # mostrata accanto al libro in "La mia biblioteca" (profilo).
+            cur.execute("""
+                ALTER TABLE letti ADD COLUMN IF NOT EXISTS nota TEXT NOT NULL DEFAULT '';
+            """)
+
             # Migrazione: aggiunge la colonna 'letto' se il DB esisteva già
             cur.execute("""
                 ALTER TABLE salvati ADD COLUMN IF NOT EXISTS letto BOOLEAN NOT NULL DEFAULT FALSE;
@@ -858,6 +864,26 @@ def rimuovi_letto(url_opac):
     db.execute("DELETE FROM letti WHERE url_opac=%s AND utente_id=%s", (url_opac, u["id"]))
     db.commit()
     return jsonify({"ok": True})
+
+@app.route("/api/letti/<path:url_opac>/nota", methods=["POST"])
+@login_richiesto
+def aggiorna_nota_letto(url_opac):
+    """Diario personale: salva/aggiorna la nota libera legata a un libro letto.
+    Nota vuota = cancella la nota (non elimina il libro dai letti)."""
+    u = utente_corrente()
+    d = request.get_json() or {}
+    nota = (d.get("nota") or "").strip()
+    if len(nota) > 5000:
+        return jsonify({"error": "Nota troppo lunga (massimo 5000 caratteri)"}), 400
+    db = get_db()
+    cur = db.execute(
+        "UPDATE letti SET nota=%s WHERE utente_id=%s AND url_opac=%s",
+        (nota, u["id"], url_opac)
+    )
+    db.commit()
+    if cur.rowcount == 0:
+        return jsonify({"error": "Libro non trovato tra i letti"}), 404
+    return jsonify({"ok": True, "nota": nota})
 
 #  API Storico e statistiche personali 
 
