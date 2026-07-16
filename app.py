@@ -5,7 +5,7 @@ DB: PostgreSQL
 Auth: bcrypt + flask-login, cookie di sessione firmato
 """
 
-import subprocess, re, os, unicodedata, tempfile, concurrent.futures
+import subprocess, re, os, time, unicodedata, tempfile, concurrent.futures
 from urllib.parse import quote_plus
 from flask import Flask, request, jsonify, g, session
 from flask_cors import CORS
@@ -17,7 +17,207 @@ app = Flask(__name__, static_folder="static", static_url_path="")
 app.secret_key = os.environ.get("SECRET_KEY", "cambia-questa-chiave-in-produzione")
 CORS(app, supports_credentials=True)
 
-BASE_URL    = "https://opac.provincia.brescia.it"
+BASE_URL    = "https://opac.provincia.brescia.it"  # mantenuto per compatibilità: coincide con RETI['rbbc']['base_url']
+
+# ── RETI BIBLIOTECARIE ────────────────────────────────────────────────────
+# Tutte e quattro girano sullo stesso software OPAC (DiscoveryNG), quindi lo
+# stesso motore di scraping (curl_get + regex) funziona su tutte cambiando
+# solo l'URL base. Per attivare una nuova rete basta aggiungerla qui: non
+# serve toccare cerca_titolo/verifica_disponibilita/get_biblioteche.
+#
+# Tutte e quattro le reti girano sul software OPAC DiscoveryNG, ma non tutte
+# espongono l'elenco biblioteche sullo stesso percorso: RBBC, Comasca e
+# Bergamasca usano il percorso standard "/library/"; Mantovana invece ha una
+# struttura del sito personalizzata e l'elenco vive su
+# "/la-rete-delle-biblioteche/" (verificato manualmente: "/library/" su quel
+# dominio non esiste/non è collegato dalla nav del sito). "lib_path" permette
+# di configurare questo per singola rete senza toccare get_biblioteche().
+#
+# Ogni istanza DiscoveryNG ha anche un proprio "codename" di catalogo negli
+# URL dei risultati di ricerca (es. "opac/detail/view/<codename>:catalog:123").
+# Non è "test" per tutte le reti come si era assunto inizialmente: RBBC usa
+# "test", Como usa "como", Mantova usa "mn" (tutti verificati dal vivo tramite
+# i log di cerca_titolo). Per Bergamasca non è ancora stato verificato, dato
+# che la rete è irraggiungibile dal server (blocco a livello di connessione,
+# vedi /api/debug/rete-check): resta "test" come placeholder finché il
+# problema di rete non è risolto e si può fare un test reale.
+RETI = {
+    "rbbc": {
+        "label": "Rete Bibliotecaria Bresciana e Cremonese",
+        "short": "RBBC",
+        "base_url": "https://opac.provincia.brescia.it",
+        "lib_path": "/library/",
+        "catalog_code": "test",
+    },
+    "comasca": {
+        "label": "Rete Bibliotecaria della Provincia di Como",
+        "short": "Comasca",
+        "base_url": "https://opac.provincia.como.it",
+        "lib_path": "/library/",
+        "catalog_code": "como",
+    },
+    "mantovana": {
+        "label": "Rete Bibliotecaria Mantovana",
+        "short": "Mantovana",
+        "base_url": "https://opac.provincia.mantova.it",
+        "lib_path": "/la-rete-delle-biblioteche/",
+        "catalog_code": "mn",
+    },
+    # CSBNO (Nord Ovest Milano, 31 comuni tra cui Bollate, Rho, Legnano,
+    # Sesto San Giovanni): DISATTIVATA. Path "/library/" e catalog_code
+    # "csbno" erano confermati corretti, ma il server risponde con HTTP 403
+    # a curl_get() in produzione (stesso sintomo WAF di Varese/Sondrio/Lecco).
+    # Va riattivata solo dopo aver risolto il blocco lato richiesta.
+    # "csbno": {
+    #    "label": "CSBNO - Culture Socialità Biblioteche Network Operativo",
+    #    "short": "CSBNO",
+    #    "base_url": "https://webopac.csbno.net",
+    #    "lib_path": "/library/",
+    #    "catalog_code": "csbno",
+    # },
+    # CUBI (Vimercatese + Milano Est): percorso standard "/library/"
+    # (verificato dal vivo). catalog_code confermato da link reali osservati
+    # in rete: "opac/detail/view/cubi:catalog:642636" e altri.
+    "cubi": {
+        "label": "CUBI - Culture Biblioteche in Rete",
+        "short": "CUBI",
+        "base_url": "https://opac.cubinrete.it",
+        "lib_path": "/library/",
+        "catalog_code": "cubi",
+    },
+    # SBNEM (Sistema Bibliotecario Nord Est Milano: Brugherio, Bussero,
+    # Carugate, Cassina de' Pecchi, Cernusco sul Naviglio, Cologno Monzese,
+    # Vignate, Vimodrone): DISATTIVATA. Stesso blocco WAF HTTP 403 di CSBNO,
+    # oltre al catalog_code mai verificato. Va riattivata solo dopo aver
+    # risolto il blocco lato richiesta E confermato il catalog_code reale.
+    # "sbnem": {
+    #    "label": "Sistema Bibliotecario Nord Est Milano",
+    #    "short": "SBNEM",
+    #    "base_url": "https://www.biblioclick.it",
+    #    "lib_path": "/library/",
+    #    "catalog_code": "test",  # non verificato
+    # },
+    # BrianzaBiblioteche (Monza e Brianza): DISATTIVATA. Path "/library/" e
+    # catalog_code "bria" erano confermati corretti, ma il server risponde
+    # con HTTP 403 a curl_get() in produzione (stesso sintomo WAF delle
+    # altre reti sopra). Va riattivata solo dopo aver risolto il blocco lato
+    # richiesta.
+    # "brianza": {
+    #    "label": "BrianzaBiblioteche",
+    #    "short": "Brianza",
+    #    "base_url": "https://www.brianzabiblioteche.it",
+    #    "lib_path": "/library/",
+    #    "catalog_code": "bria",
+    # },
+    # Lecco: DISATTIVATA. Path standard "/library/" confermato raggiungibile
+    # in fase di ricerca esterna, ma in produzione il server risponde con
+    # HTTP 403 a curl_get() (stesso sintomo di Varese e Sondrio: WAF/reverse
+    # proxy che blocca richieste non-browser). catalog_code non era comunque
+    # ancora stato verificato (vedi nota storica sotto). Va riattivata solo
+    # dopo aver risolto il blocco lato richiesta.
+    # "lecco": {
+    #    "label": "Sistema Bibliotecario del Territorio Lecchese",
+    #    "short": "Lecco",
+    #    "base_url": "https://lecco.biblioteche.it",
+    #    "lib_path": "/library/",
+    #    "catalog_code": "test",  # non verificato
+    # },
+    # Sondrio: DISATTIVATA. Come Varese, il path e il catalog_code sono
+    # confermati corretti (lib_path standard "/library/", catalog_code
+    # "sondrio" da un link reale osservato in rete: "opac/detail/view/
+    # sondrio:catalog:252215"), ma il server blocca con HTTP 403 le richieste
+    # di curl_get() (stesso sintomo di Varese: risposta breve/anomala,
+    # tipicamente un WAF/reverse proxy che riconosce e rifiuta richieste
+    # non-browser). Va riattivata solo dopo aver risolto il blocco lato
+    # richiesta (header/cookie diversi o altro punto d'ingresso).
+    # "sondrio": {
+    #    "label": "Rete Bibliotecaria della Provincia di Sondrio",
+    #    "short": "Sondrio",
+    #    "base_url": "https://biblioteche.provinciasondrio.it",
+    #    "lib_path": "/library/",
+    #    "catalog_code": "sondrio",
+    # },
+    # Varese: DISATTIVATA. Come Mantovana, l'elenco biblioteche non vive su
+    # "/library/" ma su un percorso personalizzato del sito
+    # ("/le-biblioteche-della-rete-provinciale-di-varese/", verificato dal
+    # vivo tramite più fonti esterne). Il path però non è il problema: il
+    # server risponde con HTTP 403 a QUALSIASI richiesta di curl_get() verso
+    # quel path (confermato via /api/debug/rete-check: http_code=403,
+    # redirect_count=0, nessun errore curl — cioè la connessione arriva a
+    # destinazione ma viene rifiutata esplicitamente, tipicamente un
+    # WAF/reverse proxy che riconosce e blocca richieste non-browser). Non è
+    # quindi un problema di regex o di lib_path: va risolto lato richiesta
+    # (header/cookie diversi, o un altro punto d'ingresso) prima di poter
+    # riattivare la rete. catalog_code non ancora verificabile per lo stesso
+    # motivo (non si riesce a scaricare nemmeno una pagina di ricerca).
+    # "varese": {
+    #    "label": "Rete Bibliotecaria della Provincia di Varese",
+    #    "short": "Varese",
+    #    "base_url": "https://retebibliotecaria.provincia.va.it",
+    #    "lib_path": "/le-biblioteche-della-rete-provinciale-di-varese/",
+    #    "catalog_code": "test",  # non verificato, vedi nota sopra
+    # },
+    # Lodi: percorso standard "/library/" (verificato dal vivo: l'elenco
+    # biblioteche con i link "libpage/id/N" è effettivamente lì, stesso schema
+    # di RBBC/Comasca). catalog_code confermato dal vivo dai log di produzione
+    # (link reali osservati: "opac/detail/view/lo:catalog:121727").
+    "lodi": {
+        "label": "Sistema Bibliotecario Lodigiano",
+        "short": "Lodi",
+        "base_url": "https://webopac.bibliotechelodi.it",
+        "lib_path": "/library/",
+        "catalog_code": "lo",
+    },
+   # "bergamasca": {
+   #    "label": "Rete Bibliotecaria Bergamasca",
+   #    "short": "Bergamasca",
+   #    "base_url": "https://opacbg.provincia.brescia.it",
+   #    "lib_path": "/library/",
+   #    "catalog_code": "test",  # placeholder, da verificare quando la rete sarà raggiungibile
+   #},
+}
+RETE_DEFAULT = "rbbc"
+
+
+# ── ELENCO STATICO COMASCA ──────────────────────────────────────────────
+# Per Comasca lo scraping live di "/library/" usa lo schema corretto
+# (href="...libpage/id/N">Nome</a>", verificato manualmente sul sito), quindi
+# in teoria funzionerebbe; se in produzione risulta comunque vuoto è quasi
+# certamente un problema di rete/timeout verso quell'host, non di parsing.
+# Come mitigazione immediata (e per eliminare una dipendenza di rete in più)
+# usiamo un elenco statico, sullo stesso modello di BIBS in index.html per
+# RBBC. Va aggiornato manualmente se la composizione della rete cambia.
+BIBLIOTECHE_COMASCA = [
+    "Albavilla", "Albese con Cassano", "Albiolo", "Alzate Brianza",
+    "Appiano Gentile", "Asso", "Bassone Casa circondariale", "Bene Lario",
+    "Beregazzo con F.", "Biblioteca Liceo Classico e Scientifico \"A. Volta\"",
+    "Biblioteca Liceo Scientifico G. Galilei", "Binago", "Bizzarone", "Blevio",
+    "Bregnano", "Brenna", "Brienno", "Brunate", "Bulgarograsso", "Cadorago",
+    "Cagno", "Cantù", "Capiago Intimiano", "Carate Urio", "Carlazzo",
+    "Caslino d'Erba", "Casnate con Bernate", "Cassina Rizzardi", "Cavallasca",
+    "Centro Prov. Catalog.", "Cermenate", "Cernobbio", "Cirimido",
+    "Colverde - Drezzo", "Colverde - Gironico", "Colverde - Parè", "Como",
+    "Como Locker", "Como Musei civici", "Corrido", "Cucciago", "Dizzasco",
+    "Dongo", "Faloppio", "Fenegrò", "Figino Serenza", "Fino Mornasco",
+    "Fondazione Ratti", "Grandate", "Grandola ed Uniti",
+    "Gravedona ed Uniti. IC Don Roberto Malgesini", "Griante", "Guanzate",
+    "ITIS Magistri Cumacini", "Laglio", "Laino", "Lenno", "Lezzeno",
+    "Limido Comasco", "Lipomo", "Lomazzo", "Luisago", "Lurago Marinone",
+    "Lurate Caccivio", "Mariano Comense", "Menaggio", "Moltrasio",
+    "Montano Lucino", "Mozzate", "Novedrate", "Olgiate Comasco",
+    "Oltrona San Mamette", "Ossuccio", "Pianello", "Pigra", "Plesio",
+    "Ponte Lambro", "Porlezza", "Pusiano", "Rodero", "Ronago", "Rovellasca",
+    "S. Bartolomeo", "S. Fedele CMLI", "San Fermo della Battaglia",
+    "San Siro", "Società Archeologica Comense", "Solbiate", "Tavernerio",
+    "Uggiate Trevano", "Università Terza Età", "Valmorea", "Valsolda",
+    "Veniano", "Vertemate con M.", "Villa Guardia", "Zelbio",
+]
+
+def rete_valida(rete):
+    """Restituisce l'id rete se valido, altrimenti la rete di default.
+    Centralizza la validazione così nessun endpoint rischia di costruire
+    un base_url da input utente non controllato."""
+    return rete if rete in RETI else RETE_DEFAULT
 # Nota: non esiste più un cookie-jar condiviso a livello di modulo (era
 # CURL_COOKIE = "/tmp/rbbc_opac.txt"). curl_get() ora crea un cookie-jar
 # temporaneo per ciascuna chiamata, necessario per poter eseguire più
@@ -66,6 +266,13 @@ def init_db():
                 ALTER TABLE utenti ADD COLUMN IF NOT EXISTS obiettivo_annuale INTEGER NOT NULL DEFAULT 0;
             """)
 
+            # Multi-rete: ogni utente/ricerca/lettura è ora legata a una rete
+            # bibliotecaria specifica (rbbc, comasca, ...). Default 'rbbc' per
+            # non rompere i dati già esistenti (che erano tutti su RBBC).
+            cur.execute("""
+                ALTER TABLE utenti ADD COLUMN IF NOT EXISTS rete VARCHAR(32) NOT NULL DEFAULT 'rbbc';
+            """)
+
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS ricerche (
                     id SERIAL PRIMARY KEY,
@@ -76,6 +283,9 @@ def init_db():
                     a_bib INTEGER NOT NULL DEFAULT 0,
                     cercato_il TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
+            """)
+            cur.execute("""
+                ALTER TABLE ricerche ADD COLUMN IF NOT EXISTS rete VARCHAR(32) NOT NULL DEFAULT 'rbbc';
             """)
 
             cur.execute("""
@@ -92,6 +302,9 @@ def init_db():
                     UNIQUE (utente_id, url_opac)
                 );
             """)
+            cur.execute("""
+                ALTER TABLE salvati ADD COLUMN IF NOT EXISTS rete VARCHAR(32) NOT NULL DEFAULT 'rbbc';
+            """)
 
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS letti (
@@ -104,6 +317,15 @@ def init_db():
                     letto_il TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE (utente_id, url_opac)
                 );
+            """)
+            cur.execute("""
+                ALTER TABLE letti ADD COLUMN IF NOT EXISTS rete VARCHAR(32) NOT NULL DEFAULT 'rbbc';
+            """)
+
+            # Diario personale: una nota/recensione libera per ogni libro letto,
+            # mostrata accanto al libro in "La mia biblioteca" (profilo).
+            cur.execute("""
+                ALTER TABLE letti ADD COLUMN IF NOT EXISTS nota TEXT NOT NULL DEFAULT '';
             """)
 
             # Migrazione: aggiunge la colonna 'letto' se il DB esisteva già
@@ -185,7 +407,11 @@ def _norm(s):
     return s.lower().strip()
 
 def _estrai_risultati(html):
-    """Estrae (numero_notizia, titolo) dai risultati di una pagina OPAC."""
+    """Estrae (numero_notizia, titolo) dai risultati di una pagina OPAC.
+    NOTA: non più chiamata da nessuna parte (rimossa la logica duplicata,
+    ora vive in cerca_titolo() con catalog_code dinamico). Tenuta solo se
+    servisse un'estrazione "grezza" senza il resto della logica di
+    cerca_titolo — altrimenti da rimuovere."""
     pattern = r'href="opac/detail/view/test:catalog:(\d+)"[\s\S]{0,200}?title="([^"]{5,200})"'
     visti = {}
     for num, raw in re.findall(pattern, html):
@@ -195,27 +421,131 @@ def _estrai_risultati(html):
                 visti[num] = t
     return visti
 
-def cerca_titolo(titolo, rows=10):
-    url  = f"{BASE_URL}/opac/search?q={quote_plus(titolo)}&rows={rows}"
+def cerca_titolo(titolo, base_url=BASE_URL, rows=10, rete_debug=None, catalog_code="test"):
+    url  = f"{base_url}/opac/search?q={quote_plus(titolo)}&rows={rows}"
     html = curl_get(url)
     if not html:
+        if rete_debug:
+            app.logger.warning("cerca_titolo(%s): nessuna risposta da %s", rete_debug, url)
         return []
-    pattern = r'href="opac/detail/view/test:catalog:(\d+)"[\s\S]{0,200}?title="([^"]{5,200})"'
+    pattern = (r'href="opac/detail/view/' + re.escape(catalog_code)
+               + r':catalog:(\d+)"[^>]{0,300}?title="([^"]{5,200})"')
     visti = {}
     for num, raw in re.findall(pattern, html):
         if num not in visti:
             t = strip_tags(raw)
             if t and not t.lower().startswith("vai a"):
                 visti[num] = t
-    return [{"titolo": tit, "url": f"{BASE_URL}/opac/detail/view/test:catalog:{num}"}
+    if not visti and rete_debug:
+        # Il regex usa il codename di catalogo configurato in RETI[...]["catalog_code"]
+        # (es. "test" per RBBC, "como" per Comasca). Se una rete non ancora
+        # verificata usa un codename diverso, il link non combacia anche con
+        # risposta HTML perfettamente valida. Cerchiamo il primo "detail/view"
+        # nel corpo per vedere il codename reale usato da questa rete.
+        idx = html.find("detail/view")
+        contesto = html[max(0, idx - 100):idx + 150] if idx != -1 else None
+        app.logger.warning(
+            "cerca_titolo(%s): risposta da %s (%d caratteri), 0 risultati estratti con catalog_code=%r — "
+            "'detail/view' %s, contesto: %r",
+            rete_debug, url, len(html), catalog_code,
+            "presente" if idx != -1 else "ASSENTE",
+            contesto
+        )
+    return [{"titolo": tit, "url": f"{base_url}/opac/detail/view/{catalog_code}:catalog:{num}"}
             for num, tit in list(visti.items())[:rows]]
+
+# ── ELENCO BIBLIOTECHE (dinamico, per rete) ────────────────────────────────
+# Ogni rete DiscoveryNG espone una pagina /library/ con l'elenco dei punti
+# di servizio, come link "<a href=".../libpage/id/N">Nome</a>". Invece di
+# tenere elenchi statici da aggiornare a mano per ogni rete (rischio di
+# errori/dimenticanze), li leggiamo da qui e li teniamo in cache in memoria
+# per non ri-scaricare la pagina ad ogni richiesta.
+_LIB_CACHE = {}          # rete -> (timestamp, [nomi ordinati])
+_LIB_CACHE_TTL = 24 * 3600  # 24 ore: l'elenco cambia raramente
+
+def _estrai_biblioteche(html):
+    # Alcune reti (es. Mantovana) avvolgono il nome in un tag interno, es.
+    # <a href="libpage/id/2" ...><span property="name">Nome</span></a>,
+    # altre (es. Como) lo mettono come testo diretto dentro <a>...</a>.
+    # Per essere robusti su entrambi i casi catturiamo tutto il contenuto tra
+    # <a ...> e </a> e lo ripuliamo con strip_tags(), invece di richiedere
+    # che sia testo puro subito dopo il '>' di apertura (fragile: si rompe
+    # non appena c'è un tag annidato, come successo con Mantovana).
+    pattern = r'href="[^"]*?libpage/id/\d+"[^>]*>([\s\S]{0,300}?)</a>'
+    visti, nomi = set(), []
+    for raw in re.findall(pattern, html):
+        nome = strip_tags(raw)
+        if nome and nome not in visti:
+            visti.add(nome)
+            nomi.append(nome)
+    nomi.sort(key=_norm)
+    return nomi
+
+def get_biblioteche(rete):
+    # Comasca: elenco statico, nessuna dipendenza di rete (vedi BIBLIOTECHE_COMASCA).
+    if rete == "comasca":
+        return BIBLIOTECHE_COMASCA
+
+    now = time.time()
+    cached = _LIB_CACHE.get(rete)
+    if cached and (now - cached[0]) < _LIB_CACHE_TTL:
+        return cached[1]
+    base_url = RETI[rete]["base_url"]
+    lib_path = RETI[rete].get("lib_path", "/library/")
+    url = f"{base_url}{lib_path}"
+    html = curl_get(url, timeout=15)
+
+    # Logging esplicito: senza questo, un fallimento qui è indistinguibile
+    # dall'esterno tra "il sito non ha risposto" e "il sito ha risposto ma
+    # l'HTML non combacia col regex di parsing" — due problemi con soluzioni
+    # completamente diverse (rete/firewall vs. lib_path/regex da correggere).
+    if not html:
+        app.logger.warning(
+            "get_biblioteche(%s): nessuna risposta da %s (timeout, DNS o blocco di rete)",
+            rete, url
+        )
+    nomi = _estrai_biblioteche(html) if html else []
+    if html and not nomi:
+        # Il primo tentativo mostrava i primi 500 caratteri della pagina, che
+        # sono sempre e solo l'<head> — inutile per capire perché il regex
+        # non cattura i link, che stanno più in basso nel corpo. Ora
+        # mostriamo il contesto reale attorno al primo "libpage/id" trovato,
+        # cioè esattamente il markup che il regex deve interpretare.
+        idx = html.find("libpage/id")
+        if idx == -1:
+            contesto = None
+        else:
+            contesto = html[max(0, idx - 150):idx + 150]
+        app.logger.warning(
+            "get_biblioteche(%s): risposta da %s (%d caratteri), 0 biblioteche estratte — "
+            "contesto attorno al primo 'libpage/id': %r",
+            rete, url, len(html), contesto
+        )
+
+    if nomi:
+        _LIB_CACHE[rete] = (now, nomi)
+        return nomi
+    if cached:
+        # Il sito non ha risposto bene: meglio restituire la cache scaduta
+        # (anche se non freschissima) che una lista vuota all'utente.
+        return cached[1]
+    return []
 
 def verifica_disponibilita(url, biblioteca):
     html = curl_get(url)
     if not html:
         return {"titolo": "—", "autore": "—", "copie": []}
-    m = re.search(r'<h3[^>]*>\s*([\s\S]*?)\s*</h3>', html)
-    titolo = strip_tags(m.group(1)) if m else "—"
+    # Come per l'autore (h4 sotto), non possiamo fidarci ciecamente del PRIMO
+    # <h3> della pagina: reti come Mantovana hanno un modale/help di login
+    # (es. "Quali sono le mie credenziali?") che compare più in alto nel DOM
+    # rispetto al titolo vero del libro. Scartiamo i valori noti non-titolo,
+    # come già si fa con le intestazioni spurie per l'autore.
+    titolo = "—"
+    for h3 in re.findall(r'<h3[^>]*>\s*([\s\S]*?)\s*</h3>', html):
+        cand = strip_tags(h3)
+        if cand and cand.lower() not in ("login", "accedi", "quali sono le mie credenziali?"):
+            titolo = cand
+            break
     autore = "—"
     for h4 in re.findall(r'<h4[^>]*>\s*([\s\S]*?)\s*</h4>', html):
         cand = strip_tags(h4)
@@ -246,6 +576,7 @@ def registra():
     nome = (d.get("nome") or "").strip()
     password = d.get("password") or ""
     biblioteca = (d.get("biblioteca") or "").strip()
+    rete = rete_valida((d.get("rete") or "").strip())
 
     if not email or not nome or not password or not biblioteca:
         return jsonify({"error": "Tutti i campi sono obbligatori"}), 400
@@ -264,12 +595,12 @@ def registra():
         cur = db.execute(
             """
             INSERT INTO utenti
-                (email, nome, password, biblioteca)
+                (email, nome, password, biblioteca, rete)
             VALUES
-                (%s, %s, %s, %s)
+                (%s, %s, %s, %s, %s)
             RETURNING id
             """,
-            (email, nome, pw_hash, biblioteca)
+            (email, nome, pw_hash, biblioteca, rete)
         )
 
         uid = cur.fetchone()["id"]
@@ -283,6 +614,7 @@ def registra():
             "ok": True,
             "nome": nome,
             "biblioteca": biblioteca,
+            "rete": rete,
             "obiettivo_annuale": 0
         })
 
@@ -306,6 +638,7 @@ def login():
     session["uid"] = u["id"]
     session.permanent = True
     return jsonify({"ok": True, "nome": u["nome"], "biblioteca": u["biblioteca"],
+                     "rete": u.get("rete") or RETE_DEFAULT,
                      "obiettivo_annuale": u.get("obiettivo_annuale", 0) or 0})
 
 @app.route("/api/auth/logout", methods=["POST"])
@@ -323,6 +656,7 @@ def me():
         "nome":        u["nome"],
         "email":       u["email"],
         "biblioteca":  u["biblioteca"],
+        "rete":        u.get("rete") or RETE_DEFAULT,
         "obiettivo_annuale": u.get("obiettivo_annuale", 0) or 0,
     })
 
@@ -333,12 +667,16 @@ def aggiorna_profilo():
     d = request.get_json() or {}
     biblioteca = (d.get("biblioteca") or "").strip()
     nome       = (d.get("nome") or "").strip()
+    # rete è opzionale nella richiesta: se non passata, resta quella attuale
+    # dell'utente (così una semplice modifica del nome non la tocca).
+    rete = (d.get("rete") or "").strip()
+    rete = rete_valida(rete) if rete else (u.get("rete") or RETE_DEFAULT)
     if not biblioteca or not nome:
         return jsonify({"error": "Campi mancanti"}), 400
-    get_db().execute("UPDATE utenti SET nome=%s, biblioteca=%s WHERE id=%s",
-                     (nome, biblioteca, u["id"]))
+    get_db().execute("UPDATE utenti SET nome=%s, biblioteca=%s, rete=%s WHERE id=%s",
+                     (nome, biblioteca, rete, u["id"]))
     get_db().commit()
-    return jsonify({"ok": True, "nome": nome, "biblioteca": biblioteca})
+    return jsonify({"ok": True, "nome": nome, "biblioteca": biblioteca, "rete": rete})
 
 @app.route("/api/obiettivo", methods=["POST"])
 @login_richiesto
@@ -362,11 +700,14 @@ def imposta_obiettivo():
 def api_search():
     q          = request.args.get("q", "").strip()
     biblioteca = request.args.get("biblioteca", "").strip()
+    rete       = rete_valida(request.args.get("rete", "").strip())
+    base_url   = RETI[rete]["base_url"]
     if not q or not biblioteca:
         return jsonify({"error": "Parametri mancanti"}), 400
 
     try:
-        risultati_base = cerca_titolo(q, rows=10)
+        risultati_base = cerca_titolo(q, base_url, rows=10, rete_debug=rete,
+                                       catalog_code=RETI[rete].get("catalog_code", "test"))
         max_risultati = 10
         candidati = risultati_base[:max_risultati]
 
@@ -415,11 +756,11 @@ def api_search():
         if u and output:
             a_bib = sum(1 for r in output if r["copie_rezzato"])
             get_db().execute(
-                "INSERT INTO ricerche (utente_id,query,biblioteca,trovati,a_bib) VALUES (%s,%s,%s,%s,%s)",
-                (u["id"], q, biblioteca, len(output), a_bib))
+                "INSERT INTO ricerche (utente_id,query,biblioteca,rete,trovati,a_bib) VALUES (%s,%s,%s,%s,%s,%s)",
+                (u["id"], q, biblioteca, rete, len(output), a_bib))
             get_db().commit()
 
-        return jsonify({"query": q, "biblioteca": biblioteca, "risultati": output})
+        return jsonify({"query": q, "biblioteca": biblioteca, "rete": rete, "risultati": output})
 
     except Exception as e:
         # Log completo lato server (visibile nei log del processo/host) +
@@ -427,6 +768,55 @@ def api_search():
         # è diagnosticabile subito invece di apparire come un 500 generico.
         app.logger.exception("Errore in /api/search (q=%r)", q)
         return jsonify({"error": f"Errore interno: {e}"}), 500
+
+#  API Debug rete (diagnostica temporanea)
+
+@app.route("/api/debug/rete-check")
+def debug_rete_check():
+    """Testa la raggiungibilità di ogni host OPAC dal server e restituisce
+    codice HTTP, tempo di risposta ed errore curl (se presente). Serve a
+    distinguere in un colpo solo: blocco a livello di connessione (DNS,
+    timeout, TLS, connection refused) da un 200 con contenuto inatteso.
+    Endpoint diagnostico: rimuovere o proteggere una volta chiuso il debug."""
+    risultati = {}
+    for rete_id, info in RETI.items():
+        base_url = info["base_url"]
+        lib_path = info.get("lib_path", "/library/")
+        url = f"{base_url}{lib_path}"
+        cmd = (["curl", "-s", "-o", "/dev/null",
+                "-w", "%{http_code}|%{time_total}|%{ssl_verify_result}|%{num_redirects}",
+                "-L", "--max-time", "10"] + HEADERS + [url])
+        try:
+            r = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+            parti = r.stdout.strip().split("|")
+            risultati[rete_id] = {
+                "url": url,
+                "http_code": parti[0] if len(parti) > 0 else None,
+                "tempo_sec": parti[1] if len(parti) > 1 else None,
+                "ssl_verify_result": parti[2] if len(parti) > 2 else None,
+                "redirect_count": parti[3] if len(parti) > 3 else None,
+                "curl_returncode": r.returncode,
+                "curl_stderr": r.stderr.strip()[:300] or None,
+            }
+        except subprocess.TimeoutExpired:
+            risultati[rete_id] = {"url": url, "errore": "timeout (>15s) — nessuna risposta dal server curl stesso"}
+        except Exception as e:
+            risultati[rete_id] = {"url": url, "errore": str(e)}
+    return jsonify(risultati)
+
+#  API Reti e Biblioteche
+
+@app.route("/api/reti")
+def api_reti():
+    return jsonify([
+        {"id": k, "label": v["label"], "short": v["short"]}
+        for k, v in RETI.items()
+    ])
+
+@app.route("/api/biblioteche")
+def api_biblioteche():
+    rete = rete_valida(request.args.get("rete", "").strip())
+    return jsonify({"rete": rete, "biblioteche": get_biblioteche(rete)})
 
 #  API Letti
 
@@ -448,16 +838,17 @@ def aggiungi_letto():
     url_opac = (d.get("url_opac") or "").strip()
     if not url_opac:
         return jsonify({"error": "url_opac mancante"}), 400
+    rete = rete_valida((d.get("rete") or "").strip())
     db = get_db()
     try:
         db.execute(
             """
-            INSERT INTO letti (utente_id, titolo, autore, url_opac, biblioteca)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO letti (utente_id, titolo, autore, url_opac, biblioteca, rete)
+            VALUES (%s, %s, %s, %s, %s, %s)
             ON CONFLICT (utente_id, url_opac) DO NOTHING
             """,
             (u["id"], d.get("titolo",""), d.get("autore",""),
-             url_opac, d.get("biblioteca",""))
+             url_opac, d.get("biblioteca",""), rete)
         )
         db.commit()
         return jsonify({"ok": True})
@@ -473,6 +864,26 @@ def rimuovi_letto(url_opac):
     db.execute("DELETE FROM letti WHERE url_opac=%s AND utente_id=%s", (url_opac, u["id"]))
     db.commit()
     return jsonify({"ok": True})
+
+@app.route("/api/letti/<path:url_opac>/nota", methods=["POST"])
+@login_richiesto
+def aggiorna_nota_letto(url_opac):
+    """Diario personale: salva/aggiorna la nota libera legata a un libro letto.
+    Nota vuota = cancella la nota (non elimina il libro dai letti)."""
+    u = utente_corrente()
+    d = request.get_json() or {}
+    nota = (d.get("nota") or "").strip()
+    if len(nota) > 5000:
+        return jsonify({"error": "Nota troppo lunga (massimo 5000 caratteri)"}), 400
+    db = get_db()
+    cur = db.execute(
+        "UPDATE letti SET nota=%s WHERE utente_id=%s AND url_opac=%s",
+        (nota, u["id"], url_opac)
+    )
+    db.commit()
+    if cur.rowcount == 0:
+        return jsonify({"error": "Libro non trovato tra i letti"}), 404
+    return jsonify({"ok": True, "nota": nota})
 
 #  API Storico e statistiche personali 
 

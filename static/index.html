@@ -78,6 +78,8 @@ body.dark .bsalv{color:var(--ink3);border-color:var(--av3)}
 body.dark .bsalv:hover{border-color:var(--oro-2);color:var(--oro-2)}
 body.dark .bsalv.on{background:var(--bosco-2);color:var(--oro-2);border-color:var(--bosco-2)}
 body.dark .bletto.on{background:rgba(200,164,74,.16);color:var(--oro-2);border-color:var(--oro)}
+body.dark .wnota{background:#16281a}
+body.dark .wnota-btn{color:var(--oro-2)}
 /* Testi chiari */
 body.dark .ctt,body.dark .sc-nome,body.dark .etn,
 body.dark .wtt,body.dark .opt,
@@ -97,6 +99,7 @@ body.dark .leg-desc,body.dark .leg-arm-tema{color:var(--ink3)}
 body.dark .bric{border-color:var(--av3)}
 body.dark .bric:hover{border-color:var(--bosco-2);color:var(--oro-2)}
 body.dark .sh3{color:var(--oro-2);border-bottom-color:var(--av3)}
+body.dark .shtit{color:var(--oro-2)}
 /* Separatori */
 body.dark .wi,
 body.dark .opi,body.dark .copr,body.dark .imr{border-color:var(--av3)}
@@ -104,6 +107,9 @@ body.dark .opi,body.dark .copr,body.dark .imr{border-color:var(--av3)}
 body.dark .fi input{background:#0f1a10;border-color:var(--av3);color:var(--ink)}
 body.dark .fi input:focus{border-color:var(--bosco-2);background:#0f1a10}
 body.dark .fi input::placeholder{color:var(--av4)}
+body.dark .fi textarea{background:#0f1a10;border-color:var(--av3);color:var(--ink)}
+body.dark .fi textarea:focus{border-color:var(--bosco-2);background:#0f1a10}
+body.dark .fi textarea::placeholder{color:var(--av4)}
 body.dark .dd{background:#121f13;border-color:var(--bosco-2)}
 body.dark .ddi{color:var(--ink2);border-color:var(--av3)}
 body.dark .ddi:hover,.dark .ddi.hl{background:var(--bosco);color:#fff}
@@ -197,6 +203,9 @@ body{font-family:'Inter',sans-serif;background:var(--av);color:var(--ink);min-he
 .fi input{width:100%;padding:13px 15px;border:1.5px solid var(--av3);border-radius:var(--r);font-family:'Inter',sans-serif;font-size:.88rem;background:#fff;color:var(--ink);outline:none;transition:border-color .25s,box-shadow .25s,background .25s}
 .fi input:focus{border-color:var(--bosco);box-shadow:0 0 0 4px rgba(27,61,30,.09);background:#fff}
 .fi input::placeholder{color:#c8c0b4}
+.fi textarea{width:100%;padding:13px 15px;border:1.5px solid var(--av3);border-radius:var(--r);font-family:'Inter',sans-serif;font-size:.88rem;line-height:1.5;background:#fff;color:var(--ink);outline:none;transition:border-color .25s,box-shadow .25s,background .25s;resize:vertical;min-height:96px}
+.fi textarea:focus{border-color:var(--bosco);box-shadow:0 0 0 4px rgba(27,61,30,.09);background:#fff}
+.fi textarea::placeholder{color:#c8c0b4}
 .acw{position:relative}
 .dd{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1.5px solid var(--bosco);border-radius:var(--r);box-shadow:var(--sh-l);max-height:220px;overflow-y:auto;z-index:300;display:none}
 .dd.on{display:block}
@@ -557,6 +566,9 @@ body.dark .onb-tip-btn:hover{border-color:var(--oro);background:rgba(200,164,74,
 .wtt{font-family:'Cormorant Garamond',serif;font-size:.98rem;font-weight:600;color:var(--ink);line-height:1.3}
 .wat{font-size:.77rem;color:#888;font-style:italic;font-family:'Cormorant Garamond',serif}
 .wmt{font-size:.67rem;color:#bbb;margin-top:1px}
+.wnota{font-size:.76rem;color:var(--ink2);font-style:italic;line-height:1.5;margin-top:6px;padding:8px 10px;background:var(--av2);border-left:2px solid var(--oro);border-radius:0 6px 6px 0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
+.wnota-btn{background:none;border:none;color:var(--bosco-2);font-size:.68rem;font-weight:700;letter-spacing:.02em;cursor:pointer;padding:0;margin-top:6px;font-family:'Inter',sans-serif;display:inline-block}
+.wnota-btn:hover{text-decoration:underline}
 .bdel{background:none;border:none;color:#ddd;cursor:pointer;font-size:.78rem;padding:3px 5px;transition:color .15s;flex-shrink:0}
 .bdel:hover{color:var(--rosso)}
 
@@ -1297,6 +1309,17 @@ body.dark .arm-row-count{color:var(--oro-2)}
     </div>
   </div>
 </div>
+<div class="shovr" id="shnota" onclick="chiudiSh('shnota',event)">
+  <div class="sh"><div class="shhnd"></div>
+    <div class="shtit" style="margin-bottom:4px">📝 Diario di lettura</div>
+    <p id="notaTitoloLibro" style="font-size:.8rem;color:var(--ink3);font-style:italic;margin-bottom:14px"></p>
+    <div class="fi"><label>La tua nota</label><textarea id="notaTesto" placeholder="Cosa ti ha lasciato questo libro? Una frase, un ricordo, un giudizio…"></textarea></div>
+    <div style="display:flex;gap:10px">
+      <button class="bsm bsmp" onclick="salvaNotaLibro()">Salva</button>
+      <button class="bsm bsmg" onclick="chiudiSh('shnota')">Annulla</button>
+    </div>
+  </div>
+</div>
 <div class="shovr" id="shbib" onclick="chiudiSh('shbib',event)">
   <div class="sh"><div class="shhnd"></div><div class="shtit">Cambia biblioteca</div>
     <div class="fi"><label>Rete bibliotecaria</label><div data-rete-selector="cambiabibProf" data-rete-attuale="rbbc"></div></div>
@@ -1408,13 +1431,19 @@ body.dark .arm-row-count{color:var(--oro-2)}
 /* SWIPE TRA TAB */
 (function(){
   const TAB_ORDER=['shome','salex','satlante','spant','slap','sprof'];
-  let tx=0,ty=0,swiping=false;
+  let tx=0,ty=0,swiping=false,swipeBlocked=false;
   document.addEventListener('touchstart',e=>{
     const t=e.touches[0];
     tx=t.clientX;ty=t.clientY;swiping=true;
+    // Se il tocco parte dentro una mappa/galassia con pan e zoom proprio
+    // (Atlante o Lapides Miliarii, inline o a schermo intero), lo swipe di
+    // cambio-scheda va disattivato: altrimenti trascinare per esplorare la
+    // mappa veniva letto anche come uno swipe e cambiava scheda a sorpresa.
+    swipeBlocked=!!e.target.closest('.cost-wrap,#mapFsSvgWrap,.mapwrap');
   },{passive:true});
   document.addEventListener('touchend',e=>{
     if(!swiping)return;swiping=false;
+    if(swipeBlocked)return;
     // Ignora se sheet aperto
     if(document.querySelector('.shovr.on'))return;
     // Ignora se fullscreen mappa aperta
@@ -3107,11 +3136,23 @@ function galZoomReset(ctx,svgSel){
   _galZoomState[ctx]={scale:1,tx:0,ty:0};
   _applyGalZoom(ctx,svgSel);
 }
+/* Distanza tra due tocchi, usata dal pinch-to-zoom */
+function _touchDist(touches){
+  const dx=touches[0].clientX-touches[1].clientX;
+  const dy=touches[0].clientY-touches[1].clientY;
+  return Math.hypot(dx,dy);
+}
 function _setupGalPan(ctx,wrapSel,svgSel){
   const wrap=document.querySelector(wrapSel);
   if(!wrap)return;
   let dragging=false,sx=0,sy=0,ox=0,oy=0;
+  // I bottoni di zoom/schermo intero stanno dentro lo stesso elemento usato
+  // per il pan: senza questo controllo, ogni tap su +/−/⟳/⤢ faceva partire
+  // anche un drag (con pointer capture sul wrapper), rendendo i bottoni
+  // poco affidabili una volta zoomata la galassia.
+  const isCtrl=e=>e.target.closest('.cost-zbtn,.map-expand,.map-fs-close');
   wrap.onpointerdown=e=>{
+    if(isCtrl(e))return;
     if(_galZoomState[ctx].scale<=1)return;
     dragging=true;sx=e.clientX;sy=e.clientY;ox=_galZoomState[ctx].tx;oy=_galZoomState[ctx].ty;
     wrap.setPointerCapture(e.pointerId);
@@ -3123,6 +3164,31 @@ function _setupGalPan(ctx,wrapSel,svgSel){
   };
   wrap.onpointerup=()=>{dragging=false;};
   wrap.onpointercancel=()=>{dragging=false;};
+
+  // Pinch-to-zoom a due dita (touch). Assegnato come proprietà (non
+  // addEventListener) così da non accumulare listener duplicati ogni volta
+  // che questa funzione viene richiamata (es. riapertura schermo intero).
+  let pinchDist=null,pinchStartScale=1;
+  wrap.ontouchstart=e=>{
+    if(e.touches.length===2&&!isCtrl(e)){
+      pinchDist=_touchDist(e.touches);
+      pinchStartScale=_galZoomState[ctx].scale;
+    }
+  };
+  wrap.ontouchmove=e=>{
+    if(e.touches.length===2&&pinchDist){
+      e.preventDefault();
+      const d=_touchDist(e.touches);
+      let ns=Math.max(1,Math.min(2.6,pinchStartScale*(d/pinchDist)));
+      ns=+ns.toFixed(2);
+      _galZoomState[ctx].scale=ns;
+      if(ns===1){_galZoomState[ctx].tx=0;_galZoomState[ctx].ty=0;}
+      _applyGalZoom(ctx,svgSel);
+    }
+  };
+  wrap.ontouchend=e=>{
+    if(e.touches.length<2)pinchDist=null;
+  };
 }
 
 function renderCostellazioni(){
@@ -3402,6 +3468,7 @@ function apriGalassiaFS(){
       <button class="cost-zbtn" onclick="galZoom('fs','#svg-galassia-fs',-1)" title="Zoom indietro">−</button>
     </div>
     <svg viewBox="0 0 900 900" xmlns="http://www.w3.org/2000/svg" id="svg-galassia-fs" style="background:#05070d;border-radius:8px"></svg>`;
+  wrap.style.background='#05070d';
   info.innerHTML='<p class="map-fs-hint">Tocca una stella per scoprire l\'opera e segnarla come letta.</p>';
   disegnaGalassiaIn('svg-galassia-fs','mapFsInfo');
   applyFocusBraccio();
@@ -4232,7 +4299,9 @@ function apriMappaFS(tipo){
 }
 function chiudiMappaFS(){
   document.getElementById('mapFsOvr').classList.remove('on');
-  document.getElementById('mapFsSvgWrap').innerHTML='';
+  const w=document.getElementById('mapFsSvgWrap');
+  w.innerHTML='';
+  w.style.background='';
   _fsType=null;
   _galZoomState.fs={scale:1,tx:0,ty:0};
 }
@@ -4320,12 +4389,49 @@ async function salvaObiettivo(){
 
 /* PROFILO */
 const LIBRI_PREVIEW=5;
+function escHtml(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function renderLibriProf(lista,tutti){
   const ml=document.getElementById('p-mialib');if(!ml)return;
+  window._mlTutti=!!tutti;
   const mostra=tutti?lista:lista.slice(0,LIBRI_PREVIEW);
-  const righe=mostra.map(s=>`<div class="wi"><div class="wdot dv"></div><div class="wbod"><div class="wtt">${s.titolo}</div>${s.autore?`<div class="wat">${s.autore}</div>`:''}<div class="wmt">${s.biblioteca}</div></div><button class="bdel" title="Rimuovi dai letti" onclick="toglLettoProf('${encodeURIComponent(s.url_opac)}',this)">↺</button></div>`).join('');
-  const bottone=(!tutti&&lista.length>LIBRI_PREVIEW)?`<button class="bg" style="display:block;width:100%;text-align:center;margin-top:6px" onclick="renderLibriProf(window._mlLett,true)">Vedi tutti (${lista.length}) ↓</button>`:'';
+  const righe=mostra.map(s=>{
+    const encUrl=encodeURIComponent(s.url_opac);
+    const notaHtml=s.nota?`<div class="wnota">${escHtml(s.nota)}</div>`:'';
+    const notaBtn=`<button class="wnota-btn" onclick="apriNotaLibro('${encUrl}')">${s.nota?'✏️ Modifica nota':'📝 Aggiungi nota'}</button>`;
+    return `<div class="wi"><div class="wdot dv"></div><div class="wbod"><div class="wtt">${s.titolo}</div>${s.autore?`<div class="wat">${s.autore}</div>`:''}<div class="wmt">${s.biblioteca}</div>${notaHtml}${notaBtn}</div><button class="bdel" title="Rimuovi dai letti" onclick="toglLettoProf('${encUrl}',this)">↺</button></div>`;
+  }).join('');
+  const bottone=(!tutti&&lista.length>LIBRI_PREVIEW)?`<button class="bg" style="display:block;width:100%;text-align:center;margin-top:6px" onclick="window._mlTutti=true;renderLibriProf(window._mlLett,true)">Vedi tutti (${lista.length}) ↓</button>`:'';
   ml.innerHTML=righe+bottone;
+}
+
+/* Diario personale: apre la sheet di nota per il libro identificato da url
+   (cercato in G.lettiData, tenuto sincronizzato con l'elenco dei letti). */
+function apriNotaLibro(urlEnc){
+  if(!G.u){vai('sa','login');return;}
+  tap('light');
+  const url=decodeURIComponent(urlEnc);
+  const libro=(G.lettiData||[]).find(l=>l.url_opac===url);
+  if(!libro)return;
+  document.getElementById('notaTitoloLibro').textContent=libro.autore?`${libro.titolo} — ${libro.autore}`:libro.titolo;
+  const ta=document.getElementById('notaTesto');
+  ta.value=libro.nota||'';
+  ta.dataset.url=url;
+  apriSh('shnota');
+  setTimeout(()=>ta.focus(),300);
+}
+async function salvaNotaLibro(){
+  const ta=document.getElementById('notaTesto');
+  const url=ta.dataset.url;if(!url)return;
+  const nota=ta.value.trim();
+  tap('medium');
+  try{
+    const r=await fetch(`/api/letti/${encodeURIComponent(url)}/nota`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nota})});
+    if(!r.ok){const e=await r.json();throw new Error(e.error||'Errore');}
+    const aggiorna=arr=>{const l=arr?.find(x=>x.url_opac===url);if(l)l.nota=nota;};
+    aggiorna(G.lettiData);aggiorna(window._mlLett);
+    chiudiSh('shnota');
+    renderLibriProf(window._mlLett,window._mlTutti||false);
+  }catch(e){console.error('salvaNotaLibro',e);}
 }
 
 function aggiornaUIProf(){
