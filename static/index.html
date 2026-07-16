@@ -505,6 +505,15 @@ body.dark .morph-ov{background:#121f13}
 .cln:hover{text-decoration:underline}
 
 /* ATLANTE MAPPA */
+/* ONBOARDING TOOLTIP */
+.onb-tip{background:#fff;border:1.5px solid var(--oro);border-radius:var(--r);padding:14px 16px;margin-bottom:16px;box-shadow:var(--sh-s);animation:up .35s var(--ease-out-expo) both;transition:opacity .25s ease,transform .25s ease}
+body.dark .onb-tip{background:#121f13;border-color:var(--oro)}
+.onb-tip-txt{font-size:.8rem;color:var(--ink2);line-height:1.58;margin-bottom:11px}
+.onb-tip-btn{background:none;border:1.5px solid var(--av3);border-radius:20px;padding:7px 14px;font-size:.72rem;font-weight:700;letter-spacing:.02em;color:var(--bosco);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.onb-tip-btn:hover{border-color:var(--bosco);background:rgba(27,61,30,.05)}
+body.dark .onb-tip-btn{color:var(--oro-2)}
+body.dark .onb-tip-btn:hover{border-color:var(--oro);background:rgba(200,164,74,.08)}
+
 .mapwrap{background:#eef3f6;border-radius:var(--r);box-shadow:var(--sh-s);overflow:hidden;padding:8px;position:relative}
 .mapwrap svg{width:100%;height:auto;display:block}
 .map-ocean{fill:#eef3f6}
@@ -804,7 +813,7 @@ body.dark .arm-row-count{color:var(--oro-2)}
 .arm-row.active .arm-row-dot{background:var(--bc,var(--oro));box-shadow:0 0 6px var(--bc-glow,rgba(200,164,74,.8))}
 .cost-arm-label{cursor:pointer;transition:opacity .35s ease,fill .35s ease}
 .cost-arm-label:hover{fill:rgba(228,196,94,.85)}
-.cost-arm-label.active{fill:var(--oro-2);font-weight:700}
+.cost-arm-label.active{fill:var(--lbl-c);font-weight:700}
 [data-braccio]{transition:opacity .35s ease}
 /* info card */
 .cost-info{background:#fff;border-radius:0 0 var(--r) var(--r);padding:13px 16px;border-top:1px solid var(--av2);display:none}
@@ -927,7 +936,7 @@ body.dark .arm-row-count{color:var(--oro-2)}
       <span class="wt-line"><span class="wt-ink">La biblioteca</span></span>
       <span class="wt-line"><span class="wt-ink">di Babele</span></span>
     </h1>
-    <p class="wsub">Rete Bibliotecaria Bresciana e Cremonese</p>
+    <p class="wsub">Reti Bibliotecarie Lombarde</p>
     <div class="wsep">
       <div class="wsep-inner">
         <div class="wsl"></div>
@@ -968,6 +977,9 @@ body.dark .arm-row-count{color:var(--oro-2)}
       <div class="fi"><label>Nome</label><input type="text" id="rn" placeholder="Il tuo nome" autocomplete="name"></div>
       <div class="fi"><label>Email</label><input type="email" id="re" placeholder="la@tua.email" autocomplete="email"></div>
       <div class="fi"><label>Password</label><input type="password" id="rp" placeholder="Almeno 6 caratteri" autocomplete="new-password"></div>
+      <div class="fi"><label>Rete bibliotecaria</label>
+        <div data-rete-selector="registra" data-rete-attuale="rbbc"></div>
+      </div>
       <div class="fi"><label>Biblioteca di riferimento</label>
         <div class="acw"><input type="text" id="rb" placeholder="Es. Rezzato, Chiari…" autocomplete="off" autocorrect="off"><div class="dd" id="ddr"></div></div>
       </div>
@@ -979,8 +991,10 @@ body.dark .arm-row-count{color:var(--oro-2)}
 
 <!-- BIB -->
 <div id="sbib" class="S">
-  <div class="bh"><p>Catalogo RBBC</p><h2>Scegli la tua<strong><br>biblioteca</strong></h2></div>
+  <div class="bh"><p>Catalogo</p><h2>Scegli la tua<strong><br>biblioteca</strong></h2></div>
   <div class="bb">
+    <p class="bhint">Prima scegli la rete bibliotecaria, poi cerca la tua biblioteca.</p>
+    <div style="margin-bottom:14px" data-rete-selector="guest" data-rete-attuale="rbbc"></div>
     <p class="bhint">Seleziona la biblioteca in cui vuoi verificare la disponibilità.</p>
     <div class="acw"><input type="text" id="gb" placeholder="Es. Rezzato, Brescia…" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false"><div class="dd" id="ddg"></div></div>
     <button class="bp" style="margin-top:14px" id="bbOk" disabled onclick="confBib()">Inizia →</button>
@@ -1012,7 +1026,7 @@ body.dark .arm-row-count{color:var(--oro-2)}
       <div class="sc" data-c="v" onclick="morphVai(this,'salex')">
         <div class="sc-arr">›</div>
         <div class="sc-ico">📚</div><div class="sc-nome">Alexandria</div>
-        <div class="sc-desc">Cerca libri nel catalogo RBBC</div><div class="sc-orn">A</div>
+        <div class="sc-desc" id="scAlexDesc">Cerca libri nel catalogo RBBC</div><div class="sc-orn">A</div>
       </div>
       <div class="sc" data-c="o" onclick="morphVai(this,'satlante')">
         <div class="sc-arr">›</div>
@@ -1038,7 +1052,7 @@ body.dark .arm-row-count{color:var(--oro-2)}
   <header class="hdr">
     <div class="hbar">
       <button class="hbtn" onclick="vai('shome')">←</button>
-      <div class="hbrand"><h1>Alexandria</h1><p>Catalogo RBBC</p></div>
+      <div class="hbrand"><h1>Alexandria</h1><p id="alexCatLabel">Catalogo RBBC</p></div>
       <div class="bchip" id="bchip" onclick="apriSh('shcb')">
         <span class="bchip-dot"></span><span id="chipn">—</span>
       </div>
@@ -1128,6 +1142,10 @@ body.dark .arm-row-count{color:var(--oro-2)}
     </div>
     <div class="psez">
       <div class="sh3">🗺️ Mappa del mondo letterario</div>
+      <div class="onb-tip" id="atlTip" style="display:none">
+        <div class="onb-tip-txt">👋 Tocca una nazione colorata sulla mappa per scoprire un autore e le sue opere. Usa <strong>⤢</strong> per aprirla a schermo intero.</div>
+        <button class="onb-tip-btn" onclick="chiudiTipAtlante()">Ho capito, non mostrare più</button>
+      </div>
       <div class="cost-stato" style="margin-bottom:14px">
         <div class="cost-prog"><div class="cost-prog-inner" id="atlProgBar" style="width:0%"></div></div>
         <div class="cost-prog-txt" id="atlProgTxt">0/0 nazioni scoperte</div>
@@ -1161,7 +1179,6 @@ body.dark .arm-row-count{color:var(--oro-2)}
     </div>
     <div class="psez">
       <div class="sh3">Badge sbloccati e in attesa</div>
-      <button class="bsm bsmg" style="width:100%;margin-bottom:16px" id="btnCondividiPant" onclick="condividiPantheon()">✦ Condividi il mio Pantheon</button>
       <div class="bgr" id="pant-bgr">
         <!-- badge renderizzati da JS -->
       </div>
@@ -1185,10 +1202,8 @@ body.dark .arm-row-count{color:var(--oro-2)}
       <div class="etn">Lapides Miliarii</div><div class="eto">Dal latino · Pietre miliari</div>
       <p class="etd">Non una cronologia, ma sei archetipi che attraversano i secoli: il viaggio, la tragedia, la lirica, l'utopia, il pensiero, la condizione umana. Ogni braccio della galassia parte da un nucleo antico e si allontana fino alla periferia contemporanea. Ogni opera letta accende una stella; le nebulose sono testi perduti o frammentari; le stelle doppie collegano opere lontane che dialogano tra loro. Completa un braccio per ottenere il suo badge.</p>
     </div>
-    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
-      <button class="bsm bsmp" style="flex:1 1 100%" onclick="apriLetturaManuale()">+ Aggiungi lettura</button>
-      <button class="bsm bsmg" style="flex:1" onclick="apriLegenda()">📖 Legenda</button>
-      <button class="bsm bsmg" style="flex:1" id="btnCondividiGal" onclick="condividiGalassia()">✦ Condividi</button>
+    <div style="margin-bottom:20px">
+      <button class="bsm bsmg" style="width:100%" onclick="apriLegenda()">📖 Legenda</button>
     </div>
     <div id="cost-container"><!-- costellazioni renderizzate da JS --></div>
   </div>
@@ -1220,6 +1235,7 @@ body.dark .arm-row-count{color:var(--oro-2)}
     <div class="psez">
       <div class="sh3">La mia biblioteca</div>
       <p style="font-size:.74rem;color:#aaa;margin-bottom:10px;font-style:italic">I libri che hai letto</p>
+      <button class="bsm bsmp" style="width:100%;margin-bottom:14px" onclick="apriLetturaManuale()">+ Aggiungi lettura</button>
       <div id="p-mialib"><div class="vp">Nessun libro segnato come letto.</div></div>
     </div>
     <div class="psez">
@@ -1259,6 +1275,7 @@ body.dark .arm-row-count{color:var(--oro-2)}
 <!-- SHEETS -->
 <div class="shovr" id="shcb" onclick="chiudiSh('shcb',event)">
   <div class="sh"><div class="shhnd"></div><div class="shtit">Cambia biblioteca</div>
+    <div class="fi"><label>Rete bibliotecaria</label><div data-rete-selector="cambiabib" data-rete-attuale="rbbc"></div></div>
     <div class="fi"><div class="acw"><input type="text" id="cbib" placeholder="Es. Rezzato, Brescia…" autocomplete="off"><div class="dd" id="ddcb"></div></div></div>
     <div style="display:flex;gap:10px"><button class="bsm bsmp" onclick="confChip()">Cambia</button><button class="bsm bsmg" onclick="chiudiSh('shcb')">Annulla</button></div>
   </div>
@@ -1282,6 +1299,7 @@ body.dark .arm-row-count{color:var(--oro-2)}
 </div>
 <div class="shovr" id="shbib" onclick="chiudiSh('shbib',event)">
   <div class="sh"><div class="shhnd"></div><div class="shtit">Cambia biblioteca</div>
+    <div class="fi"><label>Rete bibliotecaria</label><div data-rete-selector="cambiabibProf" data-rete-attuale="rbbc"></div></div>
     <div class="fi"><label>Biblioteca</label><div class="acw"><input type="text" id="pbi" placeholder="Es. Rezzato…" autocomplete="off"><div class="dd" id="ddpb"></div></div></div>
     <div style="display:flex;gap:10px"><button class="bsm bsmp" onclick="salvaLib()">Salva</button><button class="bsm bsmg" onclick="chiudiSh('shbib')">Annulla</button></div>
   </div>
@@ -1381,7 +1399,6 @@ body.dark .arm-row-count{color:var(--oro-2)}
     <div class="bdg-cer-nome" id="bdgCerNome"></div>
     <div class="bdg-cer-desc" id="bdgCerDesc"></div>
     <div class="bdg-cer-btns">
-      <button class="bdg-cer-btn bdg-cer-btn-ghost" id="btnCerCondividi" onclick="condividiSblocco()">✦ Condividi</button>
       <button class="bdg-cer-btn" onclick="chiudiBadgeCeremony()">Continua →</button>
     </div>
   </div>
@@ -1428,7 +1445,120 @@ function toggleDark(){applyDark(!document.body.classList.contains('dark'));}
 (function(){const s=localStorage.getItem('rbbc_dark');if(s==='1')applyDark(true);})();
 
 
-let G={u:null,bib:'',letti:new Set(),lettiData:[]};
+let G={u:null,bib:'',rete:'rbbc',letti:new Set(),lettiData:[]};
+
+/* ── RETI BIBLIOTECARIE ──────────────────────────────────────────────────
+   RBBC resta con l'elenco biblioteche statico qui sotto (BIBS): è già
+   testato e non c'è motivo di introdurre una dipendenza di rete in più per
+   qualcosa che funziona. Le altre reti caricano l'elenco biblioteche
+   dinamicamente da /api/biblioteche — vedi caricaBiblioteche(). L'elenco
+   delle reti disponibili viene comunque letto da /api/reti al boot, così
+   attivare nuove reti in futuro non richiede toccare il frontend. */
+let RETI={rbbc:{label:'Rete Bibliotecaria Bresciana e Cremonese',short:'RBBC'}};
+let _retiCaricate=false;
+async function caricaReti(){
+  if(_retiCaricate)return;
+  try{
+    const r=await fetch('/api/reti');
+    if(r.ok){
+      const lista=await r.json();
+      if(Array.isArray(lista)&&lista.length){
+        RETI={};
+        lista.forEach(x=>{RETI[x.id]={label:x.label,short:x.short};});
+      }
+    }
+  }catch(e){console.error('caricaReti',e);}
+  _retiCaricate=true;
+  renderSelettoriRete();
+}
+
+/* Cache in memoria delle biblioteche per rete, per non richiamare l'API
+   ad ogni apertura di un campo di ricerca biblioteca. */
+const _bibCache={};
+async function caricaBiblioteche(rete){
+  if(rete==='rbbc')return BIBS;
+  if(_bibCache[rete])return _bibCache[rete];
+  try{
+    const r=await fetch(`/api/biblioteche?rete=${encodeURIComponent(rete)}`);
+    if(r.ok){
+      const d=await r.json();
+      if(Array.isArray(d.biblioteche)&&d.biblioteche.length){
+        _bibCache[rete]=d.biblioteche;
+        return d.biblioteche;
+      }
+    }
+  }catch(e){console.error('caricaBiblioteche',e);}
+  return [];
+}
+
+/* Elenco "correntemente attivo" per gli autocomplete: viene ripopolato da
+   selezionaRete()/preparaCampoBiblioteca() ogni volta che cambia la rete
+   scelta in un dato form. Tenuto per-contesto (non globale) perché più
+   form possono avere reti diverse selezionate nello stesso momento. */
+const _bibListePerContesto={};
+async function preparaCampoBiblioteca(ctx,rete){
+  const lista=await caricaBiblioteche(rete);
+  _bibListePerContesto[ctx]=lista;
+  aggiornaPlaceholderBib(ctx,rete);
+  return lista;
+}
+
+/* Esempi curati per RBBC (rete di default): nomi di biblioteche note e
+   riconoscibili, più efficaci come esempio dei primi risultati in ordine
+   alfabetico. Per le altre reti non abbiamo una curatela manuale, quindi il
+   placeholder viene generato al volo dai primi nomi della lista caricata. */
+const PLACEHOLDER_RBBC={gb:'Es. Rezzato, Brescia…',rb:'Es. Rezzato, Chiari…',cbib:'Es. Rezzato, Brescia…',pbi:'Es. Rezzato…'};
+
+/* Aggiorna il placeholder di esempio (es. "Es. Rezzato, Chiari…") del campo
+   di ricerca biblioteca collegato a un contesto: per RBBC resta l'esempio
+   curato, per le altre reti viene generato dai nomi reali appena caricati —
+   così l'esempio è sempre coerente con la rete effettivamente selezionata. */
+function aggiornaPlaceholderBib(ctx,rete){
+  const inputId=RETE_CTX_INPUT[ctx];
+  if(!inputId)return;
+  const inp=document.getElementById(inputId);
+  if(!inp)return;
+  if(rete==='rbbc'){inp.placeholder=PLACEHOLDER_RBBC[inputId]||'Cerca la tua biblioteca…';return;}
+  const lista=_bibListePerContesto[ctx]||[];
+  if(lista.length>=2)inp.placeholder=`Es. ${lista[0]}, ${lista[1]}…`;
+  else if(lista.length===1)inp.placeholder=`Es. ${lista[0]}…`;
+  else inp.placeholder='Cerca la tua biblioteca…';
+}
+
+/* Aggiorna tutti i selettori di rete presenti nel DOM (pulsanti a chip)
+   una volta che l'elenco reti è stato caricato da /api/reti. */
+function renderSelettoriRete(){
+  document.querySelectorAll('[data-rete-selector]').forEach(cont=>{
+    const ctx=cont.dataset.reteSelector;
+    const attuale=cont.dataset.reteAttuale||G.rete;
+    cont.innerHTML=Object.entries(RETI).map(([id,info])=>
+      `<button type="button" class="bsm ${id===attuale?'bsmp':'bsmg'}" style="margin:0 6px 6px 0" data-rete-id="${id}" onclick="selezionaRete('${ctx}','${id}',this)">${info.short}</button>`
+    ).join('');
+  });
+}
+/* Callback quando l'utente clicca su una chip di rete: aggiorna lo stato,
+   ridisegna le chip (evidenzia quella scelta) e ricarica l'elenco
+   biblioteche di quel contesto, azzerando il campo di ricerca biblioteca
+   collegato (la selezione precedente potrebbe non esistere sulla nuova rete). */
+async function selezionaRete(ctx,reteId,btn){
+  tap('light');
+  const cont=btn.closest('[data-rete-selector]');
+  if(cont)cont.dataset.reteAttuale=reteId;
+  renderSelettoriRete();
+  const inputId=RETE_CTX_INPUT[ctx];
+  if(inputId){
+    const inp=document.getElementById(inputId);
+    if(inp)inp.value='';
+  }
+  await preparaCampoBiblioteca(ctx,reteId);
+  if(ctx==='guest')G.reteScelta=reteId;
+  if(ctx==='registra')G.reteRegistra=reteId;
+  if(ctx==='cambiabib')G.reteCambio=reteId;
+  if(ctx==='cambiabibProf')G.reteCambioProf=reteId;
+}
+/* Mappa contesto → id dell'input biblioteca collegato, usata sia da
+   selezionaRete() sia da setupAC() per sapere quale lista filtrare. */
+const RETE_CTX_INPUT={guest:'gb',registra:'rb',cambiabib:'cbib',cambiabibProf:'pbi'};
 
 const BIBS=["Acquafredda","Adro","Agnadello","Agnosine","Anfo","Angolo Terme","Annicco","Artogne","Azzano Mella","Bagnolo Cremasco","Bagnolo Mella","Bagolino","Barbariga","Barghe","Bassano Bresciano","Bedizzole","Berlingo","Berzo Demo","Berzo Inferiore","Bienno","Bione","Bonemerse","Borgo San Giacomo","Borgosatollo","Borno","Botticino","Bovegno","Bovezzo","Brandico","Braone","Breno","Brescia - Abba-Ballini","Brescia - Archivio Storico","Brescia - Arnaldo","Brescia - Bibliobus","Brescia - Buffalora","Brescia - Canton Mombello","Brescia - Casazza","Brescia - Centro Casa Severino","Brescia - Emeroteca Queriniana","Brescia - Fondazione Trebeschi","Brescia - Gambara","Brescia - Ghetti","Brescia - Golgi","Brescia - La Vetrina","Brescia - Largo Torrelunga","Brescia - Mediateca Queriniana","Brescia - Museo Scienze Naturali","Brescia - Parco Gallo","Brescia - Prealpino","Brescia - Queriniana","Brescia - San Polo","Brescia - SBU","Brescia - Sereno","Brescia - UAU","Brione","Caino","Calcinato","Calvagese D-R","Calvatone","Calvisano","Camisano","Capergnanica","Capo Di Ponte","Capovalle","Capralba","Capriano Del Colle","Capriolo","Carpenedolo","Casalbuttano","Casale Cremasco Vidolasco","Casaletto Ceredano","Casaletto Vaprio","Casalmaggiore","Casalpusterlengo","Castegnato","Castel Mella","Castelcovati","Castelleone","Castello Di Padernello","Castelverde","Castenedolo","Casto","Castrezzato","Cazzago SM","Cedegolo","Cellatica","Centro Fumetto A. Pazienza","Centro Studi RSI Salò","Cerveno","Ceto","Cevo","Chiari","Chieve","Cigole","Cimbergo","Cingia De' Botti","Cividate Camuno","Clusane","Coccaglio","Collebeato","Collio","Cologne","Comezzano - Cizzago","Concesio","Corte De' Frati","Corte Franca","Corteno Golgi","Corzano","Credera Rubbiano","Crema","Crema - Museo","Cremona - Anguissola","Cremona - CDA","Cremona - Manin","Darfo Boario Terme","Dello","Desenzano","Dovera","Edolo","Elnos","Erbusco","Esine","Fiesco","Fiesse","Flero","Gadesco Pieve Delmona","Gambara","Gardone Riviera","Gardone Val Trompia","Gargnano","Gavardo","Genivolta","Ghedi","Gianico","Gottolengo","Grontardo","Grumello Cremonese","Gussago","Gussola","Idro","Incudine","Irma","Iseo","Isola Dovarese","Isorella","Izano","Lavenone","Leno","Limone Sul Garda","Lodrino","Lograto","Lonato Del Garda","Longhena","Losine","Lozio","Lumezzane","Maclodio","Madignano","Magasa","Mairano","Malegno","Malonno","Manerba Del Garda","Manerbio","Marcheno","Marmentino","Marone","Martignana Di Po","Mazzano","Milzano","Moniga Del Garda","Monno","Monte Cremasco","Monte Isola","Monticelli Brusati","Montichiari","Montirone","Montodine","Mura","Muscoline","Nave","Niardo","Nuvolento","Nuvolera","Odolo","Offanengo","Offlaga","Ome","Ono San Pietro","Orzinuovi","Orzivecchi","Ospitaletto","Ostiano","Padenghe Sul Garda","Paderno FC","Paderno Ponchielli","Paitone","Palazzo Pignano","Palazzolo Sull'Oglio","Pandino","Paratico","Passirano","Pavone Del Mella","Persico Dosimo","Pertica Alta","Pertica Bassa","Pescarolo Ed Uniti","Pezzaze","Piadena Drizzona","Pian Camuno","Piancogno","Pianengo","Pisogne","Pizzighettone","Polaveno","Polpenazze Del Garda","Pompiano","Poncarale","Ponte Di Legno","Pontevico","Pontoglio","Pozzolengo","Pralboino","Preseglie","Prestine","Prevalle","Provaglio D'Iseo","Provaglio VS","Puegnago Del Garda","Quinzano D'Oglio","Remedello","Rezzato","Ricengo","Ripalta Cremasca","Rivarolo Del Re","Rivolta D'Adda","Roccafranca","Rodengo Saiano","Roè Volciano","Romanengo","Roncadelle","Rovato","Rudiano","Sabbio Chiese","Sale Marasino","Salò","San Bassano","San Daniele Po","San Felice Del Benaco","San Gervasio Bresciano","San Giovanni In Croce","San Paolo","San Zeno Naviglio","Sarezzo","Saviore Dell'Adamello","Sellero","Seniga","Sergnano","Serle","Sesto Ed Uniti","Sirmione","Soiano Del Lago","Solarolo Rainerio","Soncino","Sonico","Soresina","Sospiro","Spino D'Adda","Sulzano","Tavernole Sul Mella","Temù","Tignale","Torbole Casaglia","Tornata","Torre De' Picenardi","Torricella Del Pizzo","Toscolano Maderno","Travagliato","Tremosine","Trenzano","Trescore Balneario","Trescore Cremasco","Treviso Bresciano","Urago D'Oglio","Vallio Terme","Valvestino","Verolanuova","Verolavecchia","Vestone","Vezza D'Oglio","Villa Carcina","Villanuova Sul Clisi","Visano","Vobarno","Zone"];
 
@@ -1477,7 +1607,7 @@ function vai(id,sub,noAnim){
   if(id==='sprof')caricaProf();
   if(id==='slap')renderCostellazioni();
   if(id==='spant'){renderPantheon();}
-  if(id==='satlante'){incAtlanteVisits();aggiornaProgressoAtlante();if(!_atlAvv){_atlAvv=true;initMappa();}}
+  if(id==='satlante'){incAtlanteVisits();aggiornaProgressoAtlante();mostraTipAtlante();if(!_atlAvv){_atlAvv=true;initMappa();}}
   window.scrollTo(0,0);
 }
 function switchTab(id){document.querySelectorAll('.ntab').forEach(t=>t.classList.toggle('on',t.dataset.s===id));tap('light');vai(id);}
@@ -1545,9 +1675,10 @@ costruisciScaffale();
 
 async function avvia(){
   vai('sw');
+  caricaReti();
   try{const r=await fetch('/api/auth/me');const d=await r.json();
     if(d.autenticato){
-      G.u=d;G.bib=d.biblioteca;
+      G.u=d;G.bib=d.biblioteca;G.rete=d.rete||'rbbc';
       await caricaBadge();
       await caricaSalv();
       document.getElementById('wbtns').style.display='none';
@@ -1829,50 +1960,63 @@ async function doLogin(){
   if(!email||!pw)return errA('Inserisci email e password.');
   const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
   const d=await r.json();if(!r.ok)return errA(d.error||'Errore login.');
-  G.u=d;G.bib=d.biblioteca;await caricaBadge();await caricaSalv();attivaApp(d.biblioteca);
+  G.u=d;G.bib=d.biblioteca;G.rete=d.rete||'rbbc';await caricaBadge();await caricaSalv();attivaApp(d.biblioteca);
 }
 async function doReg(){
   tap('medium');
   const nome=document.getElementById('rn').value.trim(),email=document.getElementById('re').value.trim();
   const pw=document.getElementById('rp').value,bib=document.getElementById('rb').value.trim();
+  const rete=G.reteRegistra||'rbbc';
   if(!nome||!email||!pw||!bib)return errA('Compila tutti i campi.');
-  if(!BIBS.some(b=>b.toLowerCase()===bib.toLowerCase()))return errA("Seleziona una biblioteca dall'elenco.");
-  const r=await fetch('/api/auth/registra',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome,email,password:pw,biblioteca:bib})});
+  const listaReg=_bibListePerContesto['registra']||[];
+  if(!listaReg.some(b=>b.toLowerCase()===bib.toLowerCase()))return errA("Seleziona una biblioteca dall'elenco.");
+  const r=await fetch('/api/auth/registra',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome,email,password:pw,biblioteca:bib,rete})});
   const d=await r.json();if(!r.ok)return errA(d.error||'Errore.');
-  G.u=d;G.bib=d.biblioteca;await caricaBadge();await caricaSalv();attivaApp(d.biblioteca);
+  G.u=d;G.bib=d.biblioteca;G.rete=d.rete||rete;await caricaBadge();await caricaSalv();attivaApp(d.biblioteca);
 }
 async function doLogout(){tap('heavy');await fetch('/api/auth/logout',{method:'POST'});G.u=null;G.bib='';_badgeCache=null;vai('sw');}
 function usaSenza(){G.u=null;vai('sbib');}
 
-setupAC('gb','ddg',n=>{G.bib=n||'';document.getElementById('bbOk').disabled=!n;});
-function confBib(){if(!G.bib)return;attivaApp(G.bib);}
+setupAC('gb','ddg',n=>{G.bib=n||'';document.getElementById('bbOk').disabled=!n;},'guest');
+function confBib(){if(!G.bib)return;G.rete=G.reteScelta||'rbbc';attivaApp(G.bib);}
 
 function attivaApp(bib){
   G.bib=bib;
   document.getElementById('chipn').textContent=bib;
   document.getElementById('vuotoh').textContent=`Digita il titolo per verificare la disponibilità a ${bib}.`;
+  aggiornaSottotitoloRete();
   aggiornaUIProf();vai('shome');
 }
 
-setupAC('cbib','ddcb',()=>{});
+setupAC('cbib','ddcb',()=>{},'cambiabib');
 function confChip(){
   const v=document.getElementById('cbib').value.trim();
-  if(!v||!BIBS.some(b=>b.toLowerCase()===v.toLowerCase()))return;
-  G.bib=v;document.getElementById('chipn').textContent=v;
+  const lista=_bibListePerContesto['cambiabib']||[];
+  if(!v||!lista.some(b=>b.toLowerCase()===v.toLowerCase()))return;
+  const rete=G.reteCambio||G.rete;
+  G.bib=v;G.rete=rete;document.getElementById('chipn').textContent=v;
   document.getElementById('vuotoh').textContent=`Digita il titolo per verificare la disponibilità a ${v}.`;
-  if(G.u){fetch('/api/auth/aggiorna',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome:G.u.nome,biblioteca:v})}).then(r=>r.json()).then(d=>{if(d.ok){G.u.biblioteca=v;aggiornaUIProf();}});}
+  aggiornaSottotitoloRete();
+  if(G.u){fetch('/api/auth/aggiorna',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome:G.u.nome,biblioteca:v,rete})}).then(r=>r.json()).then(d=>{if(d.ok){G.u.biblioteca=v;G.u.rete=rete;aggiornaUIProf();}});}
   chiudiSh('shcb');
 }
 
 const norm=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[''`]/g,"'");
 function hl(n,q){const i=norm(n).indexOf(norm(q));if(i<0||!q)return n;return n.slice(0,i)+'<em>'+n.slice(i,i+q.length)+'</em>'+n.slice(i+q.length);}
-function setupAC(inpId,ddId,onSel){
+function setupAC(inpId,ddId,onSel,ctx){
   const inp=document.getElementById(inpId),dd=document.getElementById(ddId);
   if(!inp||!dd)return;let ih=-1;
+  // Se è passato un contesto (guest/registra/cambiabib/...), la lista si legge
+  // ad ogni tasto premuto da _bibListePerContesto[ctx], che selezionaRete()
+  // aggiorna quando l'utente cambia rete: così l'autocomplete resta sempre
+  // coerente con la rete scelta in quel form. Senza contesto si usa BIBS
+  // (fallback di sicurezza).
+  const listaAttuale=()=>ctx?(_bibListePerContesto[ctx]||[]):BIBS;
   inp.addEventListener('input',()=>{
     const q=inp.value.trim();onSel(null);ih=-1;
     if(!q){dd.classList.remove('on');return;}
-    const nq=norm(q),ini=BIBS.filter(n=>norm(n).startsWith(nq)),con=BIBS.filter(n=>!norm(n).startsWith(nq)&&norm(n).includes(nq));
+    const BIBS_CTX=listaAttuale();
+    const nq=norm(q),ini=BIBS_CTX.filter(n=>norm(n).startsWith(nq)),con=BIBS_CTX.filter(n=>!norm(n).startsWith(nq)&&norm(n).includes(nq));
     const ls=[...ini,...con].slice(0,12);
     dd.innerHTML=ls.length?ls.map(n=>`<div class="ddi">${hl(n,q)}</div>`).join(''):'<div class="dde">Nessuna biblioteca trovata</div>';
     dd.classList.add('on');
@@ -1888,10 +2032,44 @@ function setupAC(inpId,ddId,onSel){
   });
   document.addEventListener('click',e=>{if(!e.target.closest('#'+ddId)&&!e.target.closest('#'+inpId))dd.classList.remove('on');});
 }
-setupAC('rb','ddr',()=>{});
-setupAC('pbi','ddpb',()=>{});
+setupAC('rb','ddr',()=>{},'registra');
+setupAC('pbi','ddpb',()=>{},'cambiabibProf');
 
-function apriSh(id){document.getElementById(id).classList.add('on');}
+/* Precarica la lista RBBC (sincrona, nessuna chiamata di rete) nei contesti
+   dei form, così l'autocomplete funziona da subito anche prima che l'utente
+   tocchi il selettore di rete — il default resta RBBC. */
+['guest','registra','cambiabib','cambiabibProf'].forEach(ctx=>{preparaCampoBiblioteca(ctx,'rbbc');});
+renderSelettoriRete();
+
+/* Aggiorna testi che mostrano il nome della rete attualmente attiva
+   (sottotitolo in home, ecc.). Richiamata ogni volta che G.rete cambia. */
+function aggiornaSottotitoloRete(){
+  const info=RETI[G.rete]||RETI.rbbc;
+  const el=document.querySelector('.hsubt');
+  if(el)el.textContent=info.label;
+  const cat=document.getElementById('alexCatLabel');
+  if(cat)cat.textContent=`Catalogo ${info.short}`;
+  const homeDesc=document.getElementById('scAlexDesc');
+  if(homeDesc)homeDesc.textContent=`Cerca libri nel catalogo ${info.short}`;
+}
+
+function apriSh(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.classList.add('on');
+  // Le sheet di cambio biblioteca partono allineate alla rete attualmente
+  // in uso (non a un default fisso), altrimenti aprendole si perderebbe
+  // la biblioteca già impostata su un'altra rete.
+  if(id==='shcb'||id==='shbib'){
+    const ctx=id==='shcb'?'cambiabib':'cambiabibProf';
+    const cont=el.querySelector('[data-rete-selector]');
+    if(cont)cont.dataset.reteAttuale=G.rete||'rbbc';
+    renderSelettoriRete();
+    preparaCampoBiblioteca(ctx,G.rete||'rbbc');
+    if(ctx==='cambiabib')G.reteCambio=G.rete||'rbbc';
+    else G.reteCambioProf=G.rete||'rbbc';
+  }
+}
 function chiudiSh(id,e){if(!e||e.target===document.getElementById(id))document.getElementById(id).classList.remove('on');}
 
 /* RICERCA */
@@ -1911,9 +2089,9 @@ async function togLetto(btn,libro){
   try{
     if(nuovo){
       const r=await fetch('/api/letti',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({titolo:libro.titolo,autore:libro.autore||'',url_opac:url,biblioteca:G.bib})});
+        body:JSON.stringify({titolo:libro.titolo,autore:libro.autore||'',url_opac:url,biblioteca:G.bib,rete:G.rete||'rbbc'})});
       if(!r.ok){const e=await r.json();throw new Error(e.error);}
-      G.letti.add(url);G.lettiData.push({titolo:libro.titolo,autore:libro.autore||'',url_opac:url,biblioteca:G.bib});
+      G.letti.add(url);G.lettiData.push({titolo:libro.titolo,autore:libro.autore||'',url_opac:url,biblioteca:G.bib,rete:G.rete||'rbbc'});
       btn.textContent='✓ Letto';btn.classList.add('on');
       // Risolvi subito la nazione in background per il nuovo libro (serve ai badge geografici del Pantheon)
       if(libro.autore){
@@ -1959,7 +2137,7 @@ async function aggiungiLetturaManuale(){
   tap('medium');
   try{
     const r=await fetch('/api/letti',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({titolo:t,autore:a,biblioteca:G.bib||'',manuale:true})});
+      body:JSON.stringify({titolo:t,autore:a,biblioteca:G.bib||'',rete:G.rete||'rbbc',manuale:true})});
     if(!r.ok){const e=await r.json();throw new Error(e.error||'Errore');}
     await caricaSalv();
     document.getElementById('mlt').value='';document.getElementById('mla').value='';
@@ -2014,7 +2192,7 @@ async function cerca(){
   const bc=document.getElementById('bcerca');bc.disabled=true;bc.textContent='…';
   try{
     if(G.u)await caricaSalv();
-    const r=await fetch(`/api/search?q=${encodeURIComponent(q)}&biblioteca=${encodeURIComponent(G.bib)}`);
+    const r=await fetch(`/api/search?q=${encodeURIComponent(q)}&biblioteca=${encodeURIComponent(G.bib)}&rete=${encodeURIComponent(G.rete||'rbbc')}`);
     if(!r.ok)throw new Error(`Errore ${r.status}`);
     const data=await r.json();
     renderRis(data);
@@ -2191,6 +2369,23 @@ function aggiornaProgressoAtlante(){
   const pct=tot?Math.round(n/tot*100):0;
   bar.style.width=pct+'%';
   txt.textContent=`${n}/${tot} nazioni scoperte`;
+}
+/* Onboarding tooltip: mostrato solo alla prima visita di Atlante, poi
+   nascosto per sempre dopo il click su "Ho capito, non mostrare più". */
+function mostraTipAtlante(){
+  const tip=document.getElementById('atlTip');
+  if(!tip)return;
+  if(localStorage.getItem('rbbc_onb_atlante')==='1'){tip.style.display='none';return;}
+  tip.style.display='block';
+  tip.style.opacity='1';tip.style.transform='none';
+}
+function chiudiTipAtlante(){
+  tap('light');
+  localStorage.setItem('rbbc_onb_atlante','1');
+  const tip=document.getElementById('atlTip');
+  if(!tip)return;
+  tip.style.opacity='0';tip.style.transform='translateY(-6px)';
+  setTimeout(()=>{tip.style.display='none';},250);
 }
 function selNazione(name,info,el){
   document.querySelectorAll('.mapnaz').forEach(p=>p.classList.remove('sel'));
@@ -3214,389 +3409,6 @@ function apriGalassiaFS(){
   galZoomReset('fs','#svg-galassia-fs');
 }
 
-/* ══════════════════════════════════════════════════════════════════════
-   CONDIVISIONE SOCIAL — genera una card immagine della propria galassia
-   Lapides Miliarii (con statistiche) e la condivide via Web Share API,
-   con fallback al download del PNG sui browser che non la supportano.
-   ══════════════════════════════════════════════════════════════════════ */
-
-/* Converte l'SVG della galassia in un'immagine rasterizzata, incorporando
-   uno stile minimale: l'SVG isolato non ha accesso al foglio di stile della
-   pagina, quindi le regole necessarie (colori, forme delle stelle) vanno
-   duplicate qui. I custom property (--bc, --lbl-c…) sono già inline sugli
-   elementi (impostati via JS), quindi il clone li porta con sé. */
-function svgToImage(svgEl){
-  return new Promise((resolve,reject)=>{
-    if(!svgEl){reject(new Error('SVG galassia non trovato'));return;}
-    const clone=svgEl.cloneNode(true);
-    clone.setAttribute('xmlns','http://www.w3.org/2000/svg');
-    if(!clone.getAttribute('viewBox'))clone.setAttribute('viewBox','0 0 900 900');
-    const bgRect=document.createElementNS('http://www.w3.org/2000/svg','rect');
-    bgRect.setAttribute('x','0');bgRect.setAttribute('y','0');
-    bgRect.setAttribute('width','900');bgRect.setAttribute('height','900');
-    bgRect.setAttribute('fill','#05070d');
-    clone.insertBefore(bgRect,clone.firstChild);
-    const style=document.createElementNS('http://www.w3.org/2000/svg','style');
-    style.textContent=`
-      text{font-family:Georgia,serif}
-      .cost-bg-star{fill:rgba(255,255,255,.55)}
-      .cost-core-glow{fill:rgba(228,196,94,.12)}
-      .cost-link{stroke:rgba(201,168,76,.15);stroke-width:1}
-      .cost-link.lit{stroke:var(--bc,#ffe066);stroke-width:2}
-      .cost-link-doppia{stroke:rgba(224,140,90,.22);stroke-width:1.2}
-      .cost-link-doppia.lit{stroke:#ffb877;stroke-width:2.2}
-      .cost-star .spt{fill:rgba(255,255,255,.28);stroke:rgba(255,255,255,.4);stroke-width:.5}
-      .cost-star.lit .spt{fill:var(--bc,#ffe066);stroke:#fff6cf}
-      .cost-star .hit{fill:transparent}
-      .cost-nebula circle.neb-ring{fill:none;stroke:rgba(210,180,255,.55);stroke-width:1}
-      .cost-nebula.lit circle.neb-ring{stroke:rgba(230,205,255,.9)}
-      .cost-nebula circle.neb-glow{fill:rgba(196,168,255,.4)}
-      .cost-nebula.lit circle.neb-glow{fill:rgba(224,200,255,.75)}
-      .cost-nebula circle.neb-core{fill:rgba(238,225,255,.95);stroke:rgba(255,255,255,.6);stroke-width:.6}
-      .cost-nebula.lit circle.neb-core{fill:#fbf7ff}
-      .cost-arm-label{font-weight:600;fill:var(--lbl-c,rgba(228,196,94,.6));opacity:.85}
-    `;
-    clone.insertBefore(style,clone.firstChild);
-    const xml=new XMLSerializer().serializeToString(clone);
-    const svg64=btoa(unescape(encodeURIComponent(xml)));
-    const img=new Image();
-    img.onload=()=>resolve(img);
-    img.onerror=()=>reject(new Error('Errore rendering SVG'));
-    img.src='data:image/svg+xml;base64,'+svg64;
-  });
-}
-
-function _statGal(ctx,x,y,valore,label){
-  ctx.textAlign='center';
-  ctx.fillStyle='#f0d98a';
-  ctx.font='700 46px Georgia, serif';
-  ctx.fillText(valore,x,y);
-  ctx.fillStyle='rgba(255,255,255,.42)';
-  ctx.font='600 17px Arial, sans-serif';
-  ctx.fillText(label.toUpperCase(),x,y+30);
-}
-
-/* Costruisce la card 1080×1350 pronta per essere condivisa o scaricata.
-   Se la galassia non è mai stata disegnata in questa sessione (l'utente
-   non ha ancora aperto Lapides Miliarii), la renderizza al volo fuori
-   schermo così la condivisione funziona da qualunque pagina — ad esempio
-   subito dopo lo sblocco di un badge nella cerimonia. */
-async function generaImmagineGalassia(){
-  let svgSrc=document.getElementById('svg-galassia')||document.getElementById('svg-galassia-fs');
-  let tempWrap=null;
-  if(!svgSrc){
-    tempWrap=document.createElement('div');
-    tempWrap.style.cssText='position:fixed;left:-9999px;top:-9999px;width:900px;height:900px;pointer-events:none';
-    tempWrap.innerHTML='<svg viewBox="0 0 900 900" xmlns="http://www.w3.org/2000/svg" id="svg-galassia-temp"></svg>';
-    document.body.appendChild(tempWrap);
-    disegnaGalassiaIn('svg-galassia-temp','__headless__');
-    svgSrc=document.getElementById('svg-galassia-temp');
-  }
-  let galImg;
-  try{
-    galImg=await svgToImage(svgSrc);
-  }finally{
-    if(tempWrap)tempWrap.remove();
-  }
-
-  const W=1080,H=1350;
-  const canvas=document.createElement('canvas');
-  canvas.width=W;canvas.height=H;
-  const ctx=canvas.getContext('2d');
-
-  // Sfondo
-  const bgGrad=ctx.createRadialGradient(W/2,H*0.3,60,W/2,H*0.3,W*0.95);
-  bgGrad.addColorStop(0,'#152616');
-  bgGrad.addColorStop(1,'#04070a');
-  ctx.fillStyle=bgGrad;ctx.fillRect(0,0,W,H);
-
-  // Micro stelle di sfondo decorative
-  for(let i=0;i<150;i++){
-    const x=(i*137.5)%W, y=(i*97.3+i*i*.7)%(H*0.92);
-    const r=i%9===0?1.7:0.8;
-    ctx.globalAlpha=0.15+((i*53)%40)/100;
-    ctx.fillStyle='#fff';
-    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
-  }
-  ctx.globalAlpha=1;
-
-  // Cornice sottile dorata
-  ctx.strokeStyle='rgba(200,164,74,.18)';
-  ctx.lineWidth=2;
-  ctx.strokeRect(16,16,W-32,H-32);
-
-  // Intestazione
-  ctx.textAlign='center';
-  ctx.fillStyle='rgba(228,196,94,.75)';
-  ctx.font='700 24px Arial, sans-serif';
-  ctx.fillText('L A   B I B L I O T E C A   D I   B A B E L E',W/2,84);
-
-  ctx.fillStyle='#f0d98a';
-  ctx.font='italic 300 58px Georgia, serif';
-  ctx.fillText('La mia Galassia Letteraria',W/2,150);
-
-  const nomeUtente=G.u?.nome?G.u.nome.split(' ')[0]:'Lettore';
-  const dataOggi=new Date().toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'});
-  ctx.fillStyle='rgba(255,255,255,.42)';
-  ctx.font='22px Georgia, serif';
-  ctx.fillText(`di ${nomeUtente} · ${dataOggi}`,W/2,188);
-
-  // Galassia (ritagliata in cerchio)
-  const galSize=760, galX=(W-galSize)/2, galY=228;
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(W/2,galY+galSize/2,galSize/2,0,Math.PI*2);
-  ctx.closePath();
-  ctx.clip();
-  ctx.drawImage(galImg,galX,galY,galSize,galSize);
-  ctx.restore();
-  ctx.strokeStyle='rgba(200,164,74,.45)';
-  ctx.lineWidth=3;
-  ctx.beginPath();ctx.arc(W/2,galY+galSize/2,galSize/2,0,Math.PI*2);ctx.stroke();
-
-  // Statistiche
-  const lit=getAutoLitStars();
-  const totStars=COSTELLAZIONI.reduce((s,b)=>s+b.stars.length,0);
-  const bracciCompletati=COSTELLAZIONI.filter(b=>b.stars.every(s=>lit.has(s.id))).length;
-  const badgeCount=getBadgeUnlocked().size;
-
-  const statsY=galY+galSize+95;
-  _statGal(ctx,W*0.2,statsY,`${lit.size}/${totStars}`,'Opere illuminate');
-  _statGal(ctx,W*0.5,statsY,`${bracciCompletati}/${COSTELLAZIONI.length}`,'Costellazioni');
-  _statGal(ctx,W*0.8,statsY,`${badgeCount}`,'Badge sbloccati');
-
-  // Riepilogo bracci (due colonne)
-  const legY0=statsY+70, rowH=46, colW=W*0.44, colX=[W*0.09,W*0.53];
-  ctx.textAlign='left';
-  COSTELLAZIONI.forEach((b,i)=>{
-    const col=i%2, row=Math.floor(i/2);
-    const x=colX[col], y=legY0+row*rowH+30;
-    const col2=BRACCIO_COLORI[b.id]?.c||'#ffe066';
-    const n=b.stars.filter(s=>lit.has(s.id)).length;
-    ctx.fillStyle=col2;
-    ctx.beginPath();ctx.arc(x+7,y-8,7,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='rgba(255,255,255,.85)';
-    ctx.font='600 24px Georgia, serif';
-    ctx.fillText(b.label,x+26,y);
-    ctx.textAlign='right';
-    ctx.fillStyle='rgba(255,255,255,.4)';
-    ctx.font='19px Arial, sans-serif';
-    ctx.fillText(`${n}/${b.stars.length}`,x+colW-14,y);
-    ctx.textAlign='left';
-  });
-
-  // Piè di pagina
-  ctx.textAlign='center';
-  ctx.fillStyle='rgba(255,255,255,.26)';
-  ctx.font='19px Arial, sans-serif';
-  ctx.fillText('Rete Bibliotecaria Bresciana e Cremonese',W/2,H-46);
-
-  return canvas;
-}
-
-async function condividiGalassia(){
-  tap('medium');
-  const btn=document.getElementById('btnCondividiGal');
-  const testoOrig=btn?btn.textContent:'';
-  if(btn){btn.disabled=true;btn.textContent='Genero…';}
-  try{
-    const canvas=await generaImmagineGalassia();
-    canvas.toBlob(async blob=>{
-      if(!blob){if(btn){btn.disabled=false;btn.textContent=testoOrig;}return;}
-      const file=new File([blob],'la-mia-galassia-babele.png',{type:'image/png'});
-      const shareData={
-        files:[file],
-        title:'La mia Galassia Letteraria',
-        text:'Ecco la mia Galassia Letteraria su La Biblioteca di Babele ✦📚'
-      };
-      let condiviso=false;
-      if(navigator.canShare&&navigator.canShare({files:[file]})){
-        try{await navigator.share(shareData);condiviso=true;}
-        catch(e){if(e.name==='AbortError')condiviso=true;}
-      }
-      if(!condiviso){
-        const url=URL.createObjectURL(blob);
-        const a=document.createElement('a');
-        a.href=url;a.download='la-mia-galassia-babele.png';
-        document.body.appendChild(a);a.click();a.remove();
-        setTimeout(()=>URL.revokeObjectURL(url),4000);
-      }
-      if(btn){btn.disabled=false;btn.textContent=testoOrig;}
-    },'image/png',0.95);
-  }catch(e){
-    console.error('condividiGalassia',e);
-    if(btn){btn.disabled=false;btn.textContent=testoOrig;}
-  }
-}
-
-/* ══════════════════════════════════════════════════════════════════════
-   CONDIVISIONE PANTHEON — card con la propria collezione di badge,
-   raggruppata per categoria come nella schermata reale. Non dipende da
-   alcun elemento del DOM (i badge sbloccati vivono in getBadgeUnlocked),
-   quindi funziona da qualsiasi pagina dell'app. */
-const SEGRETI_IDS_SHARE=['walden','macondo','pequod','vronskij','boxer','manoscritto','fuoco_alessandria','mulino_acqua'];
-
-function _sfondoCardCosmico(ctx,W,H){
-  const bgGrad=ctx.createRadialGradient(W/2,H*0.26,60,W/2,H*0.26,Math.max(W,H)*0.85);
-  bgGrad.addColorStop(0,'#152616');
-  bgGrad.addColorStop(1,'#04070a');
-  ctx.fillStyle=bgGrad;ctx.fillRect(0,0,W,H);
-  for(let i=0;i<190;i++){
-    const x=(i*137.5)%W, y=(i*97.3+i*i*.7)%H;
-    const r=i%9===0?1.7:0.8;
-    ctx.globalAlpha=0.12+((i*53)%40)/100;
-    ctx.fillStyle='#fff';
-    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
-  }
-  ctx.globalAlpha=1;
-  ctx.strokeStyle='rgba(200,164,74,.18)';
-  ctx.lineWidth=2;
-  ctx.strokeRect(16,16,W-32,H-32);
-}
-function _intestazioneCard(ctx,W,titolo,sottotitolo){
-  ctx.textAlign='center';
-  ctx.fillStyle='rgba(228,196,94,.75)';
-  ctx.font='700 24px Arial, sans-serif';
-  ctx.fillText('L A   B I B L I O T E C A   D I   B A B E L E',W/2,84);
-  ctx.fillStyle='#f0d98a';
-  ctx.font='italic 300 56px Georgia, serif';
-  ctx.fillText(titolo,W/2,150);
-  ctx.fillStyle='rgba(255,255,255,.42)';
-  ctx.font='22px Georgia, serif';
-  ctx.fillText(sottotitolo,W/2,188);
-}
-function _piePaginaCard(ctx,W,H){
-  ctx.textAlign='center';
-  ctx.fillStyle='rgba(255,255,255,.26)';
-  ctx.font='19px Arial, sans-serif';
-  ctx.fillText('Rete Bibliotecaria Bresciana e Cremonese',W/2,H-46);
-}
-
-async function generaImmaginePantheon(){
-  const unl=getBadgeUnlocked();
-  const W=1080;
-  const cols=6,d=110,gap=26;
-  const gridW=cols*d+(cols-1)*gap;
-  const gridX=(W-gridW)/2;
-  const headerH=250, catHeaderH=52, catSpacing=42, footerH=100;
-
-  // Prima passata: calcola l'altezza totale scorrendo le categorie
-  let cursor=headerH;
-  const layout=BADGE_CATEGORIE.map(cat=>{
-    const ids=cat.ids;
-    const rows=Math.ceil(ids.length/cols);
-    const gridH=rows*d+(rows-1)*gap;
-    const catY=cursor+catHeaderH;
-    cursor=catY+gridH+catSpacing;
-    return{cat,catY,gridH};
-  });
-  const H=Math.ceil(cursor+footerH);
-
-  const canvas=document.createElement('canvas');
-  canvas.width=W;canvas.height=H;
-  const ctx=canvas.getContext('2d');
-
-  _sfondoCardCosmico(ctx,W,H);
-  const totBadge=TUTTI_BADGE.length;
-  _intestazioneCard(ctx,W,'Il mio Pantheon',`${unl.size}/${totBadge} badge sbloccati`);
-
-  layout.forEach(({cat,catY,gridH})=>{
-    const badgesInCat=cat.ids.map(id=>TUTTI_BADGE.find(b=>b.id===id)).filter(Boolean);
-    const nUnl=badgesInCat.filter(b=>unl.has(b.id)).length;
-
-    ctx.textAlign='left';
-    ctx.fillStyle='rgba(228,196,94,.85)';
-    ctx.font='700 25px Arial, sans-serif';
-    ctx.fillText(`${cat.ico}  ${cat.label}`,gridX,catY-18);
-    ctx.textAlign='right';
-    ctx.fillStyle='rgba(255,255,255,.4)';
-    ctx.font='19px Arial, sans-serif';
-    ctx.fillText(`${nUnl}/${badgesInCat.length}`,gridX+gridW,catY-18);
-    ctx.strokeStyle='rgba(200,164,74,.16)';
-    ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(gridX,catY-6);ctx.lineTo(gridX+gridW,catY-6);ctx.stroke();
-
-    badgesInCat.forEach((b,i)=>{
-      const col=i%cols,row=Math.floor(i/cols);
-      const cx=gridX+col*(d+gap)+d/2;
-      const cy=catY+row*(d+gap)+d/2;
-      const isOk=unl.has(b.id);
-      const isSecret=SEGRETI_IDS_SHARE.includes(b.id);
-
-      const grad=ctx.createRadialGradient(cx,cy,4,cx,cy,d/2);
-      if(isOk){grad.addColorStop(0,'rgba(200,164,74,.32)');grad.addColorStop(1,'rgba(200,164,74,.04)');}
-      else{grad.addColorStop(0,'rgba(255,255,255,.06)');grad.addColorStop(1,'rgba(255,255,255,.015)');}
-      ctx.fillStyle=grad;
-      ctx.beginPath();ctx.arc(cx,cy,d/2,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle=isOk?'rgba(200,164,74,.55)':'rgba(255,255,255,.1)';
-      ctx.lineWidth=isOk?2:1.4;
-      ctx.stroke();
-
-      ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.font=`${Math.round(d*0.4)}px Arial`;
-      ctx.globalAlpha=isOk?1:0.3;
-      ctx.fillText(isOk?b.ico:(isSecret?'?':b.ico),cx,cy+2);
-      ctx.globalAlpha=1;
-      ctx.textBaseline='alphabetic';
-    });
-  });
-
-  _piePaginaCard(ctx,W,H);
-  return canvas;
-}
-
-async function condividiPantheon(){
-  tap('medium');
-  const btn=document.getElementById('btnCondividiPant');
-  const testoOrig=btn?btn.textContent:'';
-  if(btn){btn.disabled=true;btn.textContent='Genero…';}
-  try{
-    const canvas=await generaImmaginePantheon();
-    canvas.toBlob(async blob=>{
-      if(!blob){if(btn){btn.disabled=false;btn.textContent=testoOrig;}return;}
-      const file=new File([blob],'il-mio-pantheon-babele.png',{type:'image/png'});
-      const shareData={
-        files:[file],
-        title:'Il mio Pantheon',
-        text:'Ecco il mio Pantheon di badge su La Biblioteca di Babele 🏛️✦'
-      };
-      let condiviso=false;
-      if(navigator.canShare&&navigator.canShare({files:[file]})){
-        try{await navigator.share(shareData);condiviso=true;}
-        catch(e){if(e.name==='AbortError')condiviso=true;}
-      }
-      if(!condiviso){
-        const url=URL.createObjectURL(blob);
-        const a=document.createElement('a');
-        a.href=url;a.download='il-mio-pantheon-babele.png';
-        document.body.appendChild(a);a.click();a.remove();
-        setTimeout(()=>URL.revokeObjectURL(url),4000);
-      }
-      if(btn){btn.disabled=false;btn.textContent=testoOrig;}
-    },'image/png',0.95);
-  }catch(e){
-    console.error('condividiPantheon',e);
-    if(btn){btn.disabled=false;btn.textContent=testoOrig;}
-  }
-}
-
-/* Dispatcher contestuale usato dal bottone "✦ Condividi" nella cerimonia di
-   sblocco: se il badge appena sbloccato è quello di completamento di un
-   braccio della galassia, condivide la galassia (più pertinente in quel
-   momento); per tutti gli altri badge condivide il Pantheon. */
-async function condividiSblocco(){
-  tap('light');
-  const btn=document.getElementById('btnCerCondividi');
-  const testoOrig=btn?btn.textContent:'';
-  if(btn){btn.disabled=true;btn.textContent='Genero…';}
-  try{
-    const armBadgeIds=COSTELLAZIONI.map(c=>c.badge);
-    if(_cerBadgeIdCorrente&&armBadgeIds.includes(_cerBadgeIdCorrente))await condividiGalassia();
-    else await condividiPantheon();
-  }catch(e){console.error('condividiSblocco',e);}
-  finally{if(btn){btn.disabled=false;btn.textContent=testoOrig;}}
-}
-
 /* Verifica badge alexandrino (50 ricerche) tramite storico API */
 async function verificaBadgeRicerche(){
   if(getBadgeUnlocked().has('alexandrino'))return;
@@ -4521,10 +4333,11 @@ function aggiornaUIProf(){
   const pa=document.getElementById('pav');if(pa)pa.textContent=(u.nome||'?')[0].toUpperCase();
   const pn=document.getElementById('pnom');if(pn)pn.textContent=u.nome;
   const pe=document.getElementById('pem');if(pe)pe.textContent=u.email||'';
-  const pb=document.getElementById('pbib');if(pb)pb.textContent=G.bib;
+  const pb=document.getElementById('pbib');if(pb)pb.textContent=`${G.bib} · ${(RETI[G.rete]||RETI.rbbc).short}`;
   const ib=document.getElementById('imbv');if(ib)ib.textContent=G.bib;
   const pi=document.getElementById('pni');if(pi)pi.value=u.nome||'';
   const pbi=document.getElementById('pbi');if(pbi)pbi.value=G.bib||'';
+  aggiornaSottotitoloRete();
 }
 async function caricaProf(){
   if(!G.u)return;aggiornaUIProf();renderObiettivo();
@@ -4556,9 +4369,11 @@ async function salvaProfilo(){
 }
 async function salvaLib(){
   const bib=document.getElementById('pbi').value.trim();
-  if(!bib||!BIBS.some(b=>b.toLowerCase()===bib.toLowerCase()))return;
-  const r=await fetch('/api/auth/aggiorna',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome:G.u.nome,biblioteca:bib})});
-  const d=await r.json();if(d.ok){G.u.biblioteca=d.biblioteca;G.bib=d.biblioteca;document.getElementById('chipn').textContent=d.biblioteca;aggiornaUIProf();chiudiSh('shbib');}
+  const listaProf=_bibListePerContesto['cambiabibProf']||[];
+  if(!bib||!listaProf.some(b=>b.toLowerCase()===bib.toLowerCase()))return;
+  const rete=G.reteCambioProf||G.rete;
+  const r=await fetch('/api/auth/aggiorna',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome:G.u.nome,biblioteca:bib,rete})});
+  const d=await r.json();if(d.ok){G.u.biblioteca=d.biblioteca;G.u.rete=d.rete;G.bib=d.biblioteca;G.rete=d.rete;document.getElementById('chipn').textContent=d.biblioteca;aggiornaSottotitoloRete();aggiornaUIProf();chiudiSh('shbib');}
 }
 </script>
 </body>
