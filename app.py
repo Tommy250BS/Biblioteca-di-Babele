@@ -75,6 +75,21 @@ RETI = {
         "lib_path": "/library/",
         "catalog_code": "sondrio",
     },
+    # Lecco: percorso standard "/library/" (verificato dal vivo: pagine
+    # biblioteca come "/library/Sirtori/", "/library/Galbiate/" esistono e
+    # rispondono). Stessa famiglia DiscoveryNG di Comperio delle altre reti
+    # attive. catalog_code NON ancora verificato dal vivo (nessun link
+    # "opac/detail/view/<codice>:catalog:N" trovato nei risultati
+    # disponibili): lasciato "test" come placeholder, stesso trattamento già
+    # dato a Varese e Lodi prima della verifica. Controllare i log di
+    # cerca_titolo (rete_debug="lecco") per il codename reale.
+    "lecco": {
+        "label": "Sistema Bibliotecario del Territorio Lecchese",
+        "short": "Lecco",
+        "base_url": "https://lecco.biblioteche.it",
+        "lib_path": "/library/",
+        "catalog_code": "test",  # placeholder, da verificare (vedi nota sopra)
+    },
     # Sondrio: DISATTIVATA. Come Varese, il path e il catalog_code sono
     # confermati corretti (lib_path standard "/library/", catalog_code
     # "sondrio" da un link reale osservato in rete: "opac/detail/view/
