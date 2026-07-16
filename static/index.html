@@ -505,6 +505,15 @@ body.dark .morph-ov{background:#121f13}
 .cln:hover{text-decoration:underline}
 
 /* ATLANTE MAPPA */
+/* ONBOARDING TOOLTIP */
+.onb-tip{background:#fff;border:1.5px solid var(--oro);border-radius:var(--r);padding:14px 16px;margin-bottom:16px;box-shadow:var(--sh-s);animation:up .35s var(--ease-out-expo) both;transition:opacity .25s ease,transform .25s ease}
+body.dark .onb-tip{background:#121f13;border-color:var(--oro)}
+.onb-tip-txt{font-size:.8rem;color:var(--ink2);line-height:1.58;margin-bottom:11px}
+.onb-tip-btn{background:none;border:1.5px solid var(--av3);border-radius:20px;padding:7px 14px;font-size:.72rem;font-weight:700;letter-spacing:.02em;color:var(--bosco);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.onb-tip-btn:hover{border-color:var(--bosco);background:rgba(27,61,30,.05)}
+body.dark .onb-tip-btn{color:var(--oro-2)}
+body.dark .onb-tip-btn:hover{border-color:var(--oro);background:rgba(200,164,74,.08)}
+
 .mapwrap{background:#eef3f6;border-radius:var(--r);box-shadow:var(--sh-s);overflow:hidden;padding:8px;position:relative}
 .mapwrap svg{width:100%;height:auto;display:block}
 .map-ocean{fill:#eef3f6}
@@ -1133,6 +1142,10 @@ body.dark .arm-row-count{color:var(--oro-2)}
     </div>
     <div class="psez">
       <div class="sh3">🗺️ Mappa del mondo letterario</div>
+      <div class="onb-tip" id="atlTip" style="display:none">
+        <div class="onb-tip-txt">👋 Tocca una nazione colorata sulla mappa per scoprire un autore e le sue opere. Usa <strong>⤢</strong> per aprirla a schermo intero.</div>
+        <button class="onb-tip-btn" onclick="chiudiTipAtlante()">Ho capito, non mostrare più</button>
+      </div>
       <div class="cost-stato" style="margin-bottom:14px">
         <div class="cost-prog"><div class="cost-prog-inner" id="atlProgBar" style="width:0%"></div></div>
         <div class="cost-prog-txt" id="atlProgTxt">0/0 nazioni scoperte</div>
@@ -1594,7 +1607,7 @@ function vai(id,sub,noAnim){
   if(id==='sprof')caricaProf();
   if(id==='slap')renderCostellazioni();
   if(id==='spant'){renderPantheon();}
-  if(id==='satlante'){incAtlanteVisits();aggiornaProgressoAtlante();if(!_atlAvv){_atlAvv=true;initMappa();}}
+  if(id==='satlante'){incAtlanteVisits();aggiornaProgressoAtlante();mostraTipAtlante();if(!_atlAvv){_atlAvv=true;initMappa();}}
   window.scrollTo(0,0);
 }
 function switchTab(id){document.querySelectorAll('.ntab').forEach(t=>t.classList.toggle('on',t.dataset.s===id));tap('light');vai(id);}
@@ -2356,6 +2369,23 @@ function aggiornaProgressoAtlante(){
   const pct=tot?Math.round(n/tot*100):0;
   bar.style.width=pct+'%';
   txt.textContent=`${n}/${tot} nazioni scoperte`;
+}
+/* Onboarding tooltip: mostrato solo alla prima visita di Atlante, poi
+   nascosto per sempre dopo il click su "Ho capito, non mostrare più". */
+function mostraTipAtlante(){
+  const tip=document.getElementById('atlTip');
+  if(!tip)return;
+  if(localStorage.getItem('rbbc_onb_atlante')==='1'){tip.style.display='none';return;}
+  tip.style.display='block';
+  tip.style.opacity='1';tip.style.transform='none';
+}
+function chiudiTipAtlante(){
+  tap('light');
+  localStorage.setItem('rbbc_onb_atlante','1');
+  const tip=document.getElementById('atlTip');
+  if(!tip)return;
+  tip.style.opacity='0';tip.style.transform='translateY(-6px)';
+  setTimeout(()=>{tip.style.display='none';},250);
 }
 function selNazione(name,info,el){
   document.querySelectorAll('.mapnaz').forEach(p=>p.classList.remove('sel'));
