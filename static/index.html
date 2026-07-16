@@ -1189,9 +1189,8 @@ body.dark .arm-row-count{color:var(--oro-2)}
       <div class="etn">Lapides Miliarii</div><div class="eto">Dal latino · Pietre miliari</div>
       <p class="etd">Non una cronologia, ma sei archetipi che attraversano i secoli: il viaggio, la tragedia, la lirica, l'utopia, il pensiero, la condizione umana. Ogni braccio della galassia parte da un nucleo antico e si allontana fino alla periferia contemporanea. Ogni opera letta accende una stella; le nebulose sono testi perduti o frammentari; le stelle doppie collegano opere lontane che dialogano tra loro. Completa un braccio per ottenere il suo badge.</p>
     </div>
-    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
-      <button class="bsm bsmp" style="flex:1 1 100%" onclick="apriLetturaManuale()">+ Aggiungi lettura</button>
-      <button class="bsm bsmg" style="flex:1 1 100%" onclick="apriLegenda()">📖 Legenda</button>
+    <div style="margin-bottom:20px">
+      <button class="bsm bsmg" style="width:100%" onclick="apriLegenda()">📖 Legenda</button>
     </div>
     <div id="cost-container"><!-- costellazioni renderizzate da JS --></div>
   </div>
@@ -1223,6 +1222,7 @@ body.dark .arm-row-count{color:var(--oro-2)}
     <div class="psez">
       <div class="sh3">La mia biblioteca</div>
       <p style="font-size:.74rem;color:#aaa;margin-bottom:10px;font-style:italic">I libri che hai letto</p>
+      <button class="bsm bsmp" style="width:100%;margin-bottom:14px" onclick="apriLetturaManuale()">+ Aggiungi lettura</button>
       <div id="p-mialib"><div class="vp">Nessun libro segnato come letto.</div></div>
     </div>
     <div class="psez">
