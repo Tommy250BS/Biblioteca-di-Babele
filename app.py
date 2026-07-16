@@ -63,6 +63,35 @@ RETI = {
         "lib_path": "/la-rete-delle-biblioteche/",
         "catalog_code": "mn",
     },
+    # Varese: come Mantovana, l'elenco biblioteche NON vive su "/library/" ma
+    # su un percorso personalizzato del sito (verificato dal vivo: i link
+    # "libpage/id/N" con le singole biblioteche stanno sotto
+    # "/le-biblioteche-della-rete-provinciale-di-varese/", non sotto
+    # "/library/" — quest'ultima esiste ma non è il percorso con l'elenco
+    # completo). catalog_code NON ancora verificato dal vivo (nessun risultato
+    # di ricerca/pagina di dettaglio ispezionato finora): lasciato "test" come
+    # placeholder, sullo stesso modello già usato per Bergamasca. Se le
+    # ricerche su questa rete restituiscono 0 risultati pur con risposta HTML
+    # valida, controllare i log di cerca_titolo (rete_debug="varese") per il
+    # codename reale usato nei link "opac/detail/view/<codename>:catalog:...".
+    "varese": {
+        "label": "Rete Bibliotecaria della Provincia di Varese",
+        "short": "Varese",
+        "base_url": "https://retebibliotecaria.provincia.va.it",
+        "lib_path": "/le-biblioteche-della-rete-provinciale-di-varese/",
+        "catalog_code": "test",  # placeholder, da verificare (vedi nota sopra)
+    },
+    # Lodi: percorso standard "/library/" (verificato dal vivo: l'elenco
+    # biblioteche con i link "libpage/id/N" è effettivamente lì, stesso schema
+    # di RBBC/Comasca). catalog_code NON ancora verificato dal vivo, stessa
+    # situazione di Varese sopra: "test" è un placeholder da confermare.
+    "lodi": {
+        "label": "Sistema Bibliotecario Lodigiano",
+        "short": "Lodi",
+        "base_url": "https://webopac.bibliotechelodi.it",
+        "lib_path": "/library/",
+        "catalog_code": "test",  # placeholder, da verificare (vedi nota sopra)
+    },
    # "bergamasca": {
    #    "label": "Rete Bibliotecaria Bergamasca",
    #    "short": "Bergamasca",
