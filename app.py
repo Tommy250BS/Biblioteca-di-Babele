@@ -63,6 +63,17 @@ RETI = {
         "lib_path": "/la-rete-delle-biblioteche/",
         "catalog_code": "mn",
     },
+    # BrianzaBiblioteche (Monza e Brianza): percorso standard "/library/"
+    # (verificato dal vivo). catalog_code confermato da più link reali
+    # osservati in rete: "opac/detail/view/bria:catalog:1698027" e altri
+    # sullo stesso dominio.
+    "brianza": {
+        "label": "BrianzaBiblioteche",
+        "short": "Brianza",
+        "base_url": "https://www.brianzabiblioteche.it",
+        "lib_path": "/library/",
+        "catalog_code": "bria",
+    },
     # Lecco: DISATTIVATA. Path standard "/library/" confermato raggiungibile
     # in fase di ricerca esterna, ma in produzione il server risponde con
     # HTTP 403 a curl_get() (stesso sintomo di Varese e Sondrio: WAF/reverse
