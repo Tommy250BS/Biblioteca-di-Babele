@@ -63,29 +63,18 @@ RETI = {
         "lib_path": "/la-rete-delle-biblioteche/",
         "catalog_code": "mn",
     },
-    # Sondrio: percorso standard "/library/" (verificato dal vivo: la pagina
-    # elenco biblioteche esiste sia sotto il dominio pubblico
-    # biblioteche.provinciasondrio.it sia sotto sondrio.comperio.it, stessa
-    # istanza DiscoveryNG). catalog_code confermato dal vivo da un link reale
-    # osservato in rete: "opac/detail/view/sondrio:catalog:252215".
-    "sondrio": {
-        "label": "Rete Bibliotecaria della Provincia di Sondrio",
-        "short": "Sondrio",
-        "base_url": "https://biblioteche.provinciasondrio.it",
-        "lib_path": "/library/",
-        "catalog_code": "sondrio",
-    },
     # CSBNO (Nord Ovest Milano, 31 comuni tra cui Bollate, Rho, Legnano,
-    # Sesto San Giovanni): percorso standard "/library/" (verificato dal
-    # vivo). catalog_code confermato da più link reali osservati in rete:
-    # "opac/detail/view/csbno:catalog:403259" e altri sullo stesso dominio.
-    "csbno": {
-        "label": "CSBNO - Culture Socialità Biblioteche Network Operativo",
-        "short": "CSBNO",
-        "base_url": "https://webopac.csbno.net",
-        "lib_path": "/library/",
-        "catalog_code": "csbno",
-    },
+    # Sesto San Giovanni): DISATTIVATA. Path "/library/" e catalog_code
+    # "csbno" erano confermati corretti, ma il server risponde con HTTP 403
+    # a curl_get() in produzione (stesso sintomo WAF di Varese/Sondrio/Lecco).
+    # Va riattivata solo dopo aver risolto il blocco lato richiesta.
+    # "csbno": {
+    #    "label": "CSBNO - Culture Socialità Biblioteche Network Operativo",
+    #    "short": "CSBNO",
+    #    "base_url": "https://webopac.csbno.net",
+    #    "lib_path": "/library/",
+    #    "catalog_code": "csbno",
+    # },
     # CUBI (Vimercatese + Milano Est): percorso standard "/library/"
     # (verificato dal vivo). catalog_code confermato da link reali osservati
     # in rete: "opac/detail/view/cubi:catalog:642636" e altri.
@@ -98,31 +87,28 @@ RETI = {
     },
     # SBNEM (Sistema Bibliotecario Nord Est Milano: Brugherio, Bussero,
     # Carugate, Cassina de' Pecchi, Cernusco sul Naviglio, Cologno Monzese,
-    # Vignate, Vimodrone): percorso standard "/library/" (verificato dal
-    # vivo, DiscoveryNG confermato dalla pagina Credits del sito).
-    # catalog_code NON ancora verificato dal vivo (nessun link
-    # "opac/detail/view/<codice>:catalog:N" trovato nei risultati
-    # disponibili): lasciato "test" come placeholder, stesso trattamento già
-    # dato ad altre reti prima della verifica. Controllare i log di
-    # cerca_titolo (rete_debug="sbnem") per il codename reale.
-    "sbnem": {
-        "label": "Sistema Bibliotecario Nord Est Milano",
-        "short": "SBNEM",
-        "base_url": "https://www.biblioclick.it",
-        "lib_path": "/library/",
-        "catalog_code": "test",  # placeholder, da verificare (vedi nota sopra)
-    },
-    # BrianzaBiblioteche (Monza e Brianza): percorso standard "/library/"
-    # (verificato dal vivo). catalog_code confermato da più link reali
-    # osservati in rete: "opac/detail/view/bria:catalog:1698027" e altri
-    # sullo stesso dominio.
-    "brianza": {
-        "label": "BrianzaBiblioteche",
-        "short": "Brianza",
-        "base_url": "https://www.brianzabiblioteche.it",
-        "lib_path": "/library/",
-        "catalog_code": "bria",
-    },
+    # Vignate, Vimodrone): DISATTIVATA. Stesso blocco WAF HTTP 403 di CSBNO,
+    # oltre al catalog_code mai verificato. Va riattivata solo dopo aver
+    # risolto il blocco lato richiesta E confermato il catalog_code reale.
+    # "sbnem": {
+    #    "label": "Sistema Bibliotecario Nord Est Milano",
+    #    "short": "SBNEM",
+    #    "base_url": "https://www.biblioclick.it",
+    #    "lib_path": "/library/",
+    #    "catalog_code": "test",  # non verificato
+    # },
+    # BrianzaBiblioteche (Monza e Brianza): DISATTIVATA. Path "/library/" e
+    # catalog_code "bria" erano confermati corretti, ma il server risponde
+    # con HTTP 403 a curl_get() in produzione (stesso sintomo WAF delle
+    # altre reti sopra). Va riattivata solo dopo aver risolto il blocco lato
+    # richiesta.
+    # "brianza": {
+    #    "label": "BrianzaBiblioteche",
+    #    "short": "Brianza",
+    #    "base_url": "https://www.brianzabiblioteche.it",
+    #    "lib_path": "/library/",
+    #    "catalog_code": "bria",
+    # },
     # Lecco: DISATTIVATA. Path standard "/library/" confermato raggiungibile
     # in fase di ricerca esterna, ma in produzione il server risponde con
     # HTTP 403 a curl_get() (stesso sintomo di Varese e Sondrio: WAF/reverse
