@@ -804,7 +804,7 @@ body.dark .arm-row-count{color:var(--oro-2)}
 .arm-row.active .arm-row-dot{background:var(--bc,var(--oro));box-shadow:0 0 6px var(--bc-glow,rgba(200,164,74,.8))}
 .cost-arm-label{cursor:pointer;transition:opacity .35s ease,fill .35s ease}
 .cost-arm-label:hover{fill:rgba(228,196,94,.85)}
-.cost-arm-label.active{fill:var(--oro-2);font-weight:700}
+.cost-arm-label.active{fill:var(--lbl-c);font-weight:700}
 [data-braccio]{transition:opacity .35s ease}
 /* info card */
 .cost-info{background:#fff;border-radius:0 0 var(--r) var(--r);padding:13px 16px;border-top:1px solid var(--av2);display:none}
@@ -1017,7 +1017,7 @@ body.dark .arm-row-count{color:var(--oro-2)}
       <div class="sc" data-c="v" onclick="morphVai(this,'salex')">
         <div class="sc-arr">›</div>
         <div class="sc-ico">📚</div><div class="sc-nome">Alexandria</div>
-        <div class="sc-desc">Cerca libri nel catalogo RBBC</div><div class="sc-orn">A</div>
+        <div class="sc-desc" id="scAlexDesc">Cerca libri nel catalogo RBBC</div><div class="sc-orn">A</div>
       </div>
       <div class="sc" data-c="o" onclick="morphVai(this,'satlante')">
         <div class="sc-arr">›</div>
@@ -1166,7 +1166,6 @@ body.dark .arm-row-count{color:var(--oro-2)}
     </div>
     <div class="psez">
       <div class="sh3">Badge sbloccati e in attesa</div>
-      <button class="bsm bsmg" style="width:100%;margin-bottom:16px" id="btnCondividiPant" onclick="condividiPantheon()">✦ Condividi il mio Pantheon</button>
       <div class="bgr" id="pant-bgr">
         <!-- badge renderizzati da JS -->
       </div>
@@ -1192,8 +1191,7 @@ body.dark .arm-row-count{color:var(--oro-2)}
     </div>
     <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
       <button class="bsm bsmp" style="flex:1 1 100%" onclick="apriLetturaManuale()">+ Aggiungi lettura</button>
-      <button class="bsm bsmg" style="flex:1" onclick="apriLegenda()">📖 Legenda</button>
-      <button class="bsm bsmg" style="flex:1" id="btnCondividiGal" onclick="condividiGalassia()">✦ Condividi</button>
+      <button class="bsm bsmg" style="flex:1 1 100%" onclick="apriLegenda()">📖 Legenda</button>
     </div>
     <div id="cost-container"><!-- costellazioni renderizzate da JS --></div>
   </div>
@@ -1388,7 +1386,6 @@ body.dark .arm-row-count{color:var(--oro-2)}
     <div class="bdg-cer-nome" id="bdgCerNome"></div>
     <div class="bdg-cer-desc" id="bdgCerDesc"></div>
     <div class="bdg-cer-btns">
-      <button class="bdg-cer-btn bdg-cer-btn-ghost" id="btnCerCondividi" onclick="condividiSblocco()">✦ Condividi</button>
       <button class="bdg-cer-btn" onclick="chiudiBadgeCeremony()">Continua →</button>
     </div>
   </div>
@@ -2039,6 +2036,8 @@ function aggiornaSottotitoloRete(){
   if(el)el.textContent=info.label;
   const cat=document.getElementById('alexCatLabel');
   if(cat)cat.textContent=`Catalogo ${info.short}`;
+  const homeDesc=document.getElementById('scAlexDesc');
+  if(homeDesc)homeDesc.textContent=`Cerca libri nel catalogo ${info.short}`;
 }
 
 function apriSh(id){
@@ -3378,390 +3377,6 @@ function apriGalassiaFS(){
   applyFocusBraccio();
   _setupGalPan('fs','#mapFsSvgWrap','#svg-galassia-fs');
   galZoomReset('fs','#svg-galassia-fs');
-}
-
-/* ══════════════════════════════════════════════════════════════════════
-   CONDIVISIONE SOCIAL — genera una card immagine della propria galassia
-   Lapides Miliarii (con statistiche) e la condivide via Web Share API,
-   con fallback al download del PNG sui browser che non la supportano.
-   ══════════════════════════════════════════════════════════════════════ */
-
-/* Converte l'SVG della galassia in un'immagine rasterizzata, incorporando
-   uno stile minimale: l'SVG isolato non ha accesso al foglio di stile della
-   pagina, quindi le regole necessarie (colori, forme delle stelle) vanno
-   duplicate qui. I custom property (--bc, --lbl-c…) sono già inline sugli
-   elementi (impostati via JS), quindi il clone li porta con sé. */
-function svgToImage(svgEl){
-  return new Promise((resolve,reject)=>{
-    if(!svgEl){reject(new Error('SVG galassia non trovato'));return;}
-    const clone=svgEl.cloneNode(true);
-    clone.setAttribute('xmlns','http://www.w3.org/2000/svg');
-    if(!clone.getAttribute('viewBox'))clone.setAttribute('viewBox','0 0 900 900');
-    const bgRect=document.createElementNS('http://www.w3.org/2000/svg','rect');
-    bgRect.setAttribute('x','0');bgRect.setAttribute('y','0');
-    bgRect.setAttribute('width','900');bgRect.setAttribute('height','900');
-    bgRect.setAttribute('fill','#05070d');
-    clone.insertBefore(bgRect,clone.firstChild);
-    const style=document.createElementNS('http://www.w3.org/2000/svg','style');
-    style.textContent=`
-      text{font-family:Georgia,serif}
-      .cost-bg-star{fill:rgba(255,255,255,.55)}
-      .cost-core-glow{fill:rgba(228,196,94,.12)}
-      .cost-link{stroke:rgba(201,168,76,.15);stroke-width:1}
-      .cost-link.lit{stroke:var(--bc,#ffe066);stroke-width:2}
-      .cost-link-doppia{stroke:rgba(224,140,90,.22);stroke-width:1.2}
-      .cost-link-doppia.lit{stroke:#ffb877;stroke-width:2.2}
-      .cost-star .spt{fill:rgba(255,255,255,.28);stroke:rgba(255,255,255,.4);stroke-width:.5}
-      .cost-star.lit .spt{fill:var(--bc,#ffe066);stroke:#fff6cf}
-      .cost-star .hit{fill:transparent}
-      .cost-nebula circle.neb-ring{fill:none;stroke:rgba(210,180,255,.55);stroke-width:1}
-      .cost-nebula.lit circle.neb-ring{stroke:rgba(230,205,255,.9)}
-      .cost-nebula circle.neb-glow{fill:rgba(196,168,255,.4)}
-      .cost-nebula.lit circle.neb-glow{fill:rgba(224,200,255,.75)}
-      .cost-nebula circle.neb-core{fill:rgba(238,225,255,.95);stroke:rgba(255,255,255,.6);stroke-width:.6}
-      .cost-nebula.lit circle.neb-core{fill:#fbf7ff}
-      .cost-arm-label{font-weight:600;fill:var(--lbl-c,rgba(228,196,94,.6));opacity:.85}
-    `;
-    clone.insertBefore(style,clone.firstChild);
-    const xml=new XMLSerializer().serializeToString(clone);
-    const svg64=btoa(unescape(encodeURIComponent(xml)));
-    const img=new Image();
-    img.onload=()=>resolve(img);
-    img.onerror=()=>reject(new Error('Errore rendering SVG'));
-    img.src='data:image/svg+xml;base64,'+svg64;
-  });
-}
-
-function _statGal(ctx,x,y,valore,label){
-  ctx.textAlign='center';
-  ctx.fillStyle='#f0d98a';
-  ctx.font='700 46px Georgia, serif';
-  ctx.fillText(valore,x,y);
-  ctx.fillStyle='rgba(255,255,255,.42)';
-  ctx.font='600 17px Arial, sans-serif';
-  ctx.fillText(label.toUpperCase(),x,y+30);
-}
-
-/* Costruisce la card 1080×1350 pronta per essere condivisa o scaricata.
-   Se la galassia non è mai stata disegnata in questa sessione (l'utente
-   non ha ancora aperto Lapides Miliarii), la renderizza al volo fuori
-   schermo così la condivisione funziona da qualunque pagina — ad esempio
-   subito dopo lo sblocco di un badge nella cerimonia. */
-async function generaImmagineGalassia(){
-  let svgSrc=document.getElementById('svg-galassia')||document.getElementById('svg-galassia-fs');
-  let tempWrap=null;
-  if(!svgSrc){
-    tempWrap=document.createElement('div');
-    tempWrap.style.cssText='position:fixed;left:-9999px;top:-9999px;width:900px;height:900px;pointer-events:none';
-    tempWrap.innerHTML='<svg viewBox="0 0 900 900" xmlns="http://www.w3.org/2000/svg" id="svg-galassia-temp"></svg>';
-    document.body.appendChild(tempWrap);
-    disegnaGalassiaIn('svg-galassia-temp','__headless__');
-    svgSrc=document.getElementById('svg-galassia-temp');
-  }
-  let galImg;
-  try{
-    galImg=await svgToImage(svgSrc);
-  }finally{
-    if(tempWrap)tempWrap.remove();
-  }
-
-  const W=1080,H=1350;
-  const canvas=document.createElement('canvas');
-  canvas.width=W;canvas.height=H;
-  const ctx=canvas.getContext('2d');
-
-  // Sfondo
-  const bgGrad=ctx.createRadialGradient(W/2,H*0.3,60,W/2,H*0.3,W*0.95);
-  bgGrad.addColorStop(0,'#152616');
-  bgGrad.addColorStop(1,'#04070a');
-  ctx.fillStyle=bgGrad;ctx.fillRect(0,0,W,H);
-
-  // Micro stelle di sfondo decorative
-  for(let i=0;i<150;i++){
-    const x=(i*137.5)%W, y=(i*97.3+i*i*.7)%(H*0.92);
-    const r=i%9===0?1.7:0.8;
-    ctx.globalAlpha=0.15+((i*53)%40)/100;
-    ctx.fillStyle='#fff';
-    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
-  }
-  ctx.globalAlpha=1;
-
-  // Cornice sottile dorata
-  ctx.strokeStyle='rgba(200,164,74,.18)';
-  ctx.lineWidth=2;
-  ctx.strokeRect(16,16,W-32,H-32);
-
-  // Intestazione
-  ctx.textAlign='center';
-  ctx.fillStyle='rgba(228,196,94,.75)';
-  ctx.font='700 24px Arial, sans-serif';
-  ctx.fillText('L A   B I B L I O T E C A   D I   B A B E L E',W/2,84);
-
-  ctx.fillStyle='#f0d98a';
-  ctx.font='italic 300 58px Georgia, serif';
-  ctx.fillText('La mia Galassia Letteraria',W/2,150);
-
-  const nomeUtente=G.u?.nome?G.u.nome.split(' ')[0]:'Lettore';
-  const dataOggi=new Date().toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'});
-  ctx.fillStyle='rgba(255,255,255,.42)';
-  ctx.font='22px Georgia, serif';
-  ctx.fillText(`di ${nomeUtente} · ${dataOggi}`,W/2,188);
-
-  // Galassia (ritagliata in cerchio)
-  const galSize=760, galX=(W-galSize)/2, galY=228;
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(W/2,galY+galSize/2,galSize/2,0,Math.PI*2);
-  ctx.closePath();
-  ctx.clip();
-  ctx.drawImage(galImg,galX,galY,galSize,galSize);
-  ctx.restore();
-  ctx.strokeStyle='rgba(200,164,74,.45)';
-  ctx.lineWidth=3;
-  ctx.beginPath();ctx.arc(W/2,galY+galSize/2,galSize/2,0,Math.PI*2);ctx.stroke();
-
-  // Statistiche
-  const lit=getAutoLitStars();
-  const totStars=COSTELLAZIONI.reduce((s,b)=>s+b.stars.length,0);
-  const bracciCompletati=COSTELLAZIONI.filter(b=>b.stars.every(s=>lit.has(s.id))).length;
-  const badgeCount=getBadgeUnlocked().size;
-
-  const statsY=galY+galSize+95;
-  _statGal(ctx,W*0.2,statsY,`${lit.size}/${totStars}`,'Opere illuminate');
-  _statGal(ctx,W*0.5,statsY,`${bracciCompletati}/${COSTELLAZIONI.length}`,'Costellazioni');
-  _statGal(ctx,W*0.8,statsY,`${badgeCount}`,'Badge sbloccati');
-
-  // Riepilogo bracci (due colonne)
-  const legY0=statsY+70, rowH=46, colW=W*0.44, colX=[W*0.09,W*0.53];
-  ctx.textAlign='left';
-  COSTELLAZIONI.forEach((b,i)=>{
-    const col=i%2, row=Math.floor(i/2);
-    const x=colX[col], y=legY0+row*rowH+30;
-    const col2=BRACCIO_COLORI[b.id]?.c||'#ffe066';
-    const n=b.stars.filter(s=>lit.has(s.id)).length;
-    ctx.fillStyle=col2;
-    ctx.beginPath();ctx.arc(x+7,y-8,7,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='rgba(255,255,255,.85)';
-    ctx.font='600 24px Georgia, serif';
-    ctx.fillText(b.label,x+26,y);
-    ctx.textAlign='right';
-    ctx.fillStyle='rgba(255,255,255,.4)';
-    ctx.font='19px Arial, sans-serif';
-    ctx.fillText(`${n}/${b.stars.length}`,x+colW-14,y);
-    ctx.textAlign='left';
-  });
-
-  // Piè di pagina
-  ctx.textAlign='center';
-  ctx.fillStyle='rgba(255,255,255,.26)';
-  ctx.font='19px Arial, sans-serif';
-  ctx.fillText((RETI[G.rete]||RETI.rbbc).label,W/2,H-46);
-
-  return canvas;
-}
-
-async function condividiGalassia(){
-  tap('medium');
-  const btn=document.getElementById('btnCondividiGal');
-  const testoOrig=btn?btn.textContent:'';
-  if(btn){btn.disabled=true;btn.textContent='Genero…';}
-  try{
-    const canvas=await generaImmagineGalassia();
-    canvas.toBlob(async blob=>{
-      if(!blob){if(btn){btn.disabled=false;btn.textContent=testoOrig;}return;}
-      const file=new File([blob],'la-mia-galassia-babele.png',{type:'image/png'});
-      const shareData={
-        files:[file],
-        title:'La mia Galassia Letteraria',
-        text:'Ecco la mia Galassia Letteraria su La Biblioteca di Babele ✦📚'
-      };
-      let condiviso=false;
-      if(navigator.canShare&&navigator.canShare({files:[file]})){
-        try{await navigator.share(shareData);condiviso=true;}
-        catch(e){if(e.name==='AbortError')condiviso=true;}
-      }
-      if(!condiviso){
-        const url=URL.createObjectURL(blob);
-        const a=document.createElement('a');
-        a.href=url;a.download='la-mia-galassia-babele.png';
-        document.body.appendChild(a);a.click();a.remove();
-        setTimeout(()=>URL.revokeObjectURL(url),4000);
-      }
-      if(btn){btn.disabled=false;btn.textContent=testoOrig;}
-    },'image/png',0.95);
-  }catch(e){
-    console.error('condividiGalassia',e);
-    if(btn){btn.disabled=false;btn.textContent=testoOrig;}
-  }
-}
-
-/* ══════════════════════════════════════════════════════════════════════
-   CONDIVISIONE PANTHEON — card con la propria collezione di badge,
-   raggruppata per categoria come nella schermata reale. Non dipende da
-   alcun elemento del DOM (i badge sbloccati vivono in getBadgeUnlocked),
-   quindi funziona da qualsiasi pagina dell'app. */
-const SEGRETI_IDS_SHARE=['walden','macondo','pequod','vronskij','boxer','manoscritto','fuoco_alessandria','mulino_acqua'];
-
-function _sfondoCardCosmico(ctx,W,H){
-  const bgGrad=ctx.createRadialGradient(W/2,H*0.26,60,W/2,H*0.26,Math.max(W,H)*0.85);
-  bgGrad.addColorStop(0,'#152616');
-  bgGrad.addColorStop(1,'#04070a');
-  ctx.fillStyle=bgGrad;ctx.fillRect(0,0,W,H);
-  for(let i=0;i<190;i++){
-    const x=(i*137.5)%W, y=(i*97.3+i*i*.7)%H;
-    const r=i%9===0?1.7:0.8;
-    ctx.globalAlpha=0.12+((i*53)%40)/100;
-    ctx.fillStyle='#fff';
-    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
-  }
-  ctx.globalAlpha=1;
-  ctx.strokeStyle='rgba(200,164,74,.18)';
-  ctx.lineWidth=2;
-  ctx.strokeRect(16,16,W-32,H-32);
-}
-function _intestazioneCard(ctx,W,titolo,sottotitolo){
-  ctx.textAlign='center';
-  ctx.fillStyle='rgba(228,196,94,.75)';
-  ctx.font='700 24px Arial, sans-serif';
-  ctx.fillText('L A   B I B L I O T E C A   D I   B A B E L E',W/2,84);
-  ctx.fillStyle='#f0d98a';
-  ctx.font='italic 300 56px Georgia, serif';
-  ctx.fillText(titolo,W/2,150);
-  ctx.fillStyle='rgba(255,255,255,.42)';
-  ctx.font='22px Georgia, serif';
-  ctx.fillText(sottotitolo,W/2,188);
-}
-function _piePaginaCard(ctx,W,H){
-  const info=RETI[G.rete]||RETI.rbbc;
-  ctx.textAlign='center';
-  ctx.fillStyle='rgba(255,255,255,.26)';
-  ctx.font='19px Arial, sans-serif';
-  ctx.fillText(info.label,W/2,H-46);
-}
-
-async function generaImmaginePantheon(){
-  const unl=getBadgeUnlocked();
-  const W=1080;
-  const cols=6,d=110,gap=26;
-  const gridW=cols*d+(cols-1)*gap;
-  const gridX=(W-gridW)/2;
-  const headerH=250, catHeaderH=52, catSpacing=42, footerH=100;
-
-  // Prima passata: calcola l'altezza totale scorrendo le categorie
-  let cursor=headerH;
-  const layout=BADGE_CATEGORIE.map(cat=>{
-    const ids=cat.ids;
-    const rows=Math.ceil(ids.length/cols);
-    const gridH=rows*d+(rows-1)*gap;
-    const catY=cursor+catHeaderH;
-    cursor=catY+gridH+catSpacing;
-    return{cat,catY,gridH};
-  });
-  const H=Math.ceil(cursor+footerH);
-
-  const canvas=document.createElement('canvas');
-  canvas.width=W;canvas.height=H;
-  const ctx=canvas.getContext('2d');
-
-  _sfondoCardCosmico(ctx,W,H);
-  const totBadge=TUTTI_BADGE.length;
-  _intestazioneCard(ctx,W,'Il mio Pantheon',`${unl.size}/${totBadge} badge sbloccati`);
-
-  layout.forEach(({cat,catY,gridH})=>{
-    const badgesInCat=cat.ids.map(id=>TUTTI_BADGE.find(b=>b.id===id)).filter(Boolean);
-    const nUnl=badgesInCat.filter(b=>unl.has(b.id)).length;
-
-    ctx.textAlign='left';
-    ctx.fillStyle='rgba(228,196,94,.85)';
-    ctx.font='700 25px Arial, sans-serif';
-    ctx.fillText(`${cat.ico}  ${cat.label}`,gridX,catY-18);
-    ctx.textAlign='right';
-    ctx.fillStyle='rgba(255,255,255,.4)';
-    ctx.font='19px Arial, sans-serif';
-    ctx.fillText(`${nUnl}/${badgesInCat.length}`,gridX+gridW,catY-18);
-    ctx.strokeStyle='rgba(200,164,74,.16)';
-    ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(gridX,catY-6);ctx.lineTo(gridX+gridW,catY-6);ctx.stroke();
-
-    badgesInCat.forEach((b,i)=>{
-      const col=i%cols,row=Math.floor(i/cols);
-      const cx=gridX+col*(d+gap)+d/2;
-      const cy=catY+row*(d+gap)+d/2;
-      const isOk=unl.has(b.id);
-      const isSecret=SEGRETI_IDS_SHARE.includes(b.id);
-
-      const grad=ctx.createRadialGradient(cx,cy,4,cx,cy,d/2);
-      if(isOk){grad.addColorStop(0,'rgba(200,164,74,.32)');grad.addColorStop(1,'rgba(200,164,74,.04)');}
-      else{grad.addColorStop(0,'rgba(255,255,255,.06)');grad.addColorStop(1,'rgba(255,255,255,.015)');}
-      ctx.fillStyle=grad;
-      ctx.beginPath();ctx.arc(cx,cy,d/2,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle=isOk?'rgba(200,164,74,.55)':'rgba(255,255,255,.1)';
-      ctx.lineWidth=isOk?2:1.4;
-      ctx.stroke();
-
-      ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.font=`${Math.round(d*0.4)}px Arial`;
-      ctx.globalAlpha=isOk?1:0.3;
-      ctx.fillText(isOk?b.ico:(isSecret?'?':b.ico),cx,cy+2);
-      ctx.globalAlpha=1;
-      ctx.textBaseline='alphabetic';
-    });
-  });
-
-  _piePaginaCard(ctx,W,H);
-  return canvas;
-}
-
-async function condividiPantheon(){
-  tap('medium');
-  const btn=document.getElementById('btnCondividiPant');
-  const testoOrig=btn?btn.textContent:'';
-  if(btn){btn.disabled=true;btn.textContent='Genero…';}
-  try{
-    const canvas=await generaImmaginePantheon();
-    canvas.toBlob(async blob=>{
-      if(!blob){if(btn){btn.disabled=false;btn.textContent=testoOrig;}return;}
-      const file=new File([blob],'il-mio-pantheon-babele.png',{type:'image/png'});
-      const shareData={
-        files:[file],
-        title:'Il mio Pantheon',
-        text:'Ecco il mio Pantheon di badge su La Biblioteca di Babele 🏛️✦'
-      };
-      let condiviso=false;
-      if(navigator.canShare&&navigator.canShare({files:[file]})){
-        try{await navigator.share(shareData);condiviso=true;}
-        catch(e){if(e.name==='AbortError')condiviso=true;}
-      }
-      if(!condiviso){
-        const url=URL.createObjectURL(blob);
-        const a=document.createElement('a');
-        a.href=url;a.download='il-mio-pantheon-babele.png';
-        document.body.appendChild(a);a.click();a.remove();
-        setTimeout(()=>URL.revokeObjectURL(url),4000);
-      }
-      if(btn){btn.disabled=false;btn.textContent=testoOrig;}
-    },'image/png',0.95);
-  }catch(e){
-    console.error('condividiPantheon',e);
-    if(btn){btn.disabled=false;btn.textContent=testoOrig;}
-  }
-}
-
-/* Dispatcher contestuale usato dal bottone "✦ Condividi" nella cerimonia di
-   sblocco: se il badge appena sbloccato è quello di completamento di un
-   braccio della galassia, condivide la galassia (più pertinente in quel
-   momento); per tutti gli altri badge condivide il Pantheon. */
-async function condividiSblocco(){
-  tap('light');
-  const btn=document.getElementById('btnCerCondividi');
-  const testoOrig=btn?btn.textContent:'';
-  if(btn){btn.disabled=true;btn.textContent='Genero…';}
-  try{
-    const armBadgeIds=COSTELLAZIONI.map(c=>c.badge);
-    if(_cerBadgeIdCorrente&&armBadgeIds.includes(_cerBadgeIdCorrente))await condividiGalassia();
-    else await condividiPantheon();
-  }catch(e){console.error('condividiSblocco',e);}
-  finally{if(btn){btn.disabled=false;btn.textContent=testoOrig;}}
 }
 
 /* Verifica badge alexandrino (50 ricerche) tramite storico API */
