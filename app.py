@@ -75,6 +75,21 @@ RETI = {
         "lib_path": "/library/",
         "catalog_code": "sondrio",
     },
+    # Sondrio: DISATTIVATA. Come Varese, il path e il catalog_code sono
+    # confermati corretti (lib_path standard "/library/", catalog_code
+    # "sondrio" da un link reale osservato in rete: "opac/detail/view/
+    # sondrio:catalog:252215"), ma il server blocca con HTTP 403 le richieste
+    # di curl_get() (stesso sintomo di Varese: risposta breve/anomala,
+    # tipicamente un WAF/reverse proxy che riconosce e rifiuta richieste
+    # non-browser). Va riattivata solo dopo aver risolto il blocco lato
+    # richiesta (header/cookie diversi o altro punto d'ingresso).
+    # "sondrio": {
+    #    "label": "Rete Bibliotecaria della Provincia di Sondrio",
+    #    "short": "Sondrio",
+    #    "base_url": "https://biblioteche.provinciasondrio.it",
+    #    "lib_path": "/library/",
+    #    "catalog_code": "sondrio",
+    # },
     # Varese: DISATTIVATA. Come Mantovana, l'elenco biblioteche non vive su
     # "/library/" ma su un percorso personalizzato del sito
     # ("/le-biblioteche-della-rete-provinciale-di-varese/", verificato dal
