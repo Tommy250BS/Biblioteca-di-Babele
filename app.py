@@ -63,18 +63,6 @@ RETI = {
         "lib_path": "/la-rete-delle-biblioteche/",
         "catalog_code": "mn",
     },
-    # Sondrio: percorso standard "/library/" (verificato dal vivo: la pagina
-    # elenco biblioteche esiste sia sotto il dominio pubblico
-    # biblioteche.provinciasondrio.it sia sotto sondrio.comperio.it, stessa
-    # istanza DiscoveryNG). catalog_code confermato dal vivo da un link reale
-    # osservato in rete: "opac/detail/view/sondrio:catalog:252215".
-  # "sondrio": {
-  #     "label": "Rete Bibliotecaria della Provincia di Sondrio",
-  #     "short": "Sondrio",
-  #     "base_url": "https://biblioteche.provinciasondrio.it",
-  #     "lib_path": "/library/",
-  #     "catalog_code": "sondrio",
-  # },
     # Lecco: DISATTIVATA. Path standard "/library/" confermato raggiungibile
     # in fase di ricerca esterna, ma in produzione il server risponde con
     # HTTP 403 a curl_get() (stesso sintomo di Varese e Sondrio: WAF/reverse
