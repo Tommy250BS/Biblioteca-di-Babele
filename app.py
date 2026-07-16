@@ -63,24 +63,38 @@ RETI = {
         "lib_path": "/la-rete-delle-biblioteche/",
         "catalog_code": "mn",
     },
-    # Varese: come Mantovana, l'elenco biblioteche NON vive su "/library/" ma
-    # su un percorso personalizzato del sito (verificato dal vivo: i link
-    # "libpage/id/N" con le singole biblioteche stanno sotto
-    # "/le-biblioteche-della-rete-provinciale-di-varese/", non sotto
-    # "/library/" — quest'ultima esiste ma non è il percorso con l'elenco
-    # completo). catalog_code NON ancora verificato dal vivo (nessun risultato
-    # di ricerca/pagina di dettaglio ispezionato finora): lasciato "test" come
-    # placeholder, sullo stesso modello già usato per Bergamasca. Se le
-    # ricerche su questa rete restituiscono 0 risultati pur con risposta HTML
-    # valida, controllare i log di cerca_titolo (rete_debug="varese") per il
-    # codename reale usato nei link "opac/detail/view/<codename>:catalog:...".
-    "varese": {
-        "label": "Rete Bibliotecaria della Provincia di Varese",
-        "short": "Varese",
-        "base_url": "https://retebibliotecaria.provincia.va.it",
-        "lib_path": "/le-biblioteche-della-rete-provinciale-di-varese/",
-        "catalog_code": "test",  # placeholder, da verificare (vedi nota sopra)
+    # Sondrio: percorso standard "/library/" (verificato dal vivo: la pagina
+    # elenco biblioteche esiste sia sotto il dominio pubblico
+    # biblioteche.provinciasondrio.it sia sotto sondrio.comperio.it, stessa
+    # istanza DiscoveryNG). catalog_code confermato dal vivo da un link reale
+    # osservato in rete: "opac/detail/view/sondrio:catalog:252215".
+    "sondrio": {
+        "label": "Rete Bibliotecaria della Provincia di Sondrio",
+        "short": "Sondrio",
+        "base_url": "https://biblioteche.provinciasondrio.it",
+        "lib_path": "/library/",
+        "catalog_code": "sondrio",
     },
+    # Varese: DISATTIVATA. Come Mantovana, l'elenco biblioteche non vive su
+    # "/library/" ma su un percorso personalizzato del sito
+    # ("/le-biblioteche-della-rete-provinciale-di-varese/", verificato dal
+    # vivo tramite più fonti esterne). Il path però non è il problema: il
+    # server risponde con HTTP 403 a QUALSIASI richiesta di curl_get() verso
+    # quel path (confermato via /api/debug/rete-check: http_code=403,
+    # redirect_count=0, nessun errore curl — cioè la connessione arriva a
+    # destinazione ma viene rifiutata esplicitamente, tipicamente un
+    # WAF/reverse proxy che riconosce e blocca richieste non-browser). Non è
+    # quindi un problema di regex o di lib_path: va risolto lato richiesta
+    # (header/cookie diversi, o un altro punto d'ingresso) prima di poter
+    # riattivare la rete. catalog_code non ancora verificabile per lo stesso
+    # motivo (non si riesce a scaricare nemmeno una pagina di ricerca).
+    # "varese": {
+    #    "label": "Rete Bibliotecaria della Provincia di Varese",
+    #    "short": "Varese",
+    #    "base_url": "https://retebibliotecaria.provincia.va.it",
+    #    "lib_path": "/le-biblioteche-della-rete-provinciale-di-varese/",
+    #    "catalog_code": "test",  # non verificato, vedi nota sopra
+    # },
     # Lodi: percorso standard "/library/" (verificato dal vivo: l'elenco
     # biblioteche con i link "libpage/id/N" è effettivamente lì, stesso schema
     # di RBBC/Comasca). catalog_code confermato dal vivo dai log di produzione
