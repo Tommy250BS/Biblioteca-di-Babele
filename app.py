@@ -83,14 +83,14 @@ RETI = {
     },
     # Lodi: percorso standard "/library/" (verificato dal vivo: l'elenco
     # biblioteche con i link "libpage/id/N" è effettivamente lì, stesso schema
-    # di RBBC/Comasca). catalog_code NON ancora verificato dal vivo, stessa
-    # situazione di Varese sopra: "test" è un placeholder da confermare.
+    # di RBBC/Comasca). catalog_code confermato dal vivo dai log di produzione
+    # (link reali osservati: "opac/detail/view/lo:catalog:121727").
     "lodi": {
         "label": "Sistema Bibliotecario Lodigiano",
         "short": "Lodi",
         "base_url": "https://webopac.bibliotechelodi.it",
         "lib_path": "/library/",
-        "catalog_code": "test",  # placeholder, da verificare (vedi nota sopra)
+        "catalog_code": "lo",
     },
    # "bergamasca": {
    #    "label": "Rete Bibliotecaria Bergamasca",
