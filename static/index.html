@@ -97,6 +97,7 @@ body.dark .leg-desc,body.dark .leg-arm-tema{color:var(--ink3)}
 body.dark .bric{border-color:var(--av3)}
 body.dark .bric:hover{border-color:var(--bosco-2);color:var(--oro-2)}
 body.dark .sh3{color:var(--oro-2);border-bottom-color:var(--av3)}
+body.dark .shtit{color:var(--oro-2)}
 /* Separatori */
 body.dark .wi,
 body.dark .opi,body.dark .copr,body.dark .imr{border-color:var(--av3)}
@@ -1408,13 +1409,19 @@ body.dark .arm-row-count{color:var(--oro-2)}
 /* SWIPE TRA TAB */
 (function(){
   const TAB_ORDER=['shome','salex','satlante','spant','slap','sprof'];
-  let tx=0,ty=0,swiping=false;
+  let tx=0,ty=0,swiping=false,swipeBlocked=false;
   document.addEventListener('touchstart',e=>{
     const t=e.touches[0];
     tx=t.clientX;ty=t.clientY;swiping=true;
+    // Se il tocco parte dentro una mappa/galassia con pan e zoom proprio
+    // (Atlante o Lapides Miliarii, inline o a schermo intero), lo swipe di
+    // cambio-scheda va disattivato: altrimenti trascinare per esplorare la
+    // mappa veniva letto anche come uno swipe e cambiava scheda a sorpresa.
+    swipeBlocked=!!e.target.closest('.cost-wrap,#mapFsSvgWrap,.mapwrap');
   },{passive:true});
   document.addEventListener('touchend',e=>{
     if(!swiping)return;swiping=false;
+    if(swipeBlocked)return;
     // Ignora se sheet aperto
     if(document.querySelector('.shovr.on'))return;
     // Ignora se fullscreen mappa aperta
@@ -3107,11 +3114,23 @@ function galZoomReset(ctx,svgSel){
   _galZoomState[ctx]={scale:1,tx:0,ty:0};
   _applyGalZoom(ctx,svgSel);
 }
+/* Distanza tra due tocchi, usata dal pinch-to-zoom */
+function _touchDist(touches){
+  const dx=touches[0].clientX-touches[1].clientX;
+  const dy=touches[0].clientY-touches[1].clientY;
+  return Math.hypot(dx,dy);
+}
 function _setupGalPan(ctx,wrapSel,svgSel){
   const wrap=document.querySelector(wrapSel);
   if(!wrap)return;
   let dragging=false,sx=0,sy=0,ox=0,oy=0;
+  // I bottoni di zoom/schermo intero stanno dentro lo stesso elemento usato
+  // per il pan: senza questo controllo, ogni tap su +/−/⟳/⤢ faceva partire
+  // anche un drag (con pointer capture sul wrapper), rendendo i bottoni
+  // poco affidabili una volta zoomata la galassia.
+  const isCtrl=e=>e.target.closest('.cost-zbtn,.map-expand,.map-fs-close');
   wrap.onpointerdown=e=>{
+    if(isCtrl(e))return;
     if(_galZoomState[ctx].scale<=1)return;
     dragging=true;sx=e.clientX;sy=e.clientY;ox=_galZoomState[ctx].tx;oy=_galZoomState[ctx].ty;
     wrap.setPointerCapture(e.pointerId);
@@ -3123,6 +3142,31 @@ function _setupGalPan(ctx,wrapSel,svgSel){
   };
   wrap.onpointerup=()=>{dragging=false;};
   wrap.onpointercancel=()=>{dragging=false;};
+
+  // Pinch-to-zoom a due dita (touch). Assegnato come proprietà (non
+  // addEventListener) così da non accumulare listener duplicati ogni volta
+  // che questa funzione viene richiamata (es. riapertura schermo intero).
+  let pinchDist=null,pinchStartScale=1;
+  wrap.ontouchstart=e=>{
+    if(e.touches.length===2&&!isCtrl(e)){
+      pinchDist=_touchDist(e.touches);
+      pinchStartScale=_galZoomState[ctx].scale;
+    }
+  };
+  wrap.ontouchmove=e=>{
+    if(e.touches.length===2&&pinchDist){
+      e.preventDefault();
+      const d=_touchDist(e.touches);
+      let ns=Math.max(1,Math.min(2.6,pinchStartScale*(d/pinchDist)));
+      ns=+ns.toFixed(2);
+      _galZoomState[ctx].scale=ns;
+      if(ns===1){_galZoomState[ctx].tx=0;_galZoomState[ctx].ty=0;}
+      _applyGalZoom(ctx,svgSel);
+    }
+  };
+  wrap.ontouchend=e=>{
+    if(e.touches.length<2)pinchDist=null;
+  };
 }
 
 function renderCostellazioni(){
@@ -3402,6 +3446,7 @@ function apriGalassiaFS(){
       <button class="cost-zbtn" onclick="galZoom('fs','#svg-galassia-fs',-1)" title="Zoom indietro">−</button>
     </div>
     <svg viewBox="0 0 900 900" xmlns="http://www.w3.org/2000/svg" id="svg-galassia-fs" style="background:#05070d;border-radius:8px"></svg>`;
+  wrap.style.background='#05070d';
   info.innerHTML='<p class="map-fs-hint">Tocca una stella per scoprire l\'opera e segnarla come letta.</p>';
   disegnaGalassiaIn('svg-galassia-fs','mapFsInfo');
   applyFocusBraccio();
@@ -4232,7 +4277,9 @@ function apriMappaFS(tipo){
 }
 function chiudiMappaFS(){
   document.getElementById('mapFsOvr').classList.remove('on');
-  document.getElementById('mapFsSvgWrap').innerHTML='';
+  const w=document.getElementById('mapFsSvgWrap');
+  w.innerHTML='';
+  w.style.background='';
   _fsType=null;
   _galZoomState.fs={scale:1,tx:0,ty:0};
 }
