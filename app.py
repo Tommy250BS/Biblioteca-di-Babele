@@ -68,28 +68,26 @@ RETI = {
     # biblioteche.provinciasondrio.it sia sotto sondrio.comperio.it, stessa
     # istanza DiscoveryNG). catalog_code confermato dal vivo da un link reale
     # osservato in rete: "opac/detail/view/sondrio:catalog:252215".
-    "sondrio": {
-        "label": "Rete Bibliotecaria della Provincia di Sondrio",
-        "short": "Sondrio",
-        "base_url": "https://biblioteche.provinciasondrio.it",
-        "lib_path": "/library/",
-        "catalog_code": "sondrio",
-    },
-    # Lecco: percorso standard "/library/" (verificato dal vivo: pagine
-    # biblioteca come "/library/Sirtori/", "/library/Galbiate/" esistono e
-    # rispondono). Stessa famiglia DiscoveryNG di Comperio delle altre reti
-    # attive. catalog_code NON ancora verificato dal vivo (nessun link
-    # "opac/detail/view/<codice>:catalog:N" trovato nei risultati
-    # disponibili): lasciato "test" come placeholder, stesso trattamento già
-    # dato a Varese e Lodi prima della verifica. Controllare i log di
-    # cerca_titolo (rete_debug="lecco") per il codename reale.
-    "lecco": {
-        "label": "Sistema Bibliotecario del Territorio Lecchese",
-        "short": "Lecco",
-        "base_url": "https://lecco.biblioteche.it",
-        "lib_path": "/library/",
-        "catalog_code": "test",  # placeholder, da verificare (vedi nota sopra)
-    },
+  # "sondrio": {
+  #     "label": "Rete Bibliotecaria della Provincia di Sondrio",
+  #     "short": "Sondrio",
+  #     "base_url": "https://biblioteche.provinciasondrio.it",
+  #     "lib_path": "/library/",
+  #     "catalog_code": "sondrio",
+  # },
+    # Lecco: DISATTIVATA. Path standard "/library/" confermato raggiungibile
+    # in fase di ricerca esterna, ma in produzione il server risponde con
+    # HTTP 403 a curl_get() (stesso sintomo di Varese e Sondrio: WAF/reverse
+    # proxy che blocca richieste non-browser). catalog_code non era comunque
+    # ancora stato verificato (vedi nota storica sotto). Va riattivata solo
+    # dopo aver risolto il blocco lato richiesta.
+    # "lecco": {
+    #    "label": "Sistema Bibliotecario del Territorio Lecchese",
+    #    "short": "Lecco",
+    #    "base_url": "https://lecco.biblioteche.it",
+    #    "lib_path": "/library/",
+    #    "catalog_code": "test",  # non verificato
+    # },
     # Sondrio: DISATTIVATA. Come Varese, il path e il catalog_code sono
     # confermati corretti (lib_path standard "/library/", catalog_code
     # "sondrio" da un link reale osservato in rete: "opac/detail/view/
