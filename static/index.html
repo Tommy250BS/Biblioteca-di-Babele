@@ -569,6 +569,21 @@ body.dark .onb-tip-btn:hover{border-color:var(--oro);background:rgba(200,164,74,
 .wnota{font-size:.76rem;color:var(--ink2);font-style:italic;line-height:1.5;margin-top:6px;padding:8px 10px;background:var(--av2);border-left:2px solid var(--oro);border-radius:0 6px 6px 0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
 .wnota-btn{background:none;border:none;color:var(--bosco-2);font-size:.68rem;font-weight:700;letter-spacing:.02em;cursor:pointer;padding:0;margin-top:6px;font-family:'Inter',sans-serif;display:inline-block}
 .wnota-btn:hover{text-decoration:underline}
+/* Diario: valutazione a stelline e preferito */
+.wmeta-diario{display:flex;align-items:center;gap:10px;margin-top:4px;flex-wrap:wrap}
+.wstelle{display:flex;gap:1px}
+.wstelle span{font-size:.74rem;color:var(--av3);line-height:1}
+.wstelle span.on{color:var(--oro)}
+.wcuore-badge{font-size:.67rem;color:var(--rosso);font-weight:600;letter-spacing:.02em;display:inline-flex;align-items:center;gap:3px}
+.diario-stelle{display:flex;gap:7px;margin:2px 0 2px}
+.diario-stella{font-size:1.7rem;line-height:1;cursor:pointer;color:var(--av3);transition:color .15s,transform .12s var(--ease-spring);user-select:none;-webkit-tap-highlight-color:transparent}
+.diario-stella.on{color:var(--oro)}
+.diario-stella:active{transform:scale(.8)}
+.diario-stelle-reset{background:none;border:none;color:var(--ink3);font-size:.68rem;text-decoration:underline;text-underline-offset:2px;cursor:pointer;padding:0;margin:2px 0 4px;font-family:'Inter',sans-serif;display:none}
+.diario-preferito{display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:.8rem;color:var(--ink3);-webkit-tap-highlight-color:transparent;font-weight:500}
+.diario-preferito .cuore{font-size:1.1rem;line-height:1;transition:transform .18s var(--ease-spring),color .18s}
+.diario-preferito.on{color:var(--rosso)}
+.diario-preferito.on .cuore{transform:scale(1.2)}
 .bdel{background:none;border:none;color:#ddd;cursor:pointer;font-size:.78rem;padding:3px 5px;transition:color .15s;flex-shrink:0}
 .bdel:hover{color:var(--rosso)}
 
@@ -1322,6 +1337,16 @@ body.dark .cost-info-close:hover{background:#243426;color:var(--ink)}
   <div class="sh"><div class="shhnd"></div>
     <div class="shtit" style="margin-bottom:4px">📝 Diario di lettura</div>
     <p id="notaTitoloLibro" style="font-size:.8rem;color:var(--ink3);font-style:italic;margin-bottom:14px"></p>
+    <div class="fi">
+      <label>La tua valutazione</label>
+      <div class="diario-stelle" id="notaStelle"></div>
+      <button type="button" class="diario-stelle-reset" id="notaStelleReset" onclick="impostaStellaDiario(0)">Rimuovi valutazione</button>
+    </div>
+    <div class="fi">
+      <label class="diario-preferito" id="notaPreferito" onclick="togglePreferitoDiario()">
+        <span class="cuore">♡</span><span id="notaPreferitoTxt">Aggiungi ai preferiti</span>
+      </label>
+    </div>
     <div class="fi"><label>La tua nota</label><textarea id="notaTesto" placeholder="Cosa ti ha lasciato questo libro? Una frase, un ricordo, un giudizio…"></textarea></div>
     <div style="display:flex;gap:10px">
       <button class="bsm bsmp" onclick="salvaNotaLibro()">Salva</button>
@@ -4469,12 +4494,57 @@ function renderLibriProf(lista,tutti){
   const mostra=tutti?lista:lista.slice(0,LIBRI_PREVIEW);
   const righe=mostra.map(s=>{
     const encUrl=encodeURIComponent(s.url_opac);
+    const val=s.valutazione||0;
+    const stelleHtml=val>0?`<div class="wstelle">${[1,2,3,4,5].map(i=>`<span class="${i<=val?'on':''}">★</span>`).join('')}</div>`:'';
+    const cuoreHtml=s.preferito?`<span class="wcuore-badge">♥ Preferito</span>`:'';
+    const metaHtml=(stelleHtml||cuoreHtml)?`<div class="wmeta-diario">${stelleHtml}${cuoreHtml}</div>`:'';
     const notaHtml=s.nota?`<div class="wnota">${escHtml(s.nota)}</div>`:'';
-    const notaBtn=`<button class="wnota-btn" onclick="apriNotaLibro('${encUrl}')">${s.nota?'✏️ Modifica nota':'📝 Aggiungi nota'}</button>`;
-    return `<div class="wi"><div class="wdot dv"></div><div class="wbod"><div class="wtt">${s.titolo}</div>${s.autore?`<div class="wat">${s.autore}</div>`:''}<div class="wmt">${s.biblioteca}</div>${notaHtml}${notaBtn}</div><button class="bdel" title="Rimuovi dai letti" onclick="toglLettoProf('${encUrl}',this)">↺</button></div>`;
+    const notaBtn=`<button class="wnota-btn" onclick="apriNotaLibro('${encUrl}')">${(s.nota||val>0||s.preferito)?'✏️ Modifica diario':'📝 Aggiungi al diario'}</button>`;
+    return `<div class="wi"><div class="wdot dv"></div><div class="wbod"><div class="wtt">${s.titolo}</div>${s.autore?`<div class="wat">${s.autore}</div>`:''}<div class="wmt">${s.biblioteca}</div>${metaHtml}${notaHtml}${notaBtn}</div><button class="bdel" title="Rimuovi dai letti" onclick="toglLettoProf('${encUrl}',this)">↺</button></div>`;
   }).join('');
   const bottone=(!tutti&&lista.length>LIBRI_PREVIEW)?`<button class="bg" style="display:block;width:100%;text-align:center;margin-top:6px" onclick="window._mlTutti=true;renderLibriProf(window._mlLett,true)">Vedi tutti (${lista.length}) ↓</button>`:'';
   ml.innerHTML=righe+bottone;
+}
+
+/* Stato temporaneo di valutazione/preferito mentre la sheet del diario è
+   aperta: vengono letti da salvaNotaLibro() e azzerati solo alla riapertura,
+   così eventuali click sulle stelle non toccano subito il server (si invia
+   tutto insieme al "Salva", come per la nota). */
+let _notaValutazioneCorrente=0,_notaPreferitoCorrente=false;
+
+/* Disegna le 5 stelle cliccabili della sheet diario, evidenziando quelle
+   fino al valore corrente. Richiamata sia all'apertura sia ad ogni click. */
+function renderStelleDiario(val){
+  const cont=document.getElementById('notaStelle');
+  const resetBtn=document.getElementById('notaStelleReset');
+  if(!cont)return;
+  cont.innerHTML='';
+  for(let i=1;i<=5;i++){
+    const s=document.createElement('span');
+    s.className=`diario-stella${i<=val?' on':''}`;
+    s.textContent='★';
+    s.addEventListener('click',()=>impostaStellaDiario(i));
+    cont.appendChild(s);
+  }
+  if(resetBtn)resetBtn.style.display=val>0?'inline-block':'none';
+}
+function impostaStellaDiario(v){
+  tap('light');
+  _notaValutazioneCorrente=v;
+  renderStelleDiario(v);
+}
+function togglePreferitoDiario(){
+  tap('light');
+  _notaPreferitoCorrente=!_notaPreferitoCorrente;
+  aggiornaUIPreferitoDiario();
+}
+function aggiornaUIPreferitoDiario(){
+  const el=document.getElementById('notaPreferito');
+  if(!el)return;
+  const cuore=el.querySelector('.cuore'),txt=document.getElementById('notaPreferitoTxt');
+  el.classList.toggle('on',_notaPreferitoCorrente);
+  if(cuore)cuore.textContent=_notaPreferitoCorrente?'♥':'♡';
+  if(txt)txt.textContent=_notaPreferitoCorrente?'Nei tuoi preferiti':'Aggiungi ai preferiti';
 }
 
 /* Diario personale: apre la sheet di nota per il libro identificato da url
@@ -4489,6 +4559,10 @@ function apriNotaLibro(urlEnc){
   const ta=document.getElementById('notaTesto');
   ta.value=libro.nota||'';
   ta.dataset.url=url;
+  _notaValutazioneCorrente=libro.valutazione||0;
+  _notaPreferitoCorrente=!!libro.preferito;
+  renderStelleDiario(_notaValutazioneCorrente);
+  aggiornaUIPreferitoDiario();
   apriSh('shnota');
   setTimeout(()=>ta.focus(),300);
 }
@@ -4496,11 +4570,13 @@ async function salvaNotaLibro(){
   const ta=document.getElementById('notaTesto');
   const url=ta.dataset.url;if(!url)return;
   const nota=ta.value.trim();
+  const valutazione=_notaValutazioneCorrente||0;
+  const preferito=!!_notaPreferitoCorrente;
   tap('medium');
   try{
-    const r=await fetch(`/api/letti/${encodeURIComponent(url)}/nota`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nota})});
+    const r=await fetch(`/api/letti/${encodeURIComponent(url)}/nota`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nota,valutazione,preferito})});
     if(!r.ok){const e=await r.json();throw new Error(e.error||'Errore');}
-    const aggiorna=arr=>{const l=arr?.find(x=>x.url_opac===url);if(l)l.nota=nota;};
+    const aggiorna=arr=>{const l=arr?.find(x=>x.url_opac===url);if(l){l.nota=nota;l.valutazione=valutazione;l.preferito=preferito;}};
     aggiorna(G.lettiData);aggiorna(window._mlLett);
     chiudiSh('shnota');
     renderLibriProf(window._mlLett,window._mlTutti||false);
