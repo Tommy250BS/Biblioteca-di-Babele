@@ -3461,9 +3461,10 @@ function mostraInfoStella(braccio,star,isAuto,infoBoxId='ci-galassia'){
   const btnHtml=G.u
     ?`<button class="bsalv bletto${isAuto?' on':''}" style="margin-top:10px" onclick="segnaLettoStellaInfo()">${isAuto?'✓ Letto':'○ Segna come letto'}</button>`
     :`<div style="font-size:.68rem;color:#bbb;margin-top:10px;font-style:italic">Accedi per segnare le tue letture.</div>`;
+  const braccioCol=BRACCIO_COLORI[braccio.id]||BRACCIO_COLORI.ursa_maior;
   infoBox.innerHTML=`
     <button class="cost-info-close" onclick="chiudiInfoGalassia('${infoBoxId}')" title="Chiudi">✕</button>
-    <div style="font-size:.62rem;color:var(--oro);letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-bottom:6px">${braccio.label} · ${braccio.nome}</div>
+    <div style="font-size:.62rem;color:${braccioCol.c};letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-bottom:6px">${braccio.label} · ${braccio.nome}</div>
     ${tipoLabel}
     <div class="cost-info-t">${star.t}</div>
     <div class="cost-info-a">${star.a}</div>
