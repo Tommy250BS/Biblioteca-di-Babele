@@ -2886,10 +2886,14 @@ const BRACCIO_COLORI={
    tra loro. Disegnate come collegamento dorato extra sulla mappa. Per
    aggiungerne una basta una riga qui: [id1, id2]. */
 const DOPPIE_STELLARI=[
-  ['amleto','don_chisciotte'],
-  ['orlando_furioso','don_chisciotte'],
-  ['vita_nova','ossi_seppia'],
-  ['coscienza_zeno','mattia_pascal'],
+  {coppia:['amleto','don_chisciotte'],
+   testo:"Pubblicati a pochi anni di distanza, Amleto e Don Chisciotte sono le due grandi icone dell'individuo moderno: uno paralizzato dal dubbio e dalla riflessione, l'altro trascinato dall'illusione e dall'azione. Insieme segnano la nascita dell'eroe interiore."},
+  {coppia:['orlando_furioso','don_chisciotte'],
+   testo:"Il Don Chisciotte nasce come parodia dei romanzi cavallereschi di cui l'Orlando Furioso è il capolavoro: Cervantes prende l'ideale epico e visionario di Ariosto e lo fa scontrare con la realtà, inventando di fatto il romanzo moderno."},
+  {coppia:['vita_nova','ossi_seppia'],
+   testo:"Sette secoli separano la Vita nova di Dante da Ossi di seppia di Montale, ma entrambe le opere nascono da una crisi personale attraversata e superata attraverso la parola poetica: l'amore per Dante, il senso stesso dell'esistenza per Montale."},
+  {coppia:['coscienza_zeno','mattia_pascal'],
+   testo:"Zeno Cosini e Mattia Pascal sono i due grandi antieroi della letteratura italiana del primo Novecento: entrambi cercano di sfuggire alla propria identità, l'uno rifugiandosi nell'autoanalisi psicoanalitica, l'altro inscenando la propria morte."},
 ];
 
 /* Stato letti costellazioni: ora solo automatico, basato su G.lettiData */
@@ -3283,7 +3287,8 @@ function disegnaGalassiaIn(svgId,infoBoxId){
   });
 
   // Collegamenti "stelle doppie" (anche tra bracci diversi) — disegnati dopo le spine dorsali
-  DOPPIE_STELLARI.forEach(([id1,id2])=>{
+  DOPPIE_STELLARI.forEach(pair=>{
+    const[id1,id2]=pair.coppia;
     const p1=pos[id1],p2=pos[id2];
     if(!p1||!p2)return;
     const bothLit=lit.has(id1)&&lit.has(id2);
@@ -3292,6 +3297,17 @@ function disegnaGalassiaIn(svgId,infoBoxId){
     line.setAttribute('x2',p2.x);line.setAttribute('y2',p2.y);
     line.setAttribute('class',`cost-link-doppia${bothLit?' lit':''}`);
     svg.appendChild(line);
+    // Area di click invisibile e più larga della linea visibile: la linea
+    // sottile resta bella da vedere ma sarebbe troppo difficile da centrare
+    // col dito, quindi il tap viene intercettato da questa fascia trasparente.
+    const hit=document.createElementNS('http://www.w3.org/2000/svg','line');
+    hit.setAttribute('x1',p1.x);hit.setAttribute('y1',p1.y);
+    hit.setAttribute('x2',p2.x);hit.setAttribute('y2',p2.y);
+    hit.setAttribute('stroke','transparent');
+    hit.setAttribute('stroke-width','14');
+    hit.style.cursor='pointer';
+    hit.addEventListener('click',()=>mostraInfoDoppia(pair,infoBoxId));
+    svg.appendChild(hit);
   });
 
   // Stelle di ogni braccio (disegnate per ultime, così restano sopra i collegamenti)
@@ -3415,6 +3431,37 @@ function mostraInfoStella(braccio,star,isAuto,infoBoxId='ci-galassia'){
     <a class="cost-info-url" href="${star.url}" target="_blank" rel="noopener">🔍 Cerca nel catalogo RBBC →</a>
     ${statoMsg}
     ${btnHtml}
+  `;
+}
+
+/* Trova una stella per id in tutte le costellazioni, restituendo anche il
+   braccio a cui appartiene. Usata dal popup delle "stelle doppie" per
+   recuperare titolo/autore di entrambe le opere collegate. */
+function findStar(id){
+  for(const braccio of COSTELLAZIONI){
+    const star=braccio.stars.find(s=>s.id===id);
+    if(star)return{star,braccio};
+  }
+  return null;
+}
+
+/* Popup di una "stella doppia": mostra le due opere collegate e il testo
+   che ne spiega la relazione. Non offre il pulsante "segna come letto"
+   perché riguarda un collegamento, non una singola opera. */
+function mostraInfoDoppia(pair,infoBoxId='ci-galassia'){
+  tap('light');
+  _infoStar=null;_infoBraccio=null;_infoBoxId=infoBoxId;
+  const infoBox=document.getElementById(infoBoxId);
+  if(!infoBox)return;
+  const[id1,id2]=pair.coppia;
+  const r1=findStar(id1),r2=findStar(id2);
+  if(!r1||!r2)return;
+  infoBox.className='cost-info on';
+  infoBox.innerHTML=`
+    <div style="font-size:.62rem;color:var(--oro);letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-bottom:6px">╌ Stella doppia</div>
+    <div class="cost-info-t">${r1.star.t} <span style="color:#bbb;font-weight:400">&nbsp;×&nbsp;</span> ${r2.star.t}</div>
+    <div class="cost-info-a">${r1.star.a} — ${r2.star.a}</div>
+    <p style="font-size:.8rem;color:var(--ink2);line-height:1.65;margin-top:10px">${pair.testo}</p>
   `;
 }
 
