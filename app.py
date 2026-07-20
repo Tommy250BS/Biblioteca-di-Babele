@@ -328,6 +328,16 @@ def init_db():
                 ALTER TABLE letti ADD COLUMN IF NOT EXISTS nota TEXT NOT NULL DEFAULT '';
             """)
 
+            # Diario personale (v1.1.0): valutazione a stelline (0 = non
+            # valutato, 1-5 stelle) e segnalibro "preferito" per ogni libro
+            # letto, oltre alla nota testuale già presente.
+            cur.execute("""
+                ALTER TABLE letti ADD COLUMN IF NOT EXISTS valutazione INTEGER NOT NULL DEFAULT 0;
+            """)
+            cur.execute("""
+                ALTER TABLE letti ADD COLUMN IF NOT EXISTS preferito BOOLEAN NOT NULL DEFAULT FALSE;
+            """)
+
             # Migrazione: aggiunge la colonna 'letto' se il DB esisteva già
             cur.execute("""
                 ALTER TABLE salvati ADD COLUMN IF NOT EXISTS letto BOOLEAN NOT NULL DEFAULT FALSE;
@@ -868,22 +878,30 @@ def rimuovi_letto(url_opac):
 @app.route("/api/letti/<path:url_opac>/nota", methods=["POST"])
 @login_richiesto
 def aggiorna_nota_letto(url_opac):
-    """Diario personale: salva/aggiorna la nota libera legata a un libro letto.
+    """Diario personale: salva/aggiorna nota, valutazione a stelline (0-5,
+    dove 0 = non valutato) e preferito per un libro letto.
     Nota vuota = cancella la nota (non elimina il libro dai letti)."""
     u = utente_corrente()
     d = request.get_json() or {}
     nota = (d.get("nota") or "").strip()
     if len(nota) > 5000:
         return jsonify({"error": "Nota troppo lunga (massimo 5000 caratteri)"}), 400
+    try:
+        valutazione = int(d.get("valutazione", 0))
+    except (TypeError, ValueError):
+        return jsonify({"error": "Valutazione non valida"}), 400
+    if valutazione < 0 or valutazione > 5:
+        return jsonify({"error": "Valutazione non valida (0-5 stelle)"}), 400
+    preferito = bool(d.get("preferito", False))
     db = get_db()
     cur = db.execute(
-        "UPDATE letti SET nota=%s WHERE utente_id=%s AND url_opac=%s",
-        (nota, u["id"], url_opac)
+        "UPDATE letti SET nota=%s, valutazione=%s, preferito=%s WHERE utente_id=%s AND url_opac=%s",
+        (nota, valutazione, preferito, u["id"], url_opac)
     )
     db.commit()
     if cur.rowcount == 0:
         return jsonify({"error": "Libro non trovato tra i letti"}), 404
-    return jsonify({"ok": True, "nota": nota})
+    return jsonify({"ok": True, "nota": nota, "valutazione": valutazione, "preferito": preferito})
 
 #  API Storico e statistiche personali 
 
