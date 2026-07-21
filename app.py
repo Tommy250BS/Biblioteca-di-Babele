@@ -926,6 +926,53 @@ def aggiorna_nota_letto(url_opac):
         return jsonify({"error": "Libro non trovato tra i letti"}), 404
     return jsonify({"ok": True, "nota": nota, "valutazione": valutazione, "preferito": preferito})
 
+#  API Wishlist ("Da leggere")
+
+@app.route("/api/salvati", methods=["GET"])
+@login_richiesto
+def get_salvati():
+    u = utente_corrente()
+    db = get_db()
+    rows = db.execute(
+        "SELECT * FROM salvati WHERE utente_id=%s ORDER BY salvato_il DESC",
+        (u["id"],)).fetchall()
+    return jsonify([dict(r) for r in rows])
+
+@app.route("/api/salvati", methods=["POST"])
+@login_richiesto
+def aggiungi_salvato():
+    u = utente_corrente()
+    d = request.get_json() or {}
+    url_opac = (d.get("url_opac") or "").strip()
+    if not url_opac:
+        return jsonify({"error": "url_opac mancante"}), 400
+    rete = rete_valida((d.get("rete") or "").strip())
+    db = get_db()
+    try:
+        db.execute(
+            """
+            INSERT INTO salvati (utente_id, titolo, autore, url_opac, biblioteca, disponibile, rete)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (utente_id, url_opac) DO NOTHING
+            """,
+            (u["id"], d.get("titolo", ""), d.get("autore", ""),
+             url_opac, d.get("biblioteca", ""), bool(d.get("disponibile", False)), rete)
+        )
+        db.commit()
+        return jsonify({"ok": True})
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": str(e)}), 400
+
+@app.route("/api/salvati/<path:url_opac>", methods=["DELETE"])
+@login_richiesto
+def rimuovi_salvato(url_opac):
+    u = utente_corrente()
+    db = get_db()
+    db.execute("DELETE FROM salvati WHERE url_opac=%s AND utente_id=%s", (url_opac, u["id"]))
+    db.commit()
+    return jsonify({"ok": True})
+
 #  API Storico e statistiche personali 
 
 @app.route("/api/storico")
