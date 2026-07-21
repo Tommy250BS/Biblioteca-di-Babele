@@ -853,11 +853,15 @@ body.dark .arm-row-count{color:var(--oro-2)}
 .cost-info-close:hover{background:var(--av3);color:var(--ink)}
 body.dark .cost-info-close{background:#1c2e1e;border-color:var(--av3);color:var(--ink3)}
 body.dark .cost-info-close:hover{background:#243426;color:var(--ink)}
+body.dark .cost-info-url{color:var(--oro-2)}
+body.dark .cost-stato-ok{color:var(--oro-2)}
+body.dark .arm-row-sub{color:var(--ink3)}
 .cost-info.on{display:block;animation:up .2s ease both}
 .cost-info-t{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:600;color:var(--ink);line-height:1.3}
 .cost-info-a{font-size:.78rem;color:#888;font-style:italic;font-family:'Cormorant Garamond',serif}
 .cost-info-url{font-size:.7rem;color:var(--bosco-2);text-decoration:none;letter-spacing:.03em}
 .cost-info-url:hover{text-decoration:underline}
+.cost-stato-ok{color:var(--bosco);font-weight:600}
 /* barra progresso */
 .cost-stato{display:flex;align-items:center;gap:8px;margin-top:9px}
 .cost-prog{flex:1;height:3px;background:rgba(201,168,76,.15);border-radius:2px;overflow:hidden}
@@ -1407,7 +1411,7 @@ body.dark .cost-info-close:hover{background:#243426;color:var(--ink)}
       </div>
       <div class="leg-item" style="border-bottom:none">
         <div class="leg-ico" style="color:#ffb877">╌</div>
-        <div class="leg-txt"><div class="leg-tit">Stella doppia</div><div class="leg-desc">Un collegamento caldo, anche fra bracci diversi: opere che dialogano tra loro. Tocca la connessione per scoprire perché sono legate.</div></div>
+        <div class="leg-txt"><div class="leg-tit">Stelle gemelle</div><div class="leg-desc">Un collegamento caldo, anche fra bracci diversi: opere che dialogano tra loro. Tocca la connessione per scoprire perché sono legate.</div></div>
       </div>
     </div>
 
@@ -1420,6 +1424,10 @@ body.dark .cost-info-close:hover{background:#243426;color:var(--ink)}
       <div class="leg-item">
         <div class="leg-ico">🔍</div>
         <div class="leg-txt"><div class="leg-tit">Zoom e schermo intero</div><div class="leg-desc">Usa + / − / ⟳ per ingrandire e trascinare, oppure ⤢ per aprire la mappa a tutto schermo.</div></div>
+      </div>
+      <div class="leg-item">
+        <div class="leg-ico">🏷️</div>
+        <div class="leg-txt"><div class="leg-tit">Tocca il nome di un braccio</div><div class="leg-desc">Evidenzia quel braccio nella galassia e attenua gli altri, per seguirlo più facilmente. Funziona anche toccando la sua riga nel riepilogo sotto la mappa.</div></div>
       </div>
       <div class="leg-item" style="border-bottom:none">
         <div class="leg-ico">🏅</div>
@@ -3453,7 +3461,7 @@ function mostraInfoStella(braccio,star,isAuto,infoBoxId='ci-galassia'){
   infoBox.className='cost-info on';
   let statoMsg;
   if(isAuto){
-    statoMsg='<div style="font-size:.7rem;color:var(--bosco);margin-top:5px;font-weight:600">✓ Letto (segnato nel tuo profilo)</div>';
+    statoMsg='<div class="cost-stato-ok" style="font-size:.7rem;margin-top:5px">✓ Letto (segnato nel tuo profilo)</div>';
   }else{
     statoMsg='<div style="font-size:.7rem;color:#bbb;margin-top:5px">Non ancora letto</div>';
   }
@@ -3510,7 +3518,7 @@ function mostraInfoDoppia(pair,infoBoxId='ci-galassia'){
   infoBox.className='cost-info on';
   infoBox.innerHTML=`
     <button class="cost-info-close" onclick="chiudiInfoGalassia('${infoBoxId}')" title="Chiudi">✕</button>
-    <div style="font-size:.62rem;color:var(--oro);letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-bottom:6px">╌ Stella doppia</div>
+    <div style="font-size:.62rem;color:var(--oro);letter-spacing:.1em;text-transform:uppercase;font-weight:700;margin-bottom:6px">╌ Stelle gemelle</div>
     <div class="cost-info-t">${r1.star.t} <span style="color:#bbb;font-weight:400">&nbsp;×&nbsp;</span> ${r2.star.t}</div>
     <div class="cost-info-a">${r1.star.a} — ${r2.star.a}</div>
     <p style="font-size:.8rem;color:var(--ink2);line-height:1.65;margin-top:10px">${pair.testo}</p>
