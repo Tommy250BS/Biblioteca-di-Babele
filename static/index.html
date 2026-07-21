@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="it">
 <head>
 <meta charset="UTF-8">
@@ -78,6 +78,7 @@ body.dark .bsalv{color:var(--ink3);border-color:var(--av3)}
 body.dark .bsalv:hover{border-color:var(--oro-2);color:var(--oro-2)}
 body.dark .bsalv.on{background:var(--bosco-2);color:var(--oro-2);border-color:var(--bosco-2)}
 body.dark .bletto.on{background:rgba(200,164,74,.16);color:var(--oro-2);border-color:var(--oro)}
+body.dark .bsalvw.on{background:rgba(111,166,224,.18);color:#8fb4e0;border-color:#5a82b8}
 body.dark .wnota{background:#16281a}
 body.dark .wnota-btn{color:var(--oro-2)}
 /* Testi chiari */
@@ -490,7 +491,11 @@ body.dark .morph-ov{background:#121f13}
 .card{background:#fff;border-radius:0 var(--r) var(--r) 0;margin-bottom:10px;box-shadow:var(--sh-s);overflow:hidden;border-left:3px solid var(--av3);animation:up .28s var(--ease-out-expo) both;transition:box-shadow .25s,transform .2s var(--ease-spring)}
 .card:hover{box-shadow:var(--sh-m);transform:translateX(2px)}
 .card.disp{border-left-color:var(--bosco);border-left-width:3px}.card.prest{border-left-color:var(--oro)}
-.cth{padding:13px 14px 10px}
+.cth{padding:13px 14px 10px;display:flex;gap:12px}
+.card-cov{width:44px;height:62px;border-radius:6px;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,var(--av2),var(--av3));display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(13,31,15,.12)}
+.card-cov img{width:100%;height:100%;object-fit:cover;display:block}
+.card-cov-ph{font-size:1.15rem;opacity:.32}
+.cth-txt{flex:1;min-width:0;padding-top:1px}
 .ctt{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;line-height:1.3;color:var(--ink);margin-bottom:3px}
 .cta{font-family:'Cormorant Garamond',serif;font-size:.88rem;color:#888;font-style:italic}
 .ctact{display:flex;gap:6px;padding:0 14px 10px;flex-wrap:wrap}
@@ -499,6 +504,8 @@ body.dark .morph-ov{background:#121f13}
 .bsalv.on{border-color:var(--bosco);background:var(--bosco);color:var(--oro)}
 .bletto{border-color:var(--av3)}
 .bletto.on{border-color:var(--oro);background:var(--oro-s);color:var(--bosco)}
+.bsalvw{border-color:var(--av3)}
+.bsalvw.on{border-color:#3a5a8a;background:rgba(58,90,138,.1);color:#3a5a8a}
 .ctcop{background:var(--av);border-top:1px solid var(--av2);padding:8px 14px}
 .assl{font-size:.73rem;color:#ccc;font-style:italic}
 .copr{display:flex;align-items:flex-start;gap:9px;padding:5px 0;border-bottom:1px solid var(--av2)}
@@ -562,6 +569,9 @@ body.dark .onb-tip-btn:hover{border-color:var(--oro);background:rgba(200,164,74,
 .wi{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid var(--av2)}
 .wi:last-child{border-bottom:none}
 .wdot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.wi-cov{width:34px;height:48px;border-radius:5px;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,var(--av2),var(--av3));display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(13,31,15,.1)}
+.wi-cov img{width:100%;height:100%;object-fit:cover;display:block}
+.wi-cov .card-cov-ph{font-size:.95rem}
 .wbod{flex:1}
 .wtt{font-family:'Cormorant Garamond',serif;font-size:.98rem;font-weight:600;color:var(--ink);line-height:1.3}
 .wat{font-size:.77rem;color:#888;font-style:italic;font-family:'Cormorant Garamond',serif}
@@ -1273,6 +1283,11 @@ body.dark .arm-row-sub{color:var(--ink3)}
       </div>
     </div>
     <div class="psez">
+      <div class="sh3">📖 Da leggere</div>
+      <p style="font-size:.74rem;color:#aaa;margin-bottom:10px;font-style:italic">I libri che vuoi leggere prossimamente</p>
+      <div id="p-daleggere"><div class="vp">Nessun libro salvato per dopo.</div></div>
+    </div>
+    <div class="psez">
       <div class="sh3">La mia biblioteca</div>
       <p style="font-size:.74rem;color:#aaa;margin-bottom:10px;font-style:italic">I libri che hai letto</p>
       <button class="bsm bsmp" style="width:100%;margin-bottom:14px" onclick="apriLetturaManuale()">+ Aggiungi lettura</button>
@@ -1567,7 +1582,7 @@ function toggleDark(){applyDark(!document.body.classList.contains('dark'));}
 (function(){const s=localStorage.getItem('rbbc_dark');if(s==='1')applyDark(true);})();
 
 
-let G={u:null,bib:'',rete:'rbbc',letti:new Set(),lettiData:[]};
+let G={u:null,bib:'',rete:'rbbc',letti:new Set(),lettiData:[],salvati:new Set(),salvatiData:[]};
 
 /* ── RETI BIBLIOTECARIE ──────────────────────────────────────────────────
    RBBC resta con l'elenco biblioteche statico qui sotto (BIBS): è già
@@ -1803,6 +1818,7 @@ async function avvia(){
       G.u=d;G.bib=d.biblioteca;G.rete=d.rete||'rbbc';
       await caricaBadge();
       await caricaSalv();
+      await caricaSalvatiWishlist();
       document.getElementById('wbtns').style.display='none';
       document.getElementById('wret').style.display='flex';
       document.getElementById('wrett').textContent=`Bentornato, ${d.nome.split(' ')[0]}`;
@@ -2082,7 +2098,7 @@ async function doLogin(){
   if(!email||!pw)return errA('Inserisci email e password.');
   const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pw})});
   const d=await r.json();if(!r.ok)return errA(d.error||'Errore login.');
-  G.u=d;G.bib=d.biblioteca;G.rete=d.rete||'rbbc';await caricaBadge();await caricaSalv();attivaApp(d.biblioteca);
+  G.u=d;G.bib=d.biblioteca;G.rete=d.rete||'rbbc';await caricaBadge();await caricaSalv();await caricaSalvatiWishlist();attivaApp(d.biblioteca);
 }
 async function doReg(){
   tap('medium');
@@ -2094,7 +2110,7 @@ async function doReg(){
   if(!listaReg.some(b=>b.toLowerCase()===bib.toLowerCase()))return errA("Seleziona una biblioteca dall'elenco.");
   const r=await fetch('/api/auth/registra',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome,email,password:pw,biblioteca:bib,rete})});
   const d=await r.json();if(!r.ok)return errA(d.error||'Errore.');
-  G.u=d;G.bib=d.biblioteca;G.rete=d.rete||rete;await caricaBadge();await caricaSalv();attivaApp(d.biblioteca);
+  G.u=d;G.bib=d.biblioteca;G.rete=d.rete||rete;await caricaBadge();await caricaSalv();await caricaSalvatiWishlist();attivaApp(d.biblioteca);
 }
 async function doLogout(){tap('heavy');await fetch('/api/auth/logout',{method:'POST'});G.u=null;G.bib='';_badgeCache=null;vai('sw');}
 function usaSenza(){G.u=null;vai('sbib');}
@@ -2205,6 +2221,96 @@ async function caricaSalv(){
     if(rl.ok){const d=await rl.json();G.letti=new Set(d.map(s=>s.url_opac));G.lettiData=d;}
   }catch(e){console.error('caricaSalv',e);}
 }
+
+/* WISHLIST "Da leggere" — usa la tabella salvati (già esistente lato DB) */
+async function caricaSalvatiWishlist(){
+  if(!G.u)return;
+  try{
+    const r=await fetch('/api/salvati');
+    if(r.ok){const d=await r.json();G.salvati=new Set(d.map(s=>s.url_opac));G.salvatiData=d;}
+  }catch(e){console.error('caricaSalvatiWishlist',e);}
+}
+async function togSalvato(btn,libro){
+  if(!G.u)return;tap('medium');const url=libro.url;
+  const nuovo=!G.salvati.has(url);
+  try{
+    if(nuovo){
+      const r=await fetch('/api/salvati',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({titolo:libro.titolo,autore:libro.autore||'',url_opac:url,biblioteca:G.bib,rete:G.rete||'rbbc',disponibile:!!libro.disponibile})});
+      if(!r.ok){const e=await r.json();throw new Error(e.error);}
+      G.salvati.add(url);G.salvatiData.push({titolo:libro.titolo,autore:libro.autore||'',url_opac:url,biblioteca:G.bib,rete:G.rete||'rbbc'});
+      btn.textContent='★ Salvato';btn.classList.add('on');
+    }else{
+      const r=await fetch(`/api/salvati/${encodeURIComponent(url)}`,{method:'DELETE'});
+      if(!r.ok)throw new Error('delete failed');
+      G.salvati.delete(url);G.salvatiData=G.salvatiData.filter(l=>l.url_opac!==url);
+      btn.textContent='☆ Salva per dopo';btn.classList.remove('on');
+    }
+  }catch(e){console.error('togSalvato',e);}
+}
+
+/* ── COPERTINE LIBRI (Open Library) ──────────────────────────────────────
+   Risolve la copertina di un libro cercando su Open Library per titolo+
+   autore (nessuna dipendenza da ISBN, che non abbiamo dallo scraping OPAC).
+   Cache in localStorage (stesso pattern del resolver nazioni Wikidata) per
+   non rifare la stessa ricerca ad ogni render. ─────────────────────────── */
+let _covCache=null;
+const _covCacheVersion=1;
+function _getCovCache(){
+  if(_covCache)return _covCache;
+  try{
+    const v=parseInt(localStorage.getItem('rbbc_cov_cache_v')||'0');
+    if(v<_covCacheVersion){
+      localStorage.removeItem('rbbc_cov_cache');
+      localStorage.setItem('rbbc_cov_cache_v',String(_covCacheVersion));
+      _covCache={};
+    }else{
+      _covCache=JSON.parse(localStorage.getItem('rbbc_cov_cache')||'{}');
+    }
+  }catch{_covCache={};}
+  return _covCache;
+}
+function _saveCovCache(){
+  try{localStorage.setItem('rbbc_cov_cache',JSON.stringify(_covCache));}catch{}
+}
+function _covKey(titolo,autore){
+  return norm(titolo||'')+'|'+norm((autore||'').replace(/<[^>]*>/g,''));
+}
+async function fetchCopertina(titolo,autore){
+  if(!titolo)return null;
+  const cache=_getCovCache();
+  const key=_covKey(titolo,autore);
+  if(key in cache)return cache[key];
+  try{
+    const autorePulito=(autore||'').replace(/<[^>]*>/g,'').replace(/,.*$/,'').trim();
+    const params=new URLSearchParams({title:titolo,limit:'1',fields:'cover_i'});
+    if(autorePulito)params.set('author',autorePulito);
+    const r=await fetch(`https://openlibrary.org/search.json?${params.toString()}`,{signal:AbortSignal.timeout(6000)});
+    if(!r.ok){cache[key]=null;_saveCovCache();return null;}
+    const d=await r.json();
+    const coverId=d.docs?.[0]?.cover_i;
+    const url=coverId?`https://covers.openlibrary.org/b/id/${coverId}-M.jpg`:null;
+    cache[key]=url;_saveCovCache();
+    return url;
+  }catch{cache[key]=null;_saveCovCache();return null;}
+}
+/* Risolve in background le copertine per un elenco di elementi già
+   renderizzati nel DOM (card di ricerca, righe del diario/wishlist),
+   aggiornando ciascun placeholder quando la copertina viene trovata.
+   `attr` distingue il namespace del data-attribute usato (es. 'cov' per
+   Alexandria, 'covl' per i letti in Profilo, 'covw' per la wishlist), così
+   più elenchi possono risolvere copertine in contemporanea senza scontrarsi. */
+async function risolviCopertine(items,attr){
+  for(let i=0;i<items.length;i+=3){
+    const batch=items.slice(i,i+3);
+    await Promise.all(batch.map(async it=>{
+      const url=await fetchCopertina(it.titolo,it.autore);
+      if(!url)return;
+      const el=document.querySelector(`[data-${attr}="${it.idx}"]`);
+      if(el)el.innerHTML=`<img src="${url}" alt="" loading="lazy">`;
+    }));
+  }
+}
 async function togLetto(btn,libro){
   if(!G.u)return;tap('medium');const url=libro.url;
   const nuovo=!G.letti.has(url);
@@ -2297,15 +2403,18 @@ function renderRis(data){
   risultati.forEach((lib,i)=>{
     const cl=stC(lib.copie_rezzato),au=lib.autore&&lib.autore!=='—'?lib.autore:'';
     const lt=G.u?`<button class="bsalv bletto${G.letti.has(lib.url)?' on':''}" data-i="${i}">${G.letti.has(lib.url)?'✓ Letto':'○ Segna come letto'}</button>`:'';
+    const wl=G.u?`<button class="bsalv bsalvw${G.salvati.has(lib.url)?' on':''}" data-i="${i}">${G.salvati.has(lib.url)?'★ Salvato':'☆ Salva per dopo'}</button>`:'';
     let ch='';
     if(!lib.copie_rezzato?.length)ch=`<div class="ctcop"><span class="assl">Non presente a ${biblioteca}</span></div>`;
     else{const rr=lib.copie_rezzato.map(c=>`<div class="copr"><div class="cdot ${dC(c.stato)}"></div><div class="cb"><div><span class="cc">${c.collocazione}</span><span class="ci">${c.inventario}</span></div><div class="cs">${c.stato}</div>${c.rientra?`<div class="cri">Rientra: ${c.rientra}</div>`:''}</div></div>`).join('');ch=`<div class="ctcop">${rr}</div>`;}
-    h+=`<div class="card ${cl}" style="animation-delay:${i*.04}s" data-i="${i}"><div class="cth"><div class="ctt">${lib.titolo}</div>${au?`<div class="cta">${au}</div>`:''}</div>${G.u?`<div class="ctact">${lt}</div>`:''}${ch}<a class="cln" href="${lib.url}" target="_blank" rel="noopener">Apri nel catalogo →</a></div>`;
+    h+=`<div class="card ${cl}" style="animation-delay:${i*.04}s" data-i="${i}"><div class="cth"><div class="card-cov" data-cov="${i}"><div class="card-cov-ph">📖</div></div><div class="cth-txt"><div class="ctt">${lib.titolo}</div>${au?`<div class="cta">${au}</div>`:''}</div></div>${G.u?`<div class="ctact">${lt}${wl}</div>`:''}${ch}<a class="cln" href="${lib.url}" target="_blank" rel="noopener">Apri nel catalogo →</a></div>`;
   });
   main.innerHTML=h;
   if(G.u){
     main.querySelectorAll('.bletto').forEach(btn=>{const i=parseInt(btn.dataset.i);btn.addEventListener('click',()=>togLetto(btn,risultati[i]));});
+    main.querySelectorAll('.bsalvw').forEach(btn=>{const i=parseInt(btn.dataset.i);btn.addEventListener('click',()=>togSalvato(btn,risultati[i]));});
   }
+  risolviCopertine(risultati.map((lib,i)=>({idx:i,titolo:lib.titolo,autore:lib.autore})),'cov');
 }
 async function cerca(){
   const q=document.getElementById('it').value.trim();if(!q||!G.bib)return;
@@ -2313,7 +2422,7 @@ async function cerca(){
   main.innerHTML=skelCards(5);
   const bc=document.getElementById('bcerca');bc.disabled=true;bc.textContent='…';
   try{
-    if(G.u)await caricaSalv();
+    if(G.u){await caricaSalv();await caricaSalvatiWishlist();}
     const r=await fetch(`/api/search?q=${encodeURIComponent(q)}&biblioteca=${encodeURIComponent(G.bib)}&rete=${encodeURIComponent(G.rete||'rbbc')}`);
     if(!r.ok)throw new Error(`Errore ${r.status}`);
     const data=await r.json();
@@ -2705,6 +2814,7 @@ async function doLogout(){
   tap('heavy');
   await fetch('/api/auth/logout',{method:'POST'});
   G.u=null;G.bib='';_badgeCache=null;
+  G.salvati=new Set();G.salvatiData=[];
   localStorage.removeItem('rbbc_badge_unlocked');
   vai('sw');
 }
@@ -4552,7 +4662,7 @@ function renderLibriProf(lista,tutti){
   const ml=document.getElementById('p-mialib');if(!ml)return;
   window._mlTutti=!!tutti;
   const mostra=tutti?lista:lista.slice(0,LIBRI_PREVIEW);
-  const righe=mostra.map(s=>{
+  const righe=mostra.map((s,idx)=>{
     const encUrl=encodeURIComponent(s.url_opac);
     const val=s.valutazione||0;
     const stelleHtml=val>0?`<div class="wstelle">${[1,2,3,4,5].map(i=>`<span class="${i<=val?'on':''}">★</span>`).join('')}</div>`:'';
@@ -4560,10 +4670,57 @@ function renderLibriProf(lista,tutti){
     const metaHtml=(stelleHtml||cuoreHtml)?`<div class="wmeta-diario">${stelleHtml}${cuoreHtml}</div>`:'';
     const notaHtml=s.nota?`<div class="wnota">${escHtml(s.nota)}</div>`:'';
     const notaBtn=`<button class="wnota-btn" onclick="apriNotaLibro('${encUrl}')">${(s.nota||val>0||s.preferito)?'✏️ Modifica diario':'📝 Aggiungi al diario'}</button>`;
-    return `<div class="wi"><div class="wdot dv"></div><div class="wbod"><div class="wtt">${s.titolo}</div>${s.autore?`<div class="wat">${s.autore}</div>`:''}<div class="wmt">${s.biblioteca}</div>${metaHtml}${notaHtml}${notaBtn}</div><button class="bdel" title="Rimuovi dai letti" onclick="toglLettoProf('${encUrl}',this)">↺</button></div>`;
+    return `<div class="wi"><div class="wi-cov" data-covl="${idx}"><div class="card-cov-ph">📖</div></div><div class="wdot dv"></div><div class="wbod"><div class="wtt">${s.titolo}</div>${s.autore?`<div class="wat">${s.autore}</div>`:''}<div class="wmt">${s.biblioteca}</div>${metaHtml}${notaHtml}${notaBtn}</div><button class="bdel" title="Rimuovi dai letti" onclick="toglLettoProf('${encUrl}',this)">↺</button></div>`;
   }).join('');
   const bottone=(!tutti&&lista.length>LIBRI_PREVIEW)?`<button class="bg" style="display:block;width:100%;text-align:center;margin-top:6px" onclick="window._mlTutti=true;renderLibriProf(window._mlLett,true)">Vedi tutti (${lista.length}) ↓</button>`:'';
   ml.innerHTML=righe+bottone;
+  risolviCopertine(mostra.map((s,idx)=>({idx,titolo:s.titolo,autore:s.autore})),'covl');
+}
+
+/* WISHLIST "Da leggere" — stessa struttura visiva dei letti, ma con azione
+   "segna come letto" (che sposta il libro da salvati a letti) al posto del
+   diario, e un colore blu (bsalvw) per distinguerla dal verde dei letti. */
+const WISH_PREVIEW=5;
+function renderWishlistProf(lista,tutti){
+  const wc=document.getElementById('p-daleggere');if(!wc)return;
+  window._wlTutti=!!tutti;
+  if(!lista.length){wc.innerHTML='<div class="vp">Nessun libro salvato per dopo.</div>';return;}
+  const mostra=tutti?lista:lista.slice(0,WISH_PREVIEW);
+  const righe=mostra.map((s,idx)=>{
+    const encUrl=encodeURIComponent(s.url_opac);
+    return `<div class="wi"><div class="wi-cov" data-covw="${idx}"><div class="card-cov-ph">📖</div></div><div class="wbod"><div class="wtt">${s.titolo}</div>${s.autore?`<div class="wat">${s.autore}</div>`:''}<div class="wmt">${s.biblioteca}</div><button class="wnota-btn" onclick="segnaLettoDaWishlist('${encUrl}')">✓ Segna come letto</button></div><button class="bdel" title="Rimuovi dalla lista" onclick="rimuoviWishlist('${encUrl}')">✕</button></div>`;
+  }).join('');
+  const bottone=(!tutti&&lista.length>WISH_PREVIEW)?`<button class="bg" style="display:block;width:100%;text-align:center;margin-top:6px" onclick="window._wlTutti=true;renderWishlistProf(window._wlList,true)">Vedi tutti (${lista.length}) ↓</button>`:'';
+  wc.innerHTML=righe+bottone;
+  risolviCopertine(mostra.map((s,idx)=>({idx,titolo:s.titolo,autore:s.autore})),'covw');
+}
+async function rimuoviWishlist(urlEnc){
+  tap('light');
+  await fetch(`/api/salvati/${urlEnc}`,{method:'DELETE'});
+  const url=decodeURIComponent(urlEnc);
+  G.salvati.delete(url);G.salvatiData=G.salvatiData.filter(l=>l.url_opac!==url);
+  window._wlList=(window._wlList||[]).filter(l=>l.url_opac!==url);
+  renderWishlistProf(window._wlList,window._wlTutti||false);
+}
+async function segnaLettoDaWishlist(urlEnc){
+  tap('medium');
+  const url=decodeURIComponent(urlEnc);
+  const libro=(window._wlList||[]).find(l=>l.url_opac===url);
+  if(!libro)return;
+  try{
+    const r=await fetch('/api/letti',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({titolo:libro.titolo,autore:libro.autore||'',url_opac:url,biblioteca:libro.biblioteca||G.bib||'',rete:libro.rete||G.rete||'rbbc'})});
+    if(!r.ok){const e=await r.json();throw new Error(e.error);}
+    G.letti.add(url);G.lettiData.push({titolo:libro.titolo,autore:libro.autore||'',url_opac:url,biblioteca:libro.biblioteca||G.bib||'',rete:libro.rete||G.rete||'rbbc'});
+    await fetch(`/api/salvati/${encodeURIComponent(url)}`,{method:'DELETE'});
+    G.salvati.delete(url);G.salvatiData=G.salvatiData.filter(l=>l.url_opac!==url);
+    window._wlList=(window._wlList||[]).filter(l=>l.url_opac!==url);
+    window._mlLett=G.lettiData;
+    renderWishlistProf(window._wlList,window._wlTutti||false);
+    renderLibriProf(window._mlLett,window._mlTutti||false);
+    renderObiettivo();renderCostellazioni();renderPantheon();
+    if(libro.autore)fetchNazioneWikidata(libro.autore).then(()=>renderPantheon());
+  }catch(e){console.error('segnaLettoDaWishlist',e);}
 }
 
 /* Stato temporaneo di valutazione/preferito mentre la sheet del diario è
@@ -4665,6 +4822,14 @@ async function caricaProf(){
     window._mlLett=lett;
     if(lett.length)renderLibriProf(lett,false);
     else ml.innerHTML='<div class="vp">Nessun libro segnato come letto.</div>';
+
+    const rw=await fetch('/api/salvati');
+    const wish=await rw.json();
+    G.salvati=new Set(wish.map(s=>s.url_opac));
+    G.salvatiData=wish;
+    window._wlList=wish;
+    renderWishlistProf(wish,false);
+
     renderObiettivo();
     // avvia risoluzione nazioni in background
     migraNazioniEsistenti();
