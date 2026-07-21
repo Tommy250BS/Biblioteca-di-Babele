@@ -1284,6 +1284,7 @@ body.dark .arm-row-sub{color:var(--ink3)}
         <div class="imr" onclick="apriSh('shprof')"><div class="imico">✏️</div><div class="imlab">Modifica profilo</div><div class="imarr">›</div></div>
         <div class="imr" onclick="apriSh('shbib')"><div class="imico">📍</div><div class="imlab">Cambia biblioteca</div><div class="imval" id="imbv"></div><div class="imarr">›</div></div>
         <div class="imr" onclick="apriPasswordSheet()"><div class="imico">🔑</div><div class="imlab">Cambia password</div><div class="imarr">›</div></div>
+        <div class="imr" onclick="apriSh('shcontatti')"><div class="imico">💬</div><div class="imlab">Contattaci</div><div class="imarr">›</div></div>
         <div class="imr" onclick="toggleDark()">
           <div class="imico" id="darkico">🌙</div>
           <div class="imlab">Tema scuro</div>
@@ -1373,6 +1374,46 @@ body.dark .arm-row-sub{color:var(--ink3)}
     <div class="fi"><label>Nuova password</label><input type="password" id="pwNew" placeholder="Almeno 6 caratteri" autocomplete="new-password"></div>
     <div class="fi"><label>Conferma nuova password</label><input type="password" id="pwNew2" placeholder="Ripeti la nuova password" autocomplete="new-password"></div>
     <div style="display:flex;gap:10px"><button class="bsm bsmp" onclick="salvaPassword()">Salva</button><button class="bsm bsmg" onclick="chiudiSh('shpassword')">Annulla</button></div>
+  </div>
+</div>
+<div class="shovr" id="shcontatti" onclick="chiudiSh('shcontatti',event)">
+  <div class="sh"><div class="shhnd"></div><div class="shtit">Contattaci</div>
+    <p style="font-size:.8rem;color:var(--ink3);margin-bottom:16px;line-height:1.55">Hai domande, suggerimenti o hai trovato un errore? Scrivici, saremo felici di aiutarti.</p>
+    <div class="imc">
+      <a class="imr" href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=biblioteca.babele25@gmail.com" target="_blank" rel="noopener" style="text-decoration:none;color:inherit">
+        <div class="imico">
+          <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="2" y="4" width="20" height="16" rx="2.5" fill="#EA4335"/>
+            <path d="M2.6 5.3 12 13 21.4 5.3" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="imlab">Email<br><span style="font-weight:400;color:var(--ink3);font-size:.78rem">biblioteca.babele25@gmail.com</span></div>
+        <div class="imarr">›</div>
+      </a>
+      <a class="imr" href="https://instagram.com/biblioteca.babele" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;border-bottom:none">
+        <div class="imico">
+          <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="igGradContatti" x1="0" y1="24" x2="24" y2="0" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#FEE411"/>
+                <stop offset=".15" stop-color="#FEDA77"/>
+                <stop offset=".3" stop-color="#F58529"/>
+                <stop offset=".5" stop-color="#DD2A7B"/>
+                <stop offset=".7" stop-color="#8134AF"/>
+                <stop offset="1" stop-color="#515BD4"/>
+              </linearGradient>
+            </defs>
+            <rect x="1" y="1" width="22" height="22" rx="6" fill="url(#igGradContatti)"/>
+            <rect x="6" y="6" width="12" height="12" rx="4" fill="none" stroke="#fff" stroke-width="1.8"/>
+            <circle cx="12" cy="12" r="3.2" fill="none" stroke="#fff" stroke-width="1.8"/>
+            <circle cx="17" cy="7" r="1" fill="#fff"/>
+          </svg>
+        </div>
+        <div class="imlab">Instagram<br><span style="font-weight:400;color:var(--ink3);font-size:.78rem">@biblioteca.babele</span></div>
+        <div class="imarr">›</div>
+      </a>
+    </div>
+    <button class="bsm bsmg" style="width:100%;margin-top:16px" onclick="chiudiSh('shcontatti')">Chiudi</button>
   </div>
 </div>
 <div class="shovr" id="shobiettivo" onclick="chiudiSh('shobiettivo',event)">
