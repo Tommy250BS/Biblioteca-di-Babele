@@ -1283,6 +1283,7 @@ body.dark .arm-row-sub{color:var(--ink3)}
       <div class="imc">
         <div class="imr" onclick="apriSh('shprof')"><div class="imico">✏️</div><div class="imlab">Modifica profilo</div><div class="imarr">›</div></div>
         <div class="imr" onclick="apriSh('shbib')"><div class="imico">📍</div><div class="imlab">Cambia biblioteca</div><div class="imval" id="imbv"></div><div class="imarr">›</div></div>
+        <div class="imr" onclick="apriPasswordSheet()"><div class="imico">🔑</div><div class="imlab">Cambia password</div><div class="imarr">›</div></div>
         <div class="imr" onclick="toggleDark()">
           <div class="imico" id="darkico">🌙</div>
           <div class="imlab">Tema scuro</div>
@@ -1363,6 +1364,15 @@ body.dark .arm-row-sub{color:var(--ink3)}
     <div class="fi"><label>Rete bibliotecaria</label><div data-rete-selector="cambiabibProf" data-rete-attuale="rbbc"></div></div>
     <div class="fi"><label>Biblioteca</label><div class="acw"><input type="text" id="pbi" placeholder="Es. Rezzato…" autocomplete="off"><div class="dd" id="ddpb"></div></div></div>
     <div style="display:flex;gap:10px"><button class="bsm bsmp" onclick="salvaLib()">Salva</button><button class="bsm bsmg" onclick="chiudiSh('shbib')">Annulla</button></div>
+  </div>
+</div>
+<div class="shovr" id="shpassword" onclick="chiudiSh('shpassword',event)">
+  <div class="sh"><div class="shhnd"></div><div class="shtit">Cambia password</div>
+    <div class="aerr" id="pwerr"></div>
+    <div class="fi"><label>Password attuale</label><input type="password" id="pwCur" placeholder="••••••" autocomplete="current-password"></div>
+    <div class="fi"><label>Nuova password</label><input type="password" id="pwNew" placeholder="Almeno 6 caratteri" autocomplete="new-password"></div>
+    <div class="fi"><label>Conferma nuova password</label><input type="password" id="pwNew2" placeholder="Ripeti la nuova password" autocomplete="new-password"></div>
+    <div style="display:flex;gap:10px"><button class="bsm bsmp" onclick="salvaPassword()">Salva</button><button class="bsm bsmg" onclick="chiudiSh('shpassword')">Annulla</button></div>
   </div>
 </div>
 <div class="shovr" id="shobiettivo" onclick="chiudiSh('shobiettivo',event)">
@@ -4638,6 +4648,35 @@ async function salvaLib(){
   const rete=G.reteCambioProf||G.rete;
   const r=await fetch('/api/auth/aggiorna',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nome:G.u.nome,biblioteca:bib,rete})});
   const d=await r.json();if(d.ok){G.u.biblioteca=d.biblioteca;G.u.rete=d.rete;G.bib=d.biblioteca;G.rete=d.rete;document.getElementById('chipn').textContent=d.biblioteca;aggiornaSottotitoloRete();aggiornaUIProf();chiudiSh('shbib');}
+}
+
+/* CAMBIO PASSWORD */
+function apriPasswordSheet(){
+  if(!G.u){vai('sa','login');return;}
+  document.getElementById('pwCur').value='';
+  document.getElementById('pwNew').value='';
+  document.getElementById('pwNew2').value='';
+  const err=document.getElementById('pwerr');
+  err.textContent='';err.style.display='none';
+  apriSh('shpassword');
+}
+async function salvaPassword(){
+  const cur=document.getElementById('pwCur').value;
+  const n1=document.getElementById('pwNew').value;
+  const n2=document.getElementById('pwNew2').value;
+  const err=document.getElementById('pwerr');
+  err.style.display='none';
+  if(!cur||!n1||!n2){err.textContent='Compila tutti i campi.';err.style.display='block';return;}
+  if(n1.length<6){err.textContent='La nuova password deve avere almeno 6 caratteri.';err.style.display='block';return;}
+  if(n1!==n2){err.textContent='Le due password non coincidono.';err.style.display='block';return;}
+  tap('medium');
+  try{
+    const r=await fetch('/api/auth/password',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({password_attuale:cur,nuova_password:n1})});
+    const d=await r.json();
+    if(!r.ok){err.textContent=d.error||'Errore durante il cambio password.';err.style.display='block';return;}
+    chiudiSh('shpassword');
+  }catch(e){err.textContent='Errore di rete. Riprova.';err.style.display='block';}
 }
 </script>
 </body>
