@@ -353,6 +353,22 @@ def init_db():
                 );
             """)
 
+            # Memoriae: diario personale, non legato ai libri. Ogni voce ha
+            # testo libero, un umore opzionale (id da un set fisso lato
+            # frontend, es. 'felice'/'sereno'/...) e un elenco di tag liberi
+            # scelti dall'utente (TEXT[] Postgres nativo).
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS diario_note (
+                    id SERIAL PRIMARY KEY,
+                    utente_id INTEGER NOT NULL REFERENCES utenti(id),
+                    testo TEXT NOT NULL DEFAULT '',
+                    umore VARCHAR(32) NOT NULL DEFAULT '',
+                    tag TEXT[] NOT NULL DEFAULT '{}',
+                    creato_il TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    modificato_il TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+                );
+            """)
+
 init_db()
 
 #  Helpers auth 
@@ -1050,6 +1066,77 @@ def aggiungi_badge():
     except Exception as e:
         db.rollback()
         return jsonify({"error": str(e)}), 400
+
+#  API Diario personale (Memoriae)
+
+@app.route("/api/diario", methods=["GET"])
+@login_richiesto
+def get_diario():
+    u = utente_corrente()
+    rows = get_db().execute(
+        "SELECT * FROM diario_note WHERE utente_id=%s ORDER BY creato_il DESC",
+        (u["id"],)).fetchall()
+    return jsonify([dict(r) for r in rows])
+
+def _valida_voce_diario(d):
+    testo = (d.get("testo") or "").strip()
+    umore = (d.get("umore") or "").strip()
+    tag = d.get("tag") or []
+    if not isinstance(tag, list):
+        tag = []
+    tag = [str(t).strip()[:40] for t in tag if str(t).strip()][:10]
+    if not testo:
+        return None, "Il testo non può essere vuoto"
+    if len(testo) > 5000:
+        return None, "Testo troppo lungo (massimo 5000 caratteri)"
+    return (testo, umore, tag), None
+
+@app.route("/api/diario", methods=["POST"])
+@login_richiesto
+def aggiungi_diario():
+    u = utente_corrente()
+    d = request.get_json() or {}
+    dati, err = _valida_voce_diario(d)
+    if err:
+        return jsonify({"error": err}), 400
+    testo, umore, tag = dati
+    db = get_db()
+    cur = db.execute(
+        "INSERT INTO diario_note (utente_id, testo, umore, tag) VALUES (%s,%s,%s,%s) RETURNING *",
+        (u["id"], testo, umore, tag)
+    )
+    row = cur.fetchone()
+    db.commit()
+    return jsonify(dict(row))
+
+@app.route("/api/diario/<int:nid>", methods=["POST"])
+@login_richiesto
+def modifica_diario(nid):
+    u = utente_corrente()
+    d = request.get_json() or {}
+    dati, err = _valida_voce_diario(d)
+    if err:
+        return jsonify({"error": err}), 400
+    testo, umore, tag = dati
+    db = get_db()
+    cur = db.execute(
+        "UPDATE diario_note SET testo=%s, umore=%s, tag=%s, modificato_il=CURRENT_TIMESTAMP "
+        "WHERE id=%s AND utente_id=%s",
+        (testo, umore, tag, nid, u["id"])
+    )
+    db.commit()
+    if cur.rowcount == 0:
+        return jsonify({"error": "Voce non trovata"}), 404
+    return jsonify({"ok": True})
+
+@app.route("/api/diario/<int:nid>", methods=["DELETE"])
+@login_richiesto
+def elimina_diario(nid):
+    u = utente_corrente()
+    db = get_db()
+    db.execute("DELETE FROM diario_note WHERE id=%s AND utente_id=%s", (nid, u["id"]))
+    db.commit()
+    return jsonify({"ok": True})
 
 @app.route("/")
 def index():
