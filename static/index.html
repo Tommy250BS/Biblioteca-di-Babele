@@ -929,6 +929,34 @@ body.dark .arm-row-sub{color:var(--ink3)}
 .opo{font-size:.78rem;color:#999;font-style:italic;font-family:'Cormorant Garamond',serif}
 .opl{font-size:.68rem;color:var(--bosco-2);text-decoration:none;letter-spacing:.03em}
 .opl:hover{text-decoration:underline}
+
+/* MEMORIAE — diario personale */
+.mem-card{background:#fff;border-radius:var(--r);box-shadow:var(--sh-s);padding:16px 18px;margin-bottom:12px;border-left:3px solid var(--oro);animation:up .28s var(--ease-out-expo) both;transition:box-shadow .25s}
+.mem-card:hover{box-shadow:var(--sh-m)}
+body.dark .mem-card{background:#121f13;border-color:var(--oro)}
+.mem-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.mem-data{font-size:.68rem;color:#aaa;letter-spacing:.04em;font-weight:600}
+.mem-mood{display:inline-flex;align-items:center;gap:5px;font-size:.74rem;color:var(--bosco);font-weight:600}
+body.dark .mem-mood{color:var(--oro-2)}
+.mem-mood-ico{font-size:1rem}
+.mem-txt{font-size:.87rem;color:var(--ink2);line-height:1.65;white-space:pre-wrap}
+.mem-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.mem-tag{font-size:.65rem;font-weight:600;letter-spacing:.03em;background:var(--oro-s);color:var(--bosco);padding:3px 10px;border-radius:20px}
+body.dark .mem-tag{background:rgba(200,164,74,.14);color:var(--oro-2)}
+.mem-actions{display:flex;gap:8px;margin-top:12px}
+.mem-act-btn{background:none;border:1.5px solid var(--av3);border-radius:20px;font-size:.68rem;font-weight:600;color:#999;padding:5px 12px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.mem-act-btn:hover{border-color:var(--bosco);color:var(--bosco)}
+.mem-act-btn.del:hover{border-color:var(--rosso);color:var(--rosso)}
+.mem-mood-picker{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px}
+.mem-mood-opt{display:flex;flex-direction:column;align-items:center;gap:3px;background:var(--av2);border:1.5px solid transparent;border-radius:12px;padding:8px 10px;cursor:pointer;font-size:1.3rem;transition:all .15s;min-width:52px}
+.mem-mood-opt span.mlbl{font-size:.58rem;font-weight:600;color:#999;letter-spacing:.02em}
+.mem-mood-opt.sel{border-color:var(--oro);background:var(--oro-s)}
+.mem-mood-opt.sel span.mlbl{color:var(--bosco)}
+body.dark .mem-mood-opt{background:#0f1a10}
+body.dark .mem-mood-opt.sel span.mlbl{color:var(--oro-2)}
+.mem-tagrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.mem-tagchip{display:inline-flex;align-items:center;gap:5px;background:var(--bosco);color:var(--oro);font-size:.68rem;font-weight:600;padding:4px 6px 4px 11px;border-radius:20px}
+.mem-tagchip button{background:none;border:none;color:var(--oro);cursor:pointer;font-size:.8rem;line-height:1;padding:0 2px}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
@@ -1092,6 +1120,11 @@ body.dark .arm-row-sub{color:var(--ink3)}
         <div class="sc-arr">›</div>
         <div class="sc-ico">🏺</div><div class="sc-nome">Lapides Miliarii</div>
         <div class="sc-desc">Le pietre miliari della letteratura mondiale</div><div class="sc-orn">L</div>
+      </div>
+      <div class="sc" data-c="b" onclick="morphVai(this,'smem')">
+        <div class="sc-arr">›</div>
+        <div class="sc-ico">📔</div><div class="sc-nome">Memoriae</div>
+        <div class="sc-desc">Il tuo diario personale</div><div class="sc-orn">M</div>
       </div>
     </div>
   </div>
@@ -1259,6 +1292,27 @@ body.dark .arm-row-sub{color:var(--ink3)}
   </div>
 </div>
 
+<!-- MEMORIAE -->
+<div id="smem" class="S cnav">
+  <div class="sint">
+    <div class="sornbg">M</div>
+    <div class="sinti">
+      <div class="stag">Diario · Personale</div>
+      <h1 class="stitolo">Memo<strong>riae</strong></h1>
+      <div class="ssub">Dal latino memoria, -ae — ciò che portiamo con noi</div>
+    </div>
+  </div>
+  <div class="sbody">
+    <button class="bsm bsmg" style="margin-bottom:20px" onclick="vai('shome')">← Home</button>
+    <div class="etimo">
+      <div class="etn">Memoriae</div><div class="eto">Dal latino · Memoria, -ae</div>
+      <p class="etd">Non solo libri: qui puoi custodire pensieri, giornate, stati d'animo. Un diario privato, tuo soltanto, per fermare ciò che altrimenti scivolerebbe via.</p>
+    </div>
+    <button class="bp" style="margin-bottom:20px" onclick="apriNuovaVoceDiario()">✎ Nuova voce</button>
+    <div id="mem-list"><div class="vp">Accedi per iniziare il tuo diario.</div></div>
+  </div>
+</div>
+
 <!-- PROFILO -->
 <div id="sprof" class="S cnav">
   <div class="ph">
@@ -1325,6 +1379,7 @@ body.dark .arm-row-sub{color:var(--ink3)}
     <button class="ntab" data-s="satlante" onclick="switchTab('satlante')"><span class="nico">🗺️</span><span>Atlante</span></button>
     <button class="ntab" data-s="spant" onclick="switchTab('spant')"><span class="nico">🏛️</span><span>Pantheon</span></button>
     <button class="ntab" data-s="slap" onclick="switchTab('slap')"><span class="nico">🏺</span><span>Miliarii</span></button>
+    <button class="ntab" data-s="smem" onclick="switchTab('smem')"><span class="nico">📔</span><span>Memoriae</span></button>
     <button class="ntab" data-s="sprof" onclick="switchTab('sprof')"><span class="nico">👤</span><span>Profilo</span></button>
   </div>
 </nav>
@@ -1439,6 +1494,28 @@ body.dark .arm-row-sub{color:var(--ink3)}
   </div>
 </div>
 
+<!-- MEMORIAE: nuova voce / modifica -->
+<div class="shovr" id="shmem" onclick="chiudiSh('shmem',event)">
+  <div class="sh"><div class="shhnd"></div>
+    <div class="shtit" id="memShTit">Nuova voce</div>
+    <div class="aerr" id="memerr"></div>
+    <div class="fi">
+      <label>Come ti senti?</label>
+      <div class="mem-mood-picker" id="memMoodPicker"></div>
+    </div>
+    <div class="fi"><label>Cosa vuoi ricordare?</label><textarea id="memTesto" placeholder="Scrivi qui i tuoi pensieri…" style="min-height:130px"></textarea></div>
+    <div class="fi">
+      <label>Etichette</label>
+      <input type="text" id="memTagInput" placeholder="Scrivi un'etichetta e premi Invio">
+      <div class="mem-tagrow" id="memTagRow"></div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="bsm bsmp" onclick="salvaVoceDiario()">Salva</button>
+      <button class="bsm bsmg" onclick="chiudiSh('shmem')">Annulla</button>
+    </div>
+  </div>
+</div>
+
 <!-- LEGENDA LAPIDES MILIARII -->
 <div class="shovr" id="shlegenda" onclick="chiudiSh('shlegenda',event)">
   <div class="sh">
@@ -1538,7 +1615,7 @@ body.dark .arm-row-sub{color:var(--ink3)}
 <script>
 /* SWIPE TRA TAB */
 (function(){
-  const TAB_ORDER=['shome','salex','satlante','spant','slap','sprof'];
+  const TAB_ORDER=['shome','salex','satlante','spant','slap','smem','sprof'];
   let tx=0,ty=0,swiping=false,swipeBlocked=false;
   document.addEventListener('touchstart',e=>{
     const t=e.touches[0];
@@ -1582,7 +1659,7 @@ function toggleDark(){applyDark(!document.body.classList.contains('dark'));}
 (function(){const s=localStorage.getItem('rbbc_dark');if(s==='1')applyDark(true);})();
 
 
-let G={u:null,bib:'',rete:'rbbc',letti:new Set(),lettiData:[],salvati:new Set(),salvatiData:[]};
+let G={u:null,bib:'',rete:'rbbc',letti:new Set(),lettiData:[],salvati:new Set(),salvatiData:[],diario:[]};
 
 /* ── RETI BIBLIOTECARIE ──────────────────────────────────────────────────
    RBBC resta con l'elenco biblioteche statico qui sotto (BIBS): è già
@@ -1699,7 +1776,7 @@ const RETE_CTX_INPUT={guest:'gb',registra:'rb',cambiabib:'cbib',cambiabibProf:'p
 
 const BIBS=["Acquafredda","Adro","Agnadello","Agnosine","Anfo","Angolo Terme","Annicco","Artogne","Azzano Mella","Bagnolo Cremasco","Bagnolo Mella","Bagolino","Barbariga","Barghe","Bassano Bresciano","Bedizzole","Berlingo","Berzo Demo","Berzo Inferiore","Bienno","Bione","Bonemerse","Borgo San Giacomo","Borgosatollo","Borno","Botticino","Bovegno","Bovezzo","Brandico","Braone","Breno","Brescia - Abba-Ballini","Brescia - Archivio Storico","Brescia - Arnaldo","Brescia - Bibliobus","Brescia - Buffalora","Brescia - Canton Mombello","Brescia - Casazza","Brescia - Centro Casa Severino","Brescia - Emeroteca Queriniana","Brescia - Fondazione Trebeschi","Brescia - Gambara","Brescia - Ghetti","Brescia - Golgi","Brescia - La Vetrina","Brescia - Largo Torrelunga","Brescia - Mediateca Queriniana","Brescia - Museo Scienze Naturali","Brescia - Parco Gallo","Brescia - Prealpino","Brescia - Queriniana","Brescia - San Polo","Brescia - SBU","Brescia - Sereno","Brescia - UAU","Brione","Caino","Calcinato","Calvagese D-R","Calvatone","Calvisano","Camisano","Capergnanica","Capo Di Ponte","Capovalle","Capralba","Capriano Del Colle","Capriolo","Carpenedolo","Casalbuttano","Casale Cremasco Vidolasco","Casaletto Ceredano","Casaletto Vaprio","Casalmaggiore","Casalpusterlengo","Castegnato","Castel Mella","Castelcovati","Castelleone","Castello Di Padernello","Castelverde","Castenedolo","Casto","Castrezzato","Cazzago SM","Cedegolo","Cellatica","Centro Fumetto A. Pazienza","Centro Studi RSI Salò","Cerveno","Ceto","Cevo","Chiari","Chieve","Cigole","Cimbergo","Cingia De' Botti","Cividate Camuno","Clusane","Coccaglio","Collebeato","Collio","Cologne","Comezzano - Cizzago","Concesio","Corte De' Frati","Corte Franca","Corteno Golgi","Corzano","Credera Rubbiano","Crema","Crema - Museo","Cremona - Anguissola","Cremona - CDA","Cremona - Manin","Darfo Boario Terme","Dello","Desenzano","Dovera","Edolo","Elnos","Erbusco","Esine","Fiesco","Fiesse","Flero","Gadesco Pieve Delmona","Gambara","Gardone Riviera","Gardone Val Trompia","Gargnano","Gavardo","Genivolta","Ghedi","Gianico","Gottolengo","Grontardo","Grumello Cremonese","Gussago","Gussola","Idro","Incudine","Irma","Iseo","Isola Dovarese","Isorella","Izano","Lavenone","Leno","Limone Sul Garda","Lodrino","Lograto","Lonato Del Garda","Longhena","Losine","Lozio","Lumezzane","Maclodio","Madignano","Magasa","Mairano","Malegno","Malonno","Manerba Del Garda","Manerbio","Marcheno","Marmentino","Marone","Martignana Di Po","Mazzano","Milzano","Moniga Del Garda","Monno","Monte Cremasco","Monte Isola","Monticelli Brusati","Montichiari","Montirone","Montodine","Mura","Muscoline","Nave","Niardo","Nuvolento","Nuvolera","Odolo","Offanengo","Offlaga","Ome","Ono San Pietro","Orzinuovi","Orzivecchi","Ospitaletto","Ostiano","Padenghe Sul Garda","Paderno FC","Paderno Ponchielli","Paitone","Palazzo Pignano","Palazzolo Sull'Oglio","Pandino","Paratico","Passirano","Pavone Del Mella","Persico Dosimo","Pertica Alta","Pertica Bassa","Pescarolo Ed Uniti","Pezzaze","Piadena Drizzona","Pian Camuno","Piancogno","Pianengo","Pisogne","Pizzighettone","Polaveno","Polpenazze Del Garda","Pompiano","Poncarale","Ponte Di Legno","Pontevico","Pontoglio","Pozzolengo","Pralboino","Preseglie","Prestine","Prevalle","Provaglio D'Iseo","Provaglio VS","Puegnago Del Garda","Quinzano D'Oglio","Remedello","Rezzato","Ricengo","Ripalta Cremasca","Rivarolo Del Re","Rivolta D'Adda","Roccafranca","Rodengo Saiano","Roè Volciano","Romanengo","Roncadelle","Rovato","Rudiano","Sabbio Chiese","Sale Marasino","Salò","San Bassano","San Daniele Po","San Felice Del Benaco","San Gervasio Bresciano","San Giovanni In Croce","San Paolo","San Zeno Naviglio","Sarezzo","Saviore Dell'Adamello","Sellero","Seniga","Sergnano","Serle","Sesto Ed Uniti","Sirmione","Soiano Del Lago","Solarolo Rainerio","Soncino","Sonico","Soresina","Sospiro","Spino D'Adda","Sulzano","Tavernole Sul Mella","Temù","Tignale","Torbole Casaglia","Tornata","Torre De' Picenardi","Torricella Del Pizzo","Toscolano Maderno","Travagliato","Tremosine","Trenzano","Trescore Balneario","Trescore Cremasco","Treviso Bresciano","Urago D'Oglio","Vallio Terme","Valvestino","Verolanuova","Verolavecchia","Vestone","Vezza D'Oglio","Villa Carcina","Villanuova Sul Clisi","Visano","Vobarno","Zone"];
 
-const CNV=['shome','salex','satlante','slap','sprof','spant'];
+const CNV=['shome','salex','satlante','slap','sprof','spant','smem'];
 let _atlAvv=false;
 
 /* --- HAPTIC --- */
@@ -1744,6 +1821,7 @@ function vai(id,sub,noAnim){
   if(id==='sprof')caricaProf();
   if(id==='slap')renderCostellazioni();
   if(id==='spant'){renderPantheon();}
+  if(id==='smem')caricaDiario();
   if(id==='satlante'){incAtlanteVisits();aggiornaProgressoAtlante();mostraTipAtlante();if(!_atlAvv){_atlAvv=true;initMappa();}}
   window.scrollTo(0,0);
 }
@@ -2374,6 +2452,136 @@ async function aggiungiLetturaManuale(){
     if(a)fetchNazioneWikidata(a).then(()=>renderPantheon());
   }catch(e){err.textContent=e.message;err.style.display='block';}
 }
+/* ── MEMORIAE: diario personale ────────────────────────────────────────── */
+const MOODS=[
+  {id:'felice',ico:'😊',label:'Felice'},
+  {id:'sereno',ico:'🌿',label:'Sereno'},
+  {id:'malinconico',ico:'🌧️',label:'Malinconico'},
+  {id:'arrabbiato',ico:'🔥',label:'Arrabbiato'},
+  {id:'stanco',ico:'😴',label:'Stanco'},
+  {id:'ispirato',ico:'✨',label:'Ispirato'},
+];
+let _memEditId=null,_memUmoreSel='',_memTag=[];
+
+function fmtDataDiario(iso){
+  try{return new Date(iso).toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'});}
+  catch{return '';}
+}
+
+async function caricaDiario(){
+  const list=document.getElementById('mem-list');if(!list)return;
+  if(!G.u){list.innerHTML='<div class="vp">Accedi per iniziare il tuo diario.</div>';return;}
+  list.innerHTML=skelCards(3);
+  try{
+    const r=await fetch('/api/diario');
+    if(r.ok)G.diario=await r.json();
+    renderDiario();
+  }catch(e){console.error('caricaDiario',e);list.innerHTML='<div class="er">⚠ Errore nel caricamento del diario.</div>';}
+}
+
+function renderDiario(){
+  const list=document.getElementById('mem-list');if(!list)return;
+  if(!G.diario.length){
+    list.innerHTML='<div class="vuoto"><h2>Nessuna voce ancora</h2><p>Scrivi il tuo primo pensiero con <em>"+ Nuova voce"</em>.</p></div>';
+    return;
+  }
+  list.innerHTML=G.diario.map(n=>{
+    const mood=MOODS.find(m=>m.id===n.umore);
+    const moodHtml=mood?`<span class="mem-mood"><span class="mem-mood-ico">${mood.ico}</span>${mood.label}</span>`:'';
+    const tagsHtml=(n.tag&&n.tag.length)?`<div class="mem-tags">${n.tag.map(t=>`<span class="mem-tag">${escHtml(t)}</span>`).join('')}</div>`:'';
+    return `<div class="mem-card">
+      <div class="mem-top"><span class="mem-data">${fmtDataDiario(n.creato_il)}</span>${moodHtml}</div>
+      <div class="mem-txt">${escHtml(n.testo)}</div>
+      ${tagsHtml}
+      <div class="mem-actions">
+        <button class="mem-act-btn" onclick="apriNuovaVoceDiario(${n.id})">✎ Modifica</button>
+        <button class="mem-act-btn del" onclick="eliminaVoceDiario(${n.id})">🗑 Elimina</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderMoodPicker(){
+  const cont=document.getElementById('memMoodPicker');if(!cont)return;
+  cont.innerHTML=MOODS.map(m=>`<div class="mem-mood-opt${_memUmoreSel===m.id?' sel':''}" onclick="selezionaUmoreDiario('${m.id}')">${m.ico}<span class="mlbl">${m.label}</span></div>`).join('');
+}
+function selezionaUmoreDiario(id){tap('light');_memUmoreSel=(_memUmoreSel===id)?'':id;renderMoodPicker();}
+
+function renderTagRow(){
+  const cont=document.getElementById('memTagRow');if(!cont)return;
+  cont.innerHTML=_memTag.map((t,i)=>`<span class="mem-tagchip">${escHtml(t)}<button type="button" onclick="rimuoviTagDiario(${i})">✕</button></span>`).join('');
+}
+function rimuoviTagDiario(i){tap('light');_memTag.splice(i,1);renderTagRow();}
+function aggiungiTagDiarioDaInput(){
+  const inp=document.getElementById('memTagInput');if(!inp)return;
+  const v=inp.value.trim();
+  if(!v)return;
+  if(_memTag.length>=10){inp.value='';return;}
+  if(!_memTag.some(t=>t.toLowerCase()===v.toLowerCase()))_memTag.push(v.slice(0,40));
+  inp.value='';
+  renderTagRow();
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const inp=document.getElementById('memTagInput');
+  if(inp)inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){e.preventDefault();tap('light');aggiungiTagDiarioDaInput();}
+  });
+});
+
+function apriNuovaVoceDiario(id){
+  if(!G.u){vai('sa','login');return;}
+  tap('light');
+  _memEditId=id||null;_memUmoreSel='';_memTag=[];
+  document.getElementById('memerr').style.display='none';
+  document.getElementById('memShTit').textContent=id?'Modifica voce':'Nuova voce';
+  const ta=document.getElementById('memTesto');
+  if(id){
+    const n=G.diario.find(x=>x.id===id);
+    if(n){ta.value=n.testo||'';_memUmoreSel=n.umore||'';_memTag=[...(n.tag||[])];}
+  }else ta.value='';
+  renderMoodPicker();renderTagRow();
+  const tagInp=document.getElementById('memTagInput');if(tagInp)tagInp.value='';
+  apriSh('shmem');
+  setTimeout(()=>ta.focus(),300);
+}
+
+function errMem(m){const e=document.getElementById('memerr');e.textContent=m;e.style.display='block';}
+
+async function salvaVoceDiario(){
+  const testo=document.getElementById('memTesto').value.trim();
+  if(!testo){errMem('Scrivi qualcosa prima di salvare.');return;}
+  tap('medium');
+  const body={testo,umore:_memUmoreSel,tag:_memTag};
+  try{
+    const r=_memEditId
+      ?await fetch(`/api/diario/${_memEditId}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+      :await fetch('/api/diario',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const d=await r.json();
+    if(!r.ok){errMem(d.error||'Errore nel salvataggio.');return;}
+    chiudiSh('shmem');
+    await caricaDiario();
+    verificaBadgeDiario();
+  }catch(e){errMem('Errore di rete. Riprova.');}
+}
+
+async function eliminaVoceDiario(id){
+  tap('medium');
+  try{
+    const r=await fetch(`/api/diario/${id}`,{method:'DELETE'});
+    if(!r.ok)throw new Error('delete failed');
+    G.diario=G.diario.filter(n=>n.id!==id);
+    renderDiario();
+  }catch(e){console.error('eliminaVoceDiario',e);}
+}
+
+function verificaBadgeDiario(){
+  if(!G.u)return;
+  const n=G.diario.length;
+  if(n>=1)unlockAndCeremony('diario_prima_voce');
+  if(n>=10)unlockAndCeremony('diario_costante');
+  if(n>=50)unlockAndCeremony('diario_fedele');
+}
+
 function renderRis(data){
   const{query,biblioteca,risultati}=data;
   if(!risultati?.length){main.innerHTML=`<div class="vuoto"><svg class="vuoto-ill" width="160" height="130" viewBox="0 0 160 130" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -2680,6 +2888,9 @@ const TUTTI_BADGE=[
   {id:'fuoco_alessandria',ico:'🔥', nome:'Fuoco di Alessandria',         desc:'Hai letto "Fahrenheit 451" di Ray Bradbury'},
   {id:'mulino_acqua',     ico:'🌊', nome:'Mulino ad acqua',              desc:'Hai letto "Il mulino sulla Floss" di George Eliot'},
   {id:'biblioteca_babele',ico:'🌌', nome:'Biblioteca di Babele',         desc:'Ottieni tutti i badge'},
+  {id:'diario_prima_voce', ico:'📔', nome:'Prima pagina',    desc:'Scrivi la tua prima voce di diario'},
+  {id:'diario_costante',   ico:'🕯️', nome:'Voce costante',   desc:'Scrivi 10 voci di diario'},
+  {id:'diario_fedele',     ico:'📜', nome:'Cronista fedele', desc:'Scrivi 50 voci di diario'},
 ];
 
 /* Liste di supporto per nuovi badge */
@@ -2832,6 +3043,8 @@ const BADGE_CATEGORIE=[
    ids:['pantocratore','alessandria_bibliotecario','aleph','biblioteca_babele']},
   {id:'segreti', label:'Badge segreti', ico:'🔮',
    ids:['walden','macondo','pequod','vronskij','boxer','manoscritto','fuoco_alessandria','mulino_acqua']},
+  {id:'diario', label:'Memoriae', ico:'📔',
+   ids:['diario_prima_voce','diario_costante','diario_fedele']},
 ];
 
 async function renderPantheon(){
