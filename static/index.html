@@ -217,6 +217,7 @@ body{font-family:'Inter',sans-serif;background:var(--av);color:var(--ink);min-he
 .ddi:hover,.ddi.hl{background:var(--bosco);color:#fff}
 .ddi em{font-style:normal;font-weight:600}
 .dde{padding:11px 14px;font-size:.83rem;color:#bbb;font-style:italic}
+.dd-hd{padding:9px 14px 5px;font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#bbb}
 
 /* STATI */
 .vuoto{text-align:center;padding:44px 16px 52px}
@@ -488,6 +489,10 @@ body.dark .morph-ov{background:#121f13}
 .iq h2{font-family:'Cormorant Garamond',serif;font-size:1.04rem;font-style:italic;color:var(--ink2)}
 .iq h2 strong{font-style:normal;font-weight:600;color:var(--ink)}
 .bdg{font-size:.63rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--bosco);color:var(--oro);padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.ordina-btn{background:none;border:1.5px solid var(--av3);border-radius:20px;color:#999;font-size:.62rem;font-weight:700;letter-spacing:.02em;padding:4px 10px;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.ordina-btn:hover{border-color:var(--bosco);color:var(--bosco)}
+body.dark .ordina-btn{border-color:var(--av3);color:var(--ink3)}
+body.dark .ordina-btn:hover{border-color:var(--oro);color:var(--oro-2)}
 
 /* CARD LIBRO */
 .card{background:#fff;border-radius:0 var(--r) var(--r) 0;margin-bottom:10px;box-shadow:var(--sh-s);overflow:hidden;border-left:3px solid var(--av3);animation:up .28s var(--ease-out-expo) both;transition:box-shadow .25s,transform .2s var(--ease-spring)}
@@ -883,6 +888,22 @@ body.dark .arm-row-sub{color:var(--ink3)}
 @keyframes badgePop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
 
 .vp{text-align:center;padding:16px;color:#bbb;font-size:.8rem;font-style:italic}
+/* HEATMAP LETTURE */
+.heat-scroll{overflow-x:auto;padding-bottom:2px}
+.heat-months{display:grid;gap:2px;margin-bottom:5px;white-space:nowrap}
+.heat-mese{font-size:.58rem;color:#bbb;font-weight:600}
+.heat-grid{display:grid;gap:2px}
+.heat-cell{width:11px;height:11px;border-radius:3px;background:var(--av3)}
+.heat-cell.vuota{background:transparent}
+.heat-cell.lv0{background:var(--av3)}
+.heat-cell.lv1{background:rgba(200,164,74,.32)}
+.heat-cell.lv2{background:rgba(200,164,74,.55)}
+.heat-cell.lv3{background:rgba(200,164,74,.78)}
+.heat-cell.lv4{background:var(--oro)}
+body.dark .heat-cell.lv0{background:#1c2e1e}
+.heat-legenda{display:flex;align-items:center;justify-content:space-between;font-size:.68rem;color:#aaa;margin-top:9px;flex-wrap:wrap;gap:8px}
+.heat-scala{display:flex;align-items:center;gap:3px}
+.heat-scala .heat-cell{width:9px;height:9px;display:inline-block}
 
 /* IMPOSTAZIONI */
 .imc{background:#fff;border-radius:var(--r);box-shadow:var(--sh-s);overflow:hidden;margin-bottom:10px}
@@ -959,6 +980,13 @@ body.dark .mem-mood-opt.sel span.mlbl{color:var(--oro-2)}
 .mem-tagrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .mem-tagchip{display:inline-flex;align-items:center;gap:5px;background:var(--bosco);color:var(--oro);font-size:.68rem;font-weight:600;padding:4px 6px 4px 11px;border-radius:20px}
 .mem-tagchip button{background:none;border:none;color:var(--oro);cursor:pointer;font-size:.8rem;line-height:1;padding:0 2px}
+
+/* PULL-TO-REFRESH */
+.ptr-indicator{position:fixed;top:0;left:50%;transform:translate(-50%,var(--ptr-y,-60px));z-index:250;background:rgba(9,18,10,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(200,164,74,.22);border-radius:20px;padding:8px 16px;display:flex;align-items:center;gap:8px;font-size:.7rem;font-weight:600;color:var(--oro-2);letter-spacing:.03em;opacity:0;transition:opacity .15s,transform .28s var(--ease-out-expo);pointer-events:none;white-space:nowrap}
+.ptr-indicator.show{opacity:1}
+.ptr-spinner{width:13px;height:13px;border-radius:50%;border:2px solid rgba(200,164,74,.25);border-top-color:var(--oro);flex-shrink:0;transition:transform .2s}
+.ptr-indicator.ready .ptr-spinner{transform:rotate(180deg)}
+.ptr-indicator.spin .ptr-spinner{animation:gira .7s linear infinite;transform:none}
 .mem-filtri{margin-bottom:16px}
 .mem-mood-filtro{display:flex;flex-wrap:wrap;gap:7px}
 .mem-mood-chip{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1.5px solid var(--av3);border-radius:20px;padding:5px 12px 5px 9px;font-size:.72rem;font-weight:600;color:#999;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
@@ -1151,7 +1179,10 @@ body.dark .mem-mood-chip.sel{border-color:var(--oro);background:rgba(200,164,74,
       </div>
     </div>
     <div class="hsearch">
-      <input type="search" id="it" placeholder="Cerca un titolo…" autocomplete="off" autocorrect="off" enterkeyhint="search">
+      <div class="acw" style="flex:1">
+        <input type="search" id="it" placeholder="Cerca un titolo…" autocomplete="off" autocorrect="off" enterkeyhint="search">
+        <div class="dd" id="ddrecenti"></div>
+      </div>
       <button class="bsm bsmp" id="bcerca" onclick="cerca()">Cerca</button>
     </div>
     <div style="display:flex;gap:8px;padding:0 16px 13px">
@@ -1354,6 +1385,12 @@ body.dark .mem-mood-chip.sel{border-color:var(--oro);background:rgba(200,164,74,
         </div>
         <div class="cost-prog"><div class="cost-prog-inner" id="obBarra" style="width:0%"></div></div>
         <div class="cost-prog-txt" id="obSotto" style="margin-top:7px"></div>
+      </div>
+    </div>
+    <div class="psez">
+      <div class="sh3">📅 Le tue letture</div>
+      <div class="etimo" style="border-left-color:var(--oro)">
+        <div id="heatmapLetture"><p class="maphint" style="padding:4px 0">Nessuna lettura registrata ancora.</p></div>
       </div>
     </div>
     <div class="psez">
@@ -1654,6 +1691,12 @@ body.dark .mem-mood-chip.sel{border-color:var(--oro);background:rgba(200,164,74,
   </div>
 </div>
 
+<!-- PULL-TO-REFRESH -->
+<div class="ptr-indicator" id="ptrIndicator">
+  <div class="ptr-spinner"></div>
+  <span id="ptrTxt">Tira per aggiornare</span>
+</div>
+
 <script>
 /* SWIPE TRA TAB */
 (function(){
@@ -1686,6 +1729,85 @@ body.dark .mem-mood-chip.sel{border-color:var(--oro);background:rgba(200,164,74,
     else if(dx>0&&idx>0)switchTab(TAB_ORDER[idx-1]);
   },{passive:true});
 })();
+
+/* PULL-TO-REFRESH
+   Attivo solo sulle schermate che hanno un'azione di refresh sensata:
+   Alexandria (ripete l'ultima ricerca), Profilo e Memoriae (ricaricano i
+   dati dell'utente). Il tocco deve partire da window.scrollY≈0 e fuori da
+   aree con pan/zoom proprio (galassia, mappe, sheet aperte), sullo stesso
+   principio di swipeBlocked usato sopra per il cambio scheda. Coesiste con
+   lo swipe orizzontale: qui si reagisce solo a trascinamenti verso il
+   basso, quello sopra ignora già i trascinamenti prevalentemente verticali. */
+(function(){
+  const ind=document.getElementById('ptrIndicator');
+  const txt=document.getElementById('ptrTxt');
+  if(!ind||!txt)return;
+  const REFRESH_SCREENS={
+    salex: async()=>{
+      const last=window._ultimiRisultati;
+      if(!last)return;
+      document.getElementById('it').value=last.query;
+      if(last.tipo)setTipoRicerca(last.tipo);
+      await cerca();
+    },
+    sprof: async()=>{ if(G.u)await caricaProf(); },
+    smem: async()=>{ if(G.u)await caricaDiario(); },
+  };
+  const READY_AT=60,MAX_PULL=92;
+  let startY=0,dragging=false,pulling=false,refreshing=false;
+
+  function setY(px){ind.style.setProperty('--ptr-y',px+'px');}
+
+  document.addEventListener('touchstart',e=>{
+    if(refreshing)return;
+    const scr=_scCorrente?.id;
+    if(!scr||!REFRESH_SCREENS[scr])return;
+    if(window.scrollY>2)return;
+    if(e.target.closest('.cost-wrap,#mapFsSvgWrap,.mapwrap,.shovr.on'))return;
+    startY=e.touches[0].clientY;
+    dragging=true;pulling=false;
+    ind.style.transition='none';
+  },{passive:true});
+
+  document.addEventListener('touchmove',e=>{
+    if(!dragging||refreshing)return;
+    const dy=e.touches[0].clientY-startY;
+    if(dy<=0||window.scrollY>2){
+      if(pulling){pulling=false;ind.classList.remove('show','ready');setY(-60);}
+      return;
+    }
+    pulling=true;
+    const dist=Math.min(dy*0.5,MAX_PULL);
+    setY(dist-60);
+    ind.classList.add('show');
+    const ready=dist>=READY_AT;
+    ind.classList.toggle('ready',ready);
+    txt.textContent=ready?'Rilascia per aggiornare':'Tira per aggiornare';
+  },{passive:true});
+
+  document.addEventListener('touchend',async()=>{
+    if(!dragging)return;
+    dragging=false;
+    ind.style.transition='';
+    if(!pulling){setY(-60);ind.classList.remove('show','ready');return;}
+    const wasReady=ind.classList.contains('ready');
+    pulling=false;
+    if(!wasReady){setY(-60);ind.classList.remove('show','ready');return;}
+    refreshing=true;
+    tap('medium');
+    ind.classList.add('spin');
+    txt.textContent='Aggiornamento…';
+    setY(14);
+    const scr=_scCorrente?.id;
+    try{ if(REFRESH_SCREENS[scr])await REFRESH_SCREENS[scr](); }
+    catch(err){console.error('pull-to-refresh',err);}
+    setTimeout(()=>{
+      ind.classList.remove('show','spin','ready');
+      setY(-60);
+      refreshing=false;
+    },350);
+  },{passive:true});
+})();
 function applyDark(on){
   document.body.classList.toggle('dark',on);
   const pill=document.getElementById('darkpill');
@@ -1716,6 +1838,52 @@ function setTipoRicerca(t){
   const inp=document.getElementById('it');
   if(inp)inp.placeholder=t==='autore'?'Cerca un autore…':'Cerca un titolo…';
 }
+
+/* ── CRONOLOGIA RICERCHE RECENTI ─────────────────────────────────────────
+   Tenuta in localStorage (nessuna dipendenza dal backend): le ultime 8
+   ricerche distinte (per testo+tipo), più recente in cima. Il dropdown si
+   apre quando l'utente mette a fuoco la searchbar vuota, sullo stesso
+   pattern visivo dell'autocomplete biblioteche (.dd/.ddi). */
+const RICERCHE_RECENTI_KEY='rbbc_ricerche_recenti';
+function getRicercheRecenti(){
+  try{return JSON.parse(localStorage.getItem(RICERCHE_RECENTI_KEY)||'[]');}catch{return[];}
+}
+function salvaRicercaRecente(q,tipo){
+  if(!q)return;
+  let lista=getRicercheRecenti().filter(r=>!(norm(r.q)===norm(q)&&r.tipo===tipo));
+  lista.unshift({q,tipo});
+  lista=lista.slice(0,8);
+  try{localStorage.setItem(RICERCHE_RECENTI_KEY,JSON.stringify(lista));}catch{}
+}
+function renderRicercheRecenti(){
+  const dd=document.getElementById('ddrecenti');if(!dd)return;
+  const lista=getRicercheRecenti();
+  if(!lista.length){dd.classList.remove('on');return;}
+  dd.innerHTML=`<div class="dd-hd">Ricerche recenti</div>`+lista.map((r,i)=>
+    `<div class="ddi" data-i="${i}">${r.tipo==='autore'?'✍️':'📖'}&nbsp; ${escHtml(r.q)}</div>`
+  ).join('');
+  dd.querySelectorAll('.ddi[data-i]').forEach(el=>{
+    el.addEventListener('mousedown',e=>{
+      e.preventDefault();
+      const r=lista[parseInt(el.dataset.i)];
+      if(!r)return;
+      document.getElementById('it').value=r.q;
+      setTipoRicerca(r.tipo||'titolo');
+      dd.classList.remove('on');
+      cerca();
+    });
+  });
+  dd.classList.add('on');
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const inp=document.getElementById('it'),dd=document.getElementById('ddrecenti');
+  if(!inp||!dd)return;
+  inp.addEventListener('focus',()=>{if(!inp.value.trim())renderRicercheRecenti();});
+  inp.addEventListener('input',()=>{dd.classList.remove('on');});
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('#ddrecenti')&&!e.target.closest('#it'))dd.classList.remove('on');
+  });
+});
 
 /* ── RETI BIBLIOTECARIE ──────────────────────────────────────────────────
    RBBC resta con l'elenco biblioteche statico qui sotto (BIBS): è già
@@ -2543,7 +2711,7 @@ async function togLetto(btn,libro){
       G.letti.delete(url);G.lettiData=G.lettiData.filter(l=>l.url_opac!==url);
       btn.textContent='○ Segna come letto';btn.classList.remove('on');
     }
-    renderCostellazioni();renderPantheon();
+    renderCostellazioni();renderPantheon();renderHeatmapLetture();
   }catch(e){console.error('togLetto',e);}
 }
 function apriLegenda(){
@@ -2582,7 +2750,9 @@ async function aggiungiLetturaManuale(){
     await caricaSalv();
     document.getElementById('mlt').value='';document.getElementById('mla').value='';
     chiudiSh('shlett');
-    renderCostellazioni();renderPantheon();
+    window._mlLett=G.lettiData;
+    renderCostellazioni();renderPantheon();renderHeatmapLetture();
+    if(document.getElementById('p-mialib'))renderLibriProf(G.lettiData,window._mlTutti||false);
     if(a)fetchNazioneWikidata(a).then(()=>renderPantheon());
   }catch(e){err.textContent=e.message;err.style.display='block';}
 }
@@ -2764,9 +2934,22 @@ function verificaBadgeDiario(){
   if(n>=50)unlockAndCeremony('diario_fedele');
 }
 
+/* Ordinamento predefinito dei risultati: "disponibili prima". Preferenza
+   persistita in localStorage, applicata come sort stabile (non tocca
+   l'ordine reciproco tra elementi con la stessa disponibilità). */
+let _ordinaDisponibili=true;
+(function(){try{const s=localStorage.getItem('rbbc_ordina_disp');if(s!==null)_ordinaDisponibili=s==='1';}catch{}})();
+function toggleOrdinamento(){
+  tap('light');
+  _ordinaDisponibili=!_ordinaDisponibili;
+  try{localStorage.setItem('rbbc_ordina_disp',_ordinaDisponibili?'1':'0');}catch{}
+  if(window._ultimiRisultati)renderRis(window._ultimiRisultati);
+}
 function renderRis(data){
-  const{query,biblioteca,risultati}=data;
-  if(!risultati?.length){main.innerHTML=`<div class="vuoto"><svg class="vuoto-ill" width="160" height="130" viewBox="0 0 160 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+  window._ultimiRisultati=data;
+  const{query,biblioteca}=data;
+  let risultati=data.risultati||[];
+  if(!risultati.length){main.innerHTML=`<div class="vuoto"><svg class="vuoto-ill" width="160" height="130" viewBox="0 0 160 130" fill="none" xmlns="http://www.w3.org/2000/svg">
   <ellipse cx="80" cy="108" rx="62" ry="18" fill="#0f2210" opacity=".3"/>
   <!-- libro chiuso -->
   <rect x="38" y="30" width="84" height="75" rx="3" fill="#1b3d1e"/>
@@ -2788,8 +2971,9 @@ function renderRis(data){
   <circle cx="140" cy="38" r="1" fill="#c8a44a" opacity=".25"/>
   <circle cx="30" cy="90" r="1" fill="#c8a44a" opacity=".2"/>
 </svg><h2>Nessun risultato</h2><p>Nessun libro per <em>"${query}"</em>.</p></div>`;return;}
+  if(_ordinaDisponibili)risultati=[...risultati].sort((a,b)=>(b.disponibile?1:0)-(a.disponibile?1:0));
   const nB=risultati.filter(r=>r.copie_rezzato?.length).length;
-  let h=`<div class="iq"><h2>«<strong>${query}</strong>»</h2><span class="bdg">${nB}/${risultati.length} a ${biblioteca}</span></div>`;
+  let h=`<div class="iq" style="align-items:center"><h2>«<strong>${query}</strong>»</h2><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span class="bdg">${nB}/${risultati.length} a ${biblioteca}</span><button type="button" class="ordina-btn" onclick="toggleOrdinamento()" title="Cambia ordinamento risultati">${_ordinaDisponibili?'✓ Disponibili prima':'↕ Ordine catalogo'}</button></div></div>`;
   risultati.forEach((lib,i)=>{
     const cl=stC(lib.copie_rezzato),au=lib.autore&&lib.autore!=='—'?lib.autore:'';
     const lt=G.u?`<button class="bsalv bletto${G.letti.has(lib.url)?' on':''}" data-i="${i}">${G.letti.has(lib.url)?'✓ Letto':'○ Segna come letto'}</button>`:'';
@@ -2817,6 +3001,7 @@ async function cerca(){
     if(!r.ok)throw new Error(`Errore ${r.status}`);
     const data=await r.json();
     renderRis(data);
+    salvaRicercaRecente(q,_tipoRicerca);
     // Badge: prima ricerca
     if(G.u&&data.risultati?.length)unlockAndCeremony('prima_ricerca');
     // Badge: alexandrino (50 ricerche) — controlla storico
@@ -5113,7 +5298,7 @@ async function segnaLettoDaWishlist(urlEnc){
     window._mlLett=G.lettiData;
     renderWishlistProf(window._wlList,window._wlTutti||false);
     renderLibriProf(window._mlLett,window._mlTutti||false);
-    renderObiettivo();renderCostellazioni();renderPantheon();
+    renderObiettivo();renderCostellazioni();renderPantheon();renderHeatmapLetture();
     if(libro.autore)fetchNazioneWikidata(libro.autore).then(()=>renderPantheon());
   }catch(e){console.error('segnaLettoDaWishlist',e);}
 }
@@ -5206,6 +5391,86 @@ function aggiornaUIProf(){
   const pbi=document.getElementById('pbi');if(pbi)pbi.value=G.bib||'';
   aggiornaSottotitoloRete();
 }
+/* ── HEATMAP DELLE LETTURE ───────────────────────────────────────────────
+   Griglia stile "contribuzioni GitHub": una casella per giorno dell'anno
+   corrente, colorata in base a quanti libri sono stati segnati come letti
+   in quel giorno (letto_il). Nessuna chiamata di rete: usa G.lettiData già
+   caricato. Allineata a settimane complete (da domenica a sabato) come da
+   convenzione di questo tipo di visualizzazione. */
+function renderHeatmapLetture(){
+  const cont=document.getElementById('heatmapLetture');
+  if(!cont)return;
+  if(!G.lettiData?.length){
+    cont.innerHTML='<p class="maphint" style="padding:4px 0">Nessuna lettura registrata ancora.</p>';
+    return;
+  }
+  const anno=new Date().getFullYear();
+  const inizio=new Date(anno,0,1),fine=new Date(anno,11,31);
+
+  const conteggio={};
+  G.lettiData.forEach(l=>{
+    if(!l.letto_il)return;
+    const d=new Date(l.letto_il);
+    if(isNaN(d)||d.getFullYear()!==anno)return;
+    const key=d.toISOString().slice(0,10);
+    conteggio[key]=(conteggio[key]||0)+1;
+  });
+  const totAnno=Object.values(conteggio).reduce((a,b)=>a+b,0);
+  if(!totAnno){
+    cont.innerHTML=`<p class="maphint" style="padding:4px 0">Nessuna lettura registrata nel ${anno} finora.</p>`;
+    return;
+  }
+  const max=Math.max(1,...Object.values(conteggio));
+
+  const startGrid=new Date(inizio);startGrid.setDate(startGrid.getDate()-startGrid.getDay());
+  const endGrid=new Date(fine);endGrid.setDate(endGrid.getDate()+(6-endGrid.getDay()));
+
+  const settimane=[];
+  let cur=new Date(startGrid);
+  while(cur<=endGrid){
+    const sett=[];
+    for(let i=0;i<7;i++){sett.push(new Date(cur));cur.setDate(cur.getDate()+1);}
+    settimane.push(sett);
+  }
+
+  const mesiLbl=['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+  let lastMonth=-1,monthsHtml='';
+  settimane.forEach((sett,wi)=>{
+    const primo=sett.find(d=>d.getFullYear()===anno)||sett[0];
+    const mese=primo.getMonth();
+    if(mese!==lastMonth&&primo.getDate()<=7){
+      monthsHtml+=`<div class="heat-mese" style="grid-column:${wi+1}">${mesiLbl[mese]}</div>`;
+      lastMonth=mese;
+    }
+  });
+
+  let cellsHtml='';
+  settimane.forEach((sett,wi)=>{
+    sett.forEach((giorno,gi)=>{
+      const inAnno=giorno.getFullYear()===anno;
+      const key=giorno.toISOString().slice(0,10);
+      const n=conteggio[key]||0;
+      let level=0;
+      if(inAnno&&n>0){
+        const pct=n/max;
+        level=pct>=.75?4:pct>=.5?3:pct>=.25?2:1;
+      }
+      const titolo=inAnno?`${giorno.toLocaleDateString('it-IT',{day:'numeric',month:'long'})}: ${n} libr${n===1?'o':'i'} lett${n===1?'o':'i'}`:'';
+      cellsHtml+=`<div class="heat-cell${inAnno?'':' vuota'} lv${level}" style="grid-column:${wi+1};grid-row:${gi+1}" title="${titolo}"></div>`;
+    });
+  });
+
+  cont.innerHTML=`
+    <div class="heat-scroll">
+      <div class="heat-months" style="grid-template-columns:repeat(${settimane.length},11px)">${monthsHtml}</div>
+      <div class="heat-grid" style="grid-template-columns:repeat(${settimane.length},11px);grid-template-rows:repeat(7,11px)">${cellsHtml}</div>
+    </div>
+    <div class="heat-legenda">
+      <span>${totAnno} libr${totAnno===1?'o letto':'i letti'} nel ${anno}</span>
+      <span class="heat-scala">Meno <span class="heat-cell lv0"></span><span class="heat-cell lv1"></span><span class="heat-cell lv2"></span><span class="heat-cell lv3"></span><span class="heat-cell lv4"></span> Più</span>
+    </div>`;
+}
+
 async function caricaProf(){
   if(!G.u)return;aggiornaUIProf();renderObiettivo();
   try{
@@ -5217,6 +5482,7 @@ async function caricaProf(){
     window._mlLett=lett;
     if(lett.length)renderLibriProf(lett,false);
     else ml.innerHTML='<div class="vp">Nessun libro segnato come letto.</div>';
+    renderHeatmapLetture();
 
     const rw=await fetch('/api/salvati');
     const wish=await rw.json();
@@ -5234,8 +5500,10 @@ async function toglLettoProf(urlEnc,btn){
   await fetch(`/api/letti/${urlEnc}`,{method:'DELETE'});
   const url=decodeURIComponent(urlEnc);
   G.letti.delete(url);G.lettiData=G.lettiData.filter(l=>l.url_opac!==url);
+  window._mlLett=G.lettiData;
   btn.closest('.wi').remove();
   await caricaSalv();
+  renderHeatmapLetture();
 }
 async function salvaProfilo(){
   const nome=document.getElementById('pni').value.trim();if(!nome)return;
