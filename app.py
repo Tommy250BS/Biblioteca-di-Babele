@@ -6,6 +6,9 @@ Auth: bcrypt + flask-login, cookie di sessione firmato
 """
 
 import subprocess, re, os, time, unicodedata, tempfile, concurrent.futures
+import secrets, smtplib
+from email.mime.text import MIMEText
+from datetime import datetime, timedelta
 from urllib.parse import quote_plus
 from flask import Flask, request, jsonify, g, session
 from flask_cors import CORS
@@ -18,6 +21,57 @@ app.secret_key = os.environ.get("SECRET_KEY", "cambia-questa-chiave-in-produzion
 CORS(app, supports_credentials=True)
 
 BASE_URL    = "https://opac.provincia.brescia.it"  # mantenuto per compatibilità: coincide con RETI['rbbc']['base_url']
+
+# ── EMAIL (reset password) ──────────────────────────────────────────────
+# Credenziali SMTP lette da variabili d'ambiente: l'app non deve mai
+# contenere la password della casella nel codice sorgente. EMAIL_MITTENTE
+# è l'indirizzo che appare come "From" ed è anche quello a cui gli utenti
+# scrivono per assistenza (vedi sheet "Contattaci" in index.html).
+EMAIL_MITTENTE   = os.environ.get("EMAIL_MITTENTE", "biblioteca.babele25@gmail.com")
+SMTP_HOST        = os.environ.get("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT        = int(os.environ.get("SMTP_PORT", "587"))
+SMTP_USER        = os.environ.get("SMTP_USER", EMAIL_MITTENTE)
+SMTP_PASSWORD    = os.environ.get("SMTP_PASSWORD", "")  # App Password Gmail, non la password dell'account
+FRONTEND_URL     = os.environ.get("FRONTEND_URL", "https://babele.example.com")  # base per il link nel'email
+RESET_TOKEN_TTL_MIN = 30  # validità del link di reset, in minuti
+
+def invia_email_reset(destinatario, nome, token):
+    """Invia l'email con il link di reset password. Se le credenziali SMTP
+    non sono configurate (es. in sviluppo locale), logga il link invece di
+    fallire silenziosamente: utile per testare il flusso senza una vera
+    casella email."""
+    link = f"{FRONTEND_URL}/?reset={token}"
+    corpo = (
+        f"Ciao {nome},\n\n"
+        f"Hai richiesto di reimpostare la password del tuo account su "
+        f"La Biblioteca di Babele. Clicca sul link qui sotto per sceglierne "
+        f"una nuova (valido per {RESET_TOKEN_TTL_MIN} minuti):\n\n"
+        f"{link}\n\n"
+        f"Se non hai richiesto tu il reset, ignora pure questa email: la tua "
+        f"password attuale resta invariata.\n\n"
+        f"— La Biblioteca di Babele\n"
+        f"{EMAIL_MITTENTE}"
+    )
+    msg = MIMEText(corpo, "plain", "utf-8")
+    msg["Subject"] = "Reimposta la tua password — La Biblioteca di Babele"
+    msg["From"]    = EMAIL_MITTENTE
+    msg["To"]      = destinatario
+
+    if not SMTP_PASSWORD:
+        app.logger.warning(
+            "invia_email_reset: SMTP_PASSWORD non configurata, email NON inviata. "
+            "Link di reset (solo per debug/sviluppo): %s", link
+        )
+        return False
+    try:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10) as server:
+            server.starttls()
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            server.sendmail(EMAIL_MITTENTE, [destinatario], msg.as_string())
+        return True
+    except Exception:
+        app.logger.exception("invia_email_reset: errore nell'invio a %s", destinatario)
+        return False
 
 # ── RETI BIBLIOTECARIE ────────────────────────────────────────────────────
 # Tutte e quattro girano sullo stesso software OPAC (DiscoveryNG), quindi lo
@@ -287,6 +341,9 @@ def init_db():
             cur.execute("""
                 ALTER TABLE ricerche ADD COLUMN IF NOT EXISTS rete VARCHAR(32) NOT NULL DEFAULT 'rbbc';
             """)
+            cur.execute("""
+                ALTER TABLE ricerche ADD COLUMN IF NOT EXISTS tipo VARCHAR(16) NOT NULL DEFAULT 'titolo';
+            """)
 
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS salvati (
@@ -350,6 +407,19 @@ def init_db():
                     badge_id VARCHAR(64) NOT NULL,
                     sbloccato_il TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     UNIQUE (utente_id, badge_id)
+                );
+            """)
+
+            # Reset password: token monouso con scadenza, generati da
+            # /api/auth/password-dimenticata e consumati da /api/auth/reset-password.
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS reset_password (
+                    id SERIAL PRIMARY KEY,
+                    utente_id INTEGER NOT NULL REFERENCES utenti(id),
+                    token VARCHAR(64) UNIQUE NOT NULL,
+                    creato_il TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    scade_il TIMESTAMP NOT NULL,
+                    usato BOOLEAN NOT NULL DEFAULT FALSE
                 );
             """)
 
@@ -476,6 +546,38 @@ def cerca_titolo(titolo, base_url=BASE_URL, rows=10, rete_debug=None, catalog_co
             rete_debug, url, len(html), catalog_code,
             "presente" if idx != -1 else "ASSENTE",
             contesto
+        )
+    return [{"titolo": tit, "url": f"{base_url}/opac/detail/view/{catalog_code}:catalog:{num}"}
+            for num, tit in list(visti.items())[:rows]]
+
+def cerca_autore(autore, base_url=BASE_URL, rows=10, rete_debug=None, catalog_code="test"):
+    """Cerca per autore usando il parametro solr= di DiscoveryNG (Comperio).
+    q= esegue full-text search (titolo/subject) e NON cerca per autore: per
+    l'autore serve interrogare direttamente i campi Solr fldin_txt_author_main
+    / fldin_txt_author, equivalente al campo 'autha' della ricerca avanzata DNG."""
+    solr_query = f'fldin_txt_author_main:"{autore}"^1000 OR fldin_txt_author:"{autore}"^10'
+    url = f"{base_url}/opac/search?solr={quote_plus(solr_query)}&rows={rows}"
+    html = curl_get(url)
+    if not html:
+        if rete_debug:
+            app.logger.warning("cerca_autore(%s): nessuna risposta da %s", rete_debug, url)
+        return []
+    pattern = (r'href="opac/detail/view/' + re.escape(catalog_code)
+               + r':catalog:(\d+)"[^>]{0,300}?title="([^"]{5,200})"')
+    visti = {}
+    for num, raw in re.findall(pattern, html):
+        if num not in visti:
+            t = strip_tags(raw)
+            if t and not t.lower().startswith("vai a"):
+                visti[num] = t
+    if not visti and rete_debug:
+        idx = html.find("detail/view")
+        contesto = html[max(0, idx - 100):idx + 150] if idx != -1 else None
+        app.logger.warning(
+            "cerca_autore(%s): risposta da %s (%d caratteri), 0 risultati con catalog_code=%r — "
+            "'detail/view' %s, contesto: %r",
+            rete_debug, url, len(html), catalog_code,
+            "presente" if idx != -1 else "ASSENTE", contesto
         )
     return [{"titolo": tit, "url": f"{base_url}/opac/detail/view/{catalog_code}:catalog:{num}"}
             for num, tit in list(visti.items())[:rows]]
@@ -727,6 +829,68 @@ def cambia_password():
     db.commit()
     return jsonify({"ok": True})
 
+@app.route("/api/auth/password-dimenticata", methods=["POST"])
+def password_dimenticata():
+    """Genera un token di reset monouso e invia il link via email.
+    Risponde sempre 200 con lo stesso messaggio generico, anche se l'email
+    non esiste: altrimenti l'endpoint diventerebbe un modo per scoprire
+    quali email sono registrate (user enumeration)."""
+    d = request.get_json() or {}
+    email = (d.get("email") or "").strip().lower()
+    msg_generico = {"ok": True, "message": "Se l'indirizzo è registrato, riceverai a breve un'email con le istruzioni."}
+    if not email:
+        return jsonify({"error": "Inserisci un'email"}), 400
+
+    db = get_db()
+    u = db.execute("SELECT * FROM utenti WHERE email=%s", (email,)).fetchone()
+    if not u:
+        return jsonify(msg_generico)
+
+    token = secrets.token_urlsafe(32)
+    scade_il = datetime.utcnow() + timedelta(minutes=RESET_TOKEN_TTL_MIN)
+    db.execute(
+        "INSERT INTO reset_password (utente_id, token, scade_il) VALUES (%s, %s, %s)",
+        (u["id"], token, scade_il)
+    )
+    db.commit()
+
+    inviata = invia_email_reset(u["email"], u["nome"], token)
+    if not inviata:
+        app.logger.warning("password_dimenticata: invio email fallito per utente_id=%s", u["id"])
+
+    return jsonify(msg_generico)
+
+@app.route("/api/auth/reset-password", methods=["POST"])
+def reset_password():
+    """Consuma un token di reset e imposta la nuova password. Il token è
+    monouso (usato=TRUE dopo il consumo) e scade dopo RESET_TOKEN_TTL_MIN
+    minuti dalla generazione."""
+    d = request.get_json() or {}
+    token = (d.get("token") or "").strip()
+    nuova_password = d.get("nuova_password") or ""
+
+    if not token or not nuova_password:
+        return jsonify({"error": "Dati mancanti"}), 400
+    if len(nuova_password) < 6:
+        return jsonify({"error": "La nuova password deve avere almeno 6 caratteri"}), 400
+
+    db = get_db()
+    row = db.execute(
+        "SELECT * FROM reset_password WHERE token=%s", (token,)
+    ).fetchone()
+    if not row:
+        return jsonify({"error": "Link non valido."}), 400
+    if row["usato"]:
+        return jsonify({"error": "Questo link è già stato utilizzato."}), 400
+    if row["scade_il"] < datetime.utcnow():
+        return jsonify({"error": "Il link è scaduto. Richiedine uno nuovo."}), 400
+
+    pw_hash = bcrypt.hashpw(nuova_password.encode(), bcrypt.gensalt()).decode()
+    db.execute("UPDATE utenti SET password=%s WHERE id=%s", (pw_hash, row["utente_id"]))
+    db.execute("UPDATE reset_password SET usato=TRUE WHERE id=%s", (row["id"],))
+    db.commit()
+    return jsonify({"ok": True})
+
 @app.route("/api/obiettivo", methods=["POST"])
 @login_richiesto
 def imposta_obiettivo():
@@ -750,13 +914,17 @@ def api_search():
     q          = request.args.get("q", "").strip()
     biblioteca = request.args.get("biblioteca", "").strip()
     rete       = rete_valida(request.args.get("rete", "").strip())
+    tipo       = request.args.get("tipo", "titolo").strip().lower()
+    if tipo not in ("titolo", "autore"):
+        tipo = "titolo"
     base_url   = RETI[rete]["base_url"]
     if not q or not biblioteca:
         return jsonify({"error": "Parametri mancanti"}), 400
 
     try:
-        risultati_base = cerca_titolo(q, base_url, rows=10, rete_debug=rete,
-                                       catalog_code=RETI[rete].get("catalog_code", "test"))
+        cerca_fn = cerca_autore if tipo == "autore" else cerca_titolo
+        risultati_base = cerca_fn(q, base_url, rows=10, rete_debug=rete,
+                                   catalog_code=RETI[rete].get("catalog_code", "test"))
         max_risultati = 10
         candidati = risultati_base[:max_risultati]
 
@@ -805,8 +973,8 @@ def api_search():
         if u and output:
             a_bib = sum(1 for r in output if r["copie_rezzato"])
             get_db().execute(
-                "INSERT INTO ricerche (utente_id,query,biblioteca,rete,trovati,a_bib) VALUES (%s,%s,%s,%s,%s,%s)",
-                (u["id"], q, biblioteca, rete, len(output), a_bib))
+                "INSERT INTO ricerche (utente_id,query,biblioteca,rete,tipo,trovati,a_bib) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+                (u["id"], q, biblioteca, rete, tipo, len(output), a_bib))
             get_db().commit()
 
         return jsonify({"query": q, "biblioteca": biblioteca, "rete": rete, "risultati": output})
