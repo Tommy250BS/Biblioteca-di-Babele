@@ -977,7 +977,7 @@ def api_search():
                 (u["id"], q, biblioteca, rete, tipo, len(output), a_bib))
             get_db().commit()
 
-        return jsonify({"query": q, "biblioteca": biblioteca, "rete": rete, "risultati": output})
+        return jsonify({"query": q, "biblioteca": biblioteca, "rete": rete, "tipo": tipo, "risultati": output})
 
     except Exception as e:
         # Log completo lato server (visibile nei log del processo/host) +
