@@ -172,8 +172,6 @@ body{font-family:'Inter',sans-serif;background:var(--av);color:var(--ink);min-he
 .hsearch input{flex:1;padding:10px 15px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.07);border-radius:10px;font-family:'Inter',sans-serif;font-size:.88rem;color:#fff;outline:none;transition:background .25s,border-color .25s,box-shadow .25s}
 .hsearch input:focus{background:rgba(255,255,255,.11);border-color:rgba(200,164,74,.4);box-shadow:0 0 0 3px rgba(200,164,74,.08)}
 .hsearch input::placeholder{color:rgba(255,255,255,.2)}
-.tipo-ric-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.45);font-size:.68rem;font-weight:700;letter-spacing:.04em;padding:6px 16px;border-radius:20px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .18s}
-.tipo-ric-btn.on{background:var(--oro-s);border-color:rgba(200,164,74,.4);color:var(--oro-2)}
 .bchip{display:inline-flex;align-items:center;gap:5px;background:rgba(200,164,74,.08);border:1px solid rgba(200,164,74,.18);border-radius:20px;padding:5px 12px 5px 8px;font-size:.62rem;color:var(--oro);font-weight:700;letter-spacing:.05em;cursor:pointer;flex-shrink:0;transition:background .2s,border-color .2s,transform .15s var(--ease-spring)}
 .bchip:active{background:rgba(200,164,74,.16);transform:scale(.95)}
 .bchip-dot{width:5px;height:5px;border-radius:50%;background:var(--oro);box-shadow:0 0 4px rgba(200,164,74,.6);animation:pulseRing 2s ease infinite}
@@ -1185,10 +1183,6 @@ body.dark .mem-mood-chip.sel{border-color:var(--oro);background:rgba(200,164,74,
       </div>
       <button class="bsm bsmp" id="bcerca" onclick="cerca()">Cerca</button>
     </div>
-    <div style="display:flex;gap:8px;padding:0 16px 13px">
-      <button type="button" class="tipo-ric-btn on" id="tipoRicTitolo" onclick="setTipoRicerca('titolo')">Titolo</button>
-      <button type="button" class="tipo-ric-btn" id="tipoRicAutore" onclick="setTipoRicerca('autore')">Autore</button>
-    </div>
   </header>
   <div class="pm" id="main">
     <div class="vuoto">
@@ -1747,7 +1741,6 @@ body.dark .mem-mood-chip.sel{border-color:var(--oro);background:rgba(200,164,74,
       const last=window._ultimiRisultati;
       if(!last)return;
       document.getElementById('it').value=last.query;
-      if(last.tipo)setTipoRicerca(last.tipo);
       await cerca();
     },
     sprof: async()=>{ if(G.u)await caricaProf(); },
@@ -1825,33 +1818,19 @@ function toggleDark(){applyDark(!document.body.classList.contains('dark'));}
 
 let G={u:null,bib:'',rete:'rbbc',letti:new Set(),lettiData:[],salvati:new Set(),salvatiData:[],diario:[]};
 
-/* Toggle ricerca per Titolo/Autore in Alexandria. 'titolo' resta il default
-   (comportamento storico), 'autore' passa tipo=autore a /api/search, che
-   lato server usa cerca_autore() invece di cerca_titolo(). */
-let _tipoRicerca='titolo';
-function setTipoRicerca(t){
-  if(t===_tipoRicerca)return;
-  tap('light');
-  _tipoRicerca=t;
-  document.getElementById('tipoRicTitolo').classList.toggle('on',t==='titolo');
-  document.getElementById('tipoRicAutore').classList.toggle('on',t==='autore');
-  const inp=document.getElementById('it');
-  if(inp)inp.placeholder=t==='autore'?'Cerca un autore…':'Cerca un titolo…';
-}
-
 /* ── CRONOLOGIA RICERCHE RECENTI ─────────────────────────────────────────
    Tenuta in localStorage (nessuna dipendenza dal backend): le ultime 8
-   ricerche distinte (per testo+tipo), più recente in cima. Il dropdown si
-   apre quando l'utente mette a fuoco la searchbar vuota, sullo stesso
-   pattern visivo dell'autocomplete biblioteche (.dd/.ddi). */
+   ricerche distinte per testo, più recente in cima. Il dropdown si apre
+   quando l'utente mette a fuoco la searchbar vuota, sullo stesso pattern
+   visivo dell'autocomplete biblioteche (.dd/.ddi). */
 const RICERCHE_RECENTI_KEY='rbbc_ricerche_recenti';
 function getRicercheRecenti(){
   try{return JSON.parse(localStorage.getItem(RICERCHE_RECENTI_KEY)||'[]');}catch{return[];}
 }
-function salvaRicercaRecente(q,tipo){
+function salvaRicercaRecente(q){
   if(!q)return;
-  let lista=getRicercheRecenti().filter(r=>!(norm(r.q)===norm(q)&&r.tipo===tipo));
-  lista.unshift({q,tipo});
+  let lista=getRicercheRecenti().filter(r=>norm(r.q)!==norm(q));
+  lista.unshift({q});
   lista=lista.slice(0,8);
   try{localStorage.setItem(RICERCHE_RECENTI_KEY,JSON.stringify(lista));}catch{}
 }
@@ -1860,7 +1839,7 @@ function renderRicercheRecenti(){
   const lista=getRicercheRecenti();
   if(!lista.length){dd.classList.remove('on');return;}
   dd.innerHTML=`<div class="dd-hd">Ricerche recenti</div>`+lista.map((r,i)=>
-    `<div class="ddi" data-i="${i}">${r.tipo==='autore'?'✍️':'📖'}&nbsp; ${escHtml(r.q)}</div>`
+    `<div class="ddi" data-i="${i}">📖&nbsp; ${escHtml(r.q)}</div>`
   ).join('');
   dd.querySelectorAll('.ddi[data-i]').forEach(el=>{
     el.addEventListener('mousedown',e=>{
@@ -1868,7 +1847,6 @@ function renderRicercheRecenti(){
       const r=lista[parseInt(el.dataset.i)];
       if(!r)return;
       document.getElementById('it').value=r.q;
-      setTipoRicerca(r.tipo||'titolo');
       dd.classList.remove('on');
       cerca();
     });
@@ -2997,11 +2975,11 @@ async function cerca(){
   const bc=document.getElementById('bcerca');bc.disabled=true;bc.textContent='…';
   try{
     if(G.u){await caricaSalv();await caricaSalvatiWishlist();}
-    const r=await fetch(`/api/search?q=${encodeURIComponent(q)}&biblioteca=${encodeURIComponent(G.bib)}&rete=${encodeURIComponent(G.rete||'rbbc')}&tipo=${encodeURIComponent(_tipoRicerca)}`);
+    const r=await fetch(`/api/search?q=${encodeURIComponent(q)}&biblioteca=${encodeURIComponent(G.bib)}&rete=${encodeURIComponent(G.rete||'rbbc')}`);
     if(!r.ok)throw new Error(`Errore ${r.status}`);
     const data=await r.json();
     renderRis(data);
-    salvaRicercaRecente(q,_tipoRicerca);
+    salvaRicercaRecente(q);
     // Badge: prima ricerca
     if(G.u&&data.risultati?.length)unlockAndCeremony('prima_ricerca');
     // Badge: alexandrino (50 ricerche) — controlla storico
