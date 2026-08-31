@@ -215,6 +215,7 @@ body{font-family:'Inter',sans-serif;background:var(--av);color:var(--ink);min-he
 .ddi:hover,.ddi.hl{background:var(--bosco);color:#fff}
 .ddi em{font-style:normal;font-weight:600}
 .dde{padding:11px 14px;font-size:.83rem;color:#bbb;font-style:italic}
+.dd-hd{padding:9px 14px 5px;font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#bbb}
 
 /* STATI */
 .vuoto{text-align:center;padding:44px 16px 52px}
@@ -486,6 +487,10 @@ body.dark .morph-ov{background:#121f13}
 .iq h2{font-family:'Cormorant Garamond',serif;font-size:1.04rem;font-style:italic;color:var(--ink2)}
 .iq h2 strong{font-style:normal;font-weight:600;color:var(--ink)}
 .bdg{font-size:.63rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--bosco);color:var(--oro);padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0}
+.ordina-btn{background:none;border:1.5px solid var(--av3);border-radius:20px;color:#999;font-size:.62rem;font-weight:700;letter-spacing:.02em;padding:4px 10px;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.ordina-btn:hover{border-color:var(--bosco);color:var(--bosco)}
+body.dark .ordina-btn{border-color:var(--av3);color:var(--ink3)}
+body.dark .ordina-btn:hover{border-color:var(--oro);color:var(--oro-2)}
 
 /* CARD LIBRO */
 .card{background:#fff;border-radius:0 var(--r) var(--r) 0;margin-bottom:10px;box-shadow:var(--sh-s);overflow:hidden;border-left:3px solid var(--av3);animation:up .28s var(--ease-out-expo) both;transition:box-shadow .25s,transform .2s var(--ease-spring)}
@@ -881,6 +886,22 @@ body.dark .arm-row-sub{color:var(--ink3)}
 @keyframes badgePop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
 
 .vp{text-align:center;padding:16px;color:#bbb;font-size:.8rem;font-style:italic}
+/* HEATMAP LETTURE */
+.heat-scroll{overflow-x:auto;padding-bottom:2px}
+.heat-months{display:grid;gap:2px;margin-bottom:5px;white-space:nowrap}
+.heat-mese{font-size:.58rem;color:#bbb;font-weight:600}
+.heat-grid{display:grid;gap:2px}
+.heat-cell{width:11px;height:11px;border-radius:3px;background:var(--av3)}
+.heat-cell.vuota{background:transparent}
+.heat-cell.lv0{background:var(--av3)}
+.heat-cell.lv1{background:rgba(200,164,74,.32)}
+.heat-cell.lv2{background:rgba(200,164,74,.55)}
+.heat-cell.lv3{background:rgba(200,164,74,.78)}
+.heat-cell.lv4{background:var(--oro)}
+body.dark .heat-cell.lv0{background:#1c2e1e}
+.heat-legenda{display:flex;align-items:center;justify-content:space-between;font-size:.68rem;color:#aaa;margin-top:9px;flex-wrap:wrap;gap:8px}
+.heat-scala{display:flex;align-items:center;gap:3px}
+.heat-scala .heat-cell{width:9px;height:9px;display:inline-block}
 
 /* IMPOSTAZIONI */
 .imc{background:#fff;border-radius:var(--r);box-shadow:var(--sh-s);overflow:hidden;margin-bottom:10px}
@@ -957,6 +978,20 @@ body.dark .mem-mood-opt.sel span.mlbl{color:var(--oro-2)}
 .mem-tagrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .mem-tagchip{display:inline-flex;align-items:center;gap:5px;background:var(--bosco);color:var(--oro);font-size:.68rem;font-weight:600;padding:4px 6px 4px 11px;border-radius:20px}
 .mem-tagchip button{background:none;border:none;color:var(--oro);cursor:pointer;font-size:.8rem;line-height:1;padding:0 2px}
+
+/* PULL-TO-REFRESH */
+.ptr-indicator{position:fixed;top:0;left:50%;transform:translate(-50%,var(--ptr-y,-60px));z-index:250;background:rgba(9,18,10,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(200,164,74,.22);border-radius:20px;padding:8px 16px;display:flex;align-items:center;gap:8px;font-size:.7rem;font-weight:600;color:var(--oro-2);letter-spacing:.03em;opacity:0;transition:opacity .15s,transform .28s var(--ease-out-expo);pointer-events:none;white-space:nowrap}
+.ptr-indicator.show{opacity:1}
+.ptr-spinner{width:13px;height:13px;border-radius:50%;border:2px solid rgba(200,164,74,.25);border-top-color:var(--oro);flex-shrink:0;transition:transform .2s}
+.ptr-indicator.ready .ptr-spinner{transform:rotate(180deg)}
+.ptr-indicator.spin .ptr-spinner{animation:gira .7s linear infinite;transform:none}
+.mem-filtri{margin-bottom:16px}
+.mem-mood-filtro{display:flex;flex-wrap:wrap;gap:7px}
+.mem-mood-chip{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1.5px solid var(--av3);border-radius:20px;padding:5px 12px 5px 9px;font-size:.72rem;font-weight:600;color:#999;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.mem-mood-chip.sel{border-color:var(--oro);background:var(--oro-s);color:var(--bosco)}
+body.dark .mem-mood-chip{background:#121f13;border-color:var(--av3);color:var(--ink3)}
+body.dark .mem-mood-chip.sel{border-color:var(--oro);background:rgba(200,164,74,.14);color:var(--oro-2)}
+.mem-filtro-vuoto{text-align:center;padding:24px 16px;color:#aaa;font-size:.82rem;font-style:italic}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
@@ -1047,7 +1082,8 @@ body.dark .mem-mood-opt.sel span.mlbl{color:var(--oro-2)}
       <div class="fi"><label>Email</label><input type="email" id="le" placeholder="la@tua.email" autocomplete="email"></div>
       <div class="fi"><label>Password</label><input type="password" id="lp" placeholder="••••••" autocomplete="current-password"></div>
       <button class="bp" onclick="doLogin()">Accedi</button>
-      <p class="asw" style="margin-top:14px">Non hai un account? <a onclick="vai('sa','registra')">Registrati</a></p>
+      <p class="asw" style="margin-top:10px"><a onclick="apriPasswordDimenticata()">Password dimenticata?</a></p>
+      <p class="asw" style="margin-top:6px">Non hai un account? <a onclick="vai('sa','registra')">Registrati</a></p>
       <div class="adv"><span>oppure</span></div>
       <button class="bg" style="display:block;width:100%;text-align:center" onclick="usaSenza()">Continua senza account</button>
     </div>
@@ -1141,7 +1177,10 @@ body.dark .mem-mood-opt.sel span.mlbl{color:var(--oro-2)}
       </div>
     </div>
     <div class="hsearch">
-      <input type="search" id="it" placeholder="Cerca un titolo…" autocomplete="off" autocorrect="off" enterkeyhint="search">
+      <div class="acw" style="flex:1">
+        <input type="search" id="it" placeholder="Cerca un titolo…" autocomplete="off" autocorrect="off" enterkeyhint="search">
+        <div class="dd" id="ddrecenti"></div>
+      </div>
       <button class="bsm bsmp" id="bcerca" onclick="cerca()">Cerca</button>
     </div>
   </header>
@@ -1309,6 +1348,12 @@ body.dark .mem-mood-opt.sel span.mlbl{color:var(--oro-2)}
       <p class="etd">Non solo libri: qui puoi custodire pensieri, giornate, stati d'animo. Un diario privato, tuo soltanto, per fermare ciò che altrimenti scivolerebbe via.</p>
     </div>
     <button class="bp" style="margin-bottom:20px" onclick="apriNuovaVoceDiario()">✎ Nuova voce</button>
+    <div class="mem-filtri" id="memFiltri" style="display:none">
+      <div class="fi" style="margin-bottom:10px">
+        <input type="search" id="memCercaTxt" placeholder="Cerca nel testo…" autocomplete="off" oninput="filtraDiario()">
+      </div>
+      <div class="mem-mood-filtro" id="memMoodFiltro"></div>
+    </div>
     <div id="mem-list"><div class="vp">Accedi per iniziare il tuo diario.</div></div>
   </div>
 </div>
@@ -1334,6 +1379,12 @@ body.dark .mem-mood-opt.sel span.mlbl{color:var(--oro-2)}
         </div>
         <div class="cost-prog"><div class="cost-prog-inner" id="obBarra" style="width:0%"></div></div>
         <div class="cost-prog-txt" id="obSotto" style="margin-top:7px"></div>
+      </div>
+    </div>
+    <div class="psez">
+      <div class="sh3">📅 Le tue letture</div>
+      <div class="etimo" style="border-left-color:var(--oro)">
+        <div id="heatmapLetture"><p class="maphint" style="padding:4px 0">Nessuna lettura registrata ancora.</p></div>
       </div>
     </div>
     <div class="psez">
@@ -1444,6 +1495,28 @@ body.dark .mem-mood-opt.sel span.mlbl{color:var(--oro-2)}
     <div class="fi"><label>Nuova password</label><input type="password" id="pwNew" placeholder="Almeno 6 caratteri" autocomplete="new-password"></div>
     <div class="fi"><label>Conferma nuova password</label><input type="password" id="pwNew2" placeholder="Ripeti la nuova password" autocomplete="new-password"></div>
     <div style="display:flex;gap:10px"><button class="bsm bsmp" onclick="salvaPassword()">Salva</button><button class="bsm bsmg" onclick="chiudiSh('shpassword')">Annulla</button></div>
+  </div>
+</div>
+<div class="shovr" id="shpwdim" onclick="chiudiSh('shpwdim',event)">
+  <div class="sh"><div class="shhnd"></div><div class="shtit">Password dimenticata</div>
+    <p style="font-size:.8rem;color:var(--ink3);margin-bottom:16px;line-height:1.55">Inserisci l'email con cui ti sei registrato: ti manderemo un link per scegliere una nuova password.</p>
+    <div class="aerr" id="pwdimerr"></div>
+    <div class="aerr" id="pwdimok" style="display:none;background:#f0f7f0;border-left-color:var(--bosco);color:var(--bosco)"></div>
+    <div class="fi"><label>Email</label><input type="email" id="pwdimEmail" placeholder="la@tua.email" autocomplete="email"></div>
+    <div style="display:flex;gap:10px">
+      <button class="bsm bsmp" id="pwdimBtn" onclick="inviaRichiestaReset()">Invia link</button>
+      <button class="bsm bsmg" onclick="chiudiSh('shpwdim')">Annulla</button>
+    </div>
+  </div>
+</div>
+<div class="shovr" id="shresetpw">
+  <div class="sh"><div class="shhnd"></div><div class="shtit">Scegli una nuova password</div>
+    <p style="font-size:.8rem;color:var(--ink3);margin-bottom:16px;line-height:1.55">Il link è valido per 30 minuti. Scegli una password di almeno 6 caratteri.</p>
+    <div class="aerr" id="resetpwerr"></div>
+    <div class="fi"><label>Nuova password</label><input type="password" id="resetpwNew" placeholder="Almeno 6 caratteri" autocomplete="new-password"></div>
+    <div class="fi"><label>Conferma nuova password</label><input type="password" id="resetpwNew2" placeholder="Ripeti la nuova password" autocomplete="new-password"></div>
+    <button class="bp" id="resetpwBtn" onclick="confermaResetPassword()">Salva nuova password</button>
+    <p class="asw" style="margin-top:14px"><a onclick="annullaResetPassword()">Annulla e torna al login</a></p>
   </div>
 </div>
 <div class="shovr" id="shcontatti" onclick="chiudiSh('shcontatti',event)">
@@ -1612,6 +1685,12 @@ body.dark .mem-mood-opt.sel span.mlbl{color:var(--oro-2)}
   </div>
 </div>
 
+<!-- PULL-TO-REFRESH -->
+<div class="ptr-indicator" id="ptrIndicator">
+  <div class="ptr-spinner"></div>
+  <span id="ptrTxt">Tira per aggiornare</span>
+</div>
+
 <script>
 /* SWIPE TRA TAB */
 (function(){
@@ -1644,6 +1723,84 @@ body.dark .mem-mood-opt.sel span.mlbl{color:var(--oro-2)}
     else if(dx>0&&idx>0)switchTab(TAB_ORDER[idx-1]);
   },{passive:true});
 })();
+
+/* PULL-TO-REFRESH
+   Attivo solo sulle schermate che hanno un'azione di refresh sensata:
+   Alexandria (ripete l'ultima ricerca), Profilo e Memoriae (ricaricano i
+   dati dell'utente). Il tocco deve partire da window.scrollY≈0 e fuori da
+   aree con pan/zoom proprio (galassia, mappe, sheet aperte), sullo stesso
+   principio di swipeBlocked usato sopra per il cambio scheda. Coesiste con
+   lo swipe orizzontale: qui si reagisce solo a trascinamenti verso il
+   basso, quello sopra ignora già i trascinamenti prevalentemente verticali. */
+(function(){
+  const ind=document.getElementById('ptrIndicator');
+  const txt=document.getElementById('ptrTxt');
+  if(!ind||!txt)return;
+  const REFRESH_SCREENS={
+    salex: async()=>{
+      const last=window._ultimiRisultati;
+      if(!last)return;
+      document.getElementById('it').value=last.query;
+      await cerca();
+    },
+    sprof: async()=>{ if(G.u)await caricaProf(); },
+    smem: async()=>{ if(G.u)await caricaDiario(); },
+  };
+  const READY_AT=60,MAX_PULL=92;
+  let startY=0,dragging=false,pulling=false,refreshing=false;
+
+  function setY(px){ind.style.setProperty('--ptr-y',px+'px');}
+
+  document.addEventListener('touchstart',e=>{
+    if(refreshing)return;
+    const scr=_scCorrente?.id;
+    if(!scr||!REFRESH_SCREENS[scr])return;
+    if(window.scrollY>2)return;
+    if(e.target.closest('.cost-wrap,#mapFsSvgWrap,.mapwrap,.shovr.on'))return;
+    startY=e.touches[0].clientY;
+    dragging=true;pulling=false;
+    ind.style.transition='none';
+  },{passive:true});
+
+  document.addEventListener('touchmove',e=>{
+    if(!dragging||refreshing)return;
+    const dy=e.touches[0].clientY-startY;
+    if(dy<=0||window.scrollY>2){
+      if(pulling){pulling=false;ind.classList.remove('show','ready');setY(-60);}
+      return;
+    }
+    pulling=true;
+    const dist=Math.min(dy*0.5,MAX_PULL);
+    setY(dist-60);
+    ind.classList.add('show');
+    const ready=dist>=READY_AT;
+    ind.classList.toggle('ready',ready);
+    txt.textContent=ready?'Rilascia per aggiornare':'Tira per aggiornare';
+  },{passive:true});
+
+  document.addEventListener('touchend',async()=>{
+    if(!dragging)return;
+    dragging=false;
+    ind.style.transition='';
+    if(!pulling){setY(-60);ind.classList.remove('show','ready');return;}
+    const wasReady=ind.classList.contains('ready');
+    pulling=false;
+    if(!wasReady){setY(-60);ind.classList.remove('show','ready');return;}
+    refreshing=true;
+    tap('medium');
+    ind.classList.add('spin');
+    txt.textContent='Aggiornamento…';
+    setY(14);
+    const scr=_scCorrente?.id;
+    try{ if(REFRESH_SCREENS[scr])await REFRESH_SCREENS[scr](); }
+    catch(err){console.error('pull-to-refresh',err);}
+    setTimeout(()=>{
+      ind.classList.remove('show','spin','ready');
+      setY(-60);
+      refreshing=false;
+    },350);
+  },{passive:true});
+})();
 function applyDark(on){
   document.body.classList.toggle('dark',on);
   const pill=document.getElementById('darkpill');
@@ -1660,6 +1817,51 @@ function toggleDark(){applyDark(!document.body.classList.contains('dark'));}
 
 
 let G={u:null,bib:'',rete:'rbbc',letti:new Set(),lettiData:[],salvati:new Set(),salvatiData:[],diario:[]};
+
+/* ── CRONOLOGIA RICERCHE RECENTI ─────────────────────────────────────────
+   Tenuta in localStorage (nessuna dipendenza dal backend): le ultime 8
+   ricerche distinte per testo, più recente in cima. Il dropdown si apre
+   quando l'utente mette a fuoco la searchbar vuota, sullo stesso pattern
+   visivo dell'autocomplete biblioteche (.dd/.ddi). */
+const RICERCHE_RECENTI_KEY='rbbc_ricerche_recenti';
+function getRicercheRecenti(){
+  try{return JSON.parse(localStorage.getItem(RICERCHE_RECENTI_KEY)||'[]');}catch{return[];}
+}
+function salvaRicercaRecente(q){
+  if(!q)return;
+  let lista=getRicercheRecenti().filter(r=>norm(r.q)!==norm(q));
+  lista.unshift({q});
+  lista=lista.slice(0,8);
+  try{localStorage.setItem(RICERCHE_RECENTI_KEY,JSON.stringify(lista));}catch{}
+}
+function renderRicercheRecenti(){
+  const dd=document.getElementById('ddrecenti');if(!dd)return;
+  const lista=getRicercheRecenti();
+  if(!lista.length){dd.classList.remove('on');return;}
+  dd.innerHTML=`<div class="dd-hd">Ricerche recenti</div>`+lista.map((r,i)=>
+    `<div class="ddi" data-i="${i}">📖&nbsp; ${escHtml(r.q)}</div>`
+  ).join('');
+  dd.querySelectorAll('.ddi[data-i]').forEach(el=>{
+    el.addEventListener('mousedown',e=>{
+      e.preventDefault();
+      const r=lista[parseInt(el.dataset.i)];
+      if(!r)return;
+      document.getElementById('it').value=r.q;
+      dd.classList.remove('on');
+      cerca();
+    });
+  });
+  dd.classList.add('on');
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const inp=document.getElementById('it'),dd=document.getElementById('ddrecenti');
+  if(!inp||!dd)return;
+  inp.addEventListener('focus',()=>{if(!inp.value.trim())renderRicercheRecenti();});
+  inp.addEventListener('input',()=>{dd.classList.remove('on');});
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('#ddrecenti')&&!e.target.closest('#it'))dd.classList.remove('on');
+  });
+});
 
 /* ── RETI BIBLIOTECARIE ──────────────────────────────────────────────────
    RBBC resta con l'elenco biblioteche statico qui sotto (BIBS): è già
@@ -1890,6 +2092,7 @@ costruisciScaffale();
 
 async function avvia(){
   vai('sw');
+  controllaTokenReset();
   caricaReti();
   try{const r=await fetch('/api/auth/me');const d=await r.json();
     if(d.autenticato){
@@ -2193,6 +2396,83 @@ async function doReg(){
 async function doLogout(){tap('heavy');await fetch('/api/auth/logout',{method:'POST'});G.u=null;G.bib='';_badgeCache=null;vai('sw');}
 function usaSenza(){G.u=null;vai('sbib');}
 
+/* ── PASSWORD DIMENTICATA / RESET ──────────────────────────────────────── */
+function apriPasswordDimenticata(){
+  tap('light');
+  document.getElementById('pwdimEmail').value='';
+  const err=document.getElementById('pwdimerr'),ok=document.getElementById('pwdimok');
+  err.style.display='none';ok.style.display='none';
+  apriSh('shpwdim');
+}
+async function inviaRichiestaReset(){
+  const email=document.getElementById('pwdimEmail').value.trim();
+  const err=document.getElementById('pwdimerr'),ok=document.getElementById('pwdimok');
+  err.style.display='none';ok.style.display='none';
+  if(!email){err.textContent='Inserisci la tua email.';err.style.display='block';return;}
+  tap('medium');
+  const btn=document.getElementById('pwdimBtn');btn.disabled=true;
+  try{
+    const r=await fetch('/api/auth/password-dimenticata',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+    const d=await r.json();
+    if(!r.ok){err.textContent=d.error||'Errore. Riprova.';err.style.display='block';return;}
+    ok.textContent=d.message||'Se l\'indirizzo è registrato, riceverai a breve un\'email con le istruzioni.';
+    ok.style.display='block';
+  }catch(e){err.textContent='Errore di rete. Riprova.';err.style.display='block';}
+  finally{btn.disabled=false;}
+}
+
+/* Se l'URL contiene ?reset=TOKEN (link cliccato dall'email), apre subito la
+   sheet per scegliere la nuova password. La sheet non è chiudibile toccando
+   fuori: l'utente deve completare o annullare esplicitamente il flusso. */
+function controllaTokenReset(){
+  const params=new URLSearchParams(window.location.search);
+  const token=params.get('reset');
+  if(!token)return;
+  document.getElementById('resetpwNew').value='';
+  document.getElementById('resetpwNew2').value='';
+  const err=document.getElementById('resetpwerr');err.style.display='none';
+  document.getElementById('shresetpw').dataset.token=token;
+  document.getElementById('shresetpw').classList.add('on');
+}
+function _pulisciUrlReset(){
+  const url=new URL(window.location.href);
+  url.searchParams.delete('reset');
+  window.history.replaceState({},'',url.pathname+url.search+url.hash);
+}
+function annullaResetPassword(){
+  tap('light');
+  document.getElementById('shresetpw').classList.remove('on');
+  _pulisciUrlReset();
+  vai('sw');
+}
+async function confermaResetPassword(){
+  const sheet=document.getElementById('shresetpw');
+  const token=sheet.dataset.token;
+  const n1=document.getElementById('resetpwNew').value;
+  const n2=document.getElementById('resetpwNew2').value;
+  const err=document.getElementById('resetpwerr');
+  err.style.display='none';
+  if(!n1||!n2){err.textContent='Compila entrambi i campi.';err.style.display='block';return;}
+  if(n1.length<6){err.textContent='La password deve avere almeno 6 caratteri.';err.style.display='block';return;}
+  if(n1!==n2){err.textContent='Le due password non coincidono.';err.style.display='block';return;}
+  tap('medium');
+  const btn=document.getElementById('resetpwBtn');btn.disabled=true;
+  try{
+    const r=await fetch('/api/auth/reset-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,nuova_password:n1})});
+    const d=await r.json();
+    if(!r.ok){err.textContent=d.error||'Errore. Riprova.';btn.disabled=false;err.style.display='block';return;}
+    sheet.classList.remove('on');
+    _pulisciUrlReset();
+    vai('sa','login');
+    setTimeout(()=>{
+      const aerr=document.getElementById('aerr');
+      aerr.textContent='Password aggiornata! Accedi con la nuova password.';
+      aerr.style.cssText='display:block;background:#f0f7f0;border-left-color:var(--bosco);color:var(--bosco)';
+    },350);
+  }catch(e){err.textContent='Errore di rete. Riprova.';err.style.display='block';}
+  finally{btn.disabled=false;}
+}
+
 setupAC('gb','ddg',n=>{G.bib=n||'';document.getElementById('bbOk').disabled=!n;},'guest');
 function confBib(){if(!G.bib)return;G.rete=G.reteScelta||'rbbc';attivaApp(G.bib);}
 
@@ -2409,7 +2689,7 @@ async function togLetto(btn,libro){
       G.letti.delete(url);G.lettiData=G.lettiData.filter(l=>l.url_opac!==url);
       btn.textContent='○ Segna come letto';btn.classList.remove('on');
     }
-    renderCostellazioni();renderPantheon();
+    renderCostellazioni();renderPantheon();renderHeatmapLetture();
   }catch(e){console.error('togLetto',e);}
 }
 function apriLegenda(){
@@ -2448,7 +2728,9 @@ async function aggiungiLetturaManuale(){
     await caricaSalv();
     document.getElementById('mlt').value='';document.getElementById('mla').value='';
     chiudiSh('shlett');
-    renderCostellazioni();renderPantheon();
+    window._mlLett=G.lettiData;
+    renderCostellazioni();renderPantheon();renderHeatmapLetture();
+    if(document.getElementById('p-mialib'))renderLibriProf(G.lettiData,window._mlTutti||false);
     if(a)fetchNazioneWikidata(a).then(()=>renderPantheon());
   }catch(e){err.textContent=e.message;err.style.display='block';}
 }
@@ -2462,6 +2744,38 @@ const MOODS=[
   {id:'ispirato',ico:'✨',label:'Ispirato'},
 ];
 let _memEditId=null,_memUmoreSel='',_memTag=[];
+/* Filtro Memoriae: testo libero (cerca nel corpo della voce) + umore
+   selezionato (single-select, come il picker di creazione). Nessuna
+   chiamata di rete: filtra G.diario già caricato in memoria. */
+let _memFiltroTesto='',_memFiltroMood='';
+
+function renderMoodFiltro(){
+  const cont=document.getElementById('memMoodFiltro');if(!cont)return;
+  const chipTutti=`<div class="mem-mood-chip${_memFiltroMood===''?' sel':''}" onclick="setFiltroMood('')">Tutti</div>`;
+  const chips=MOODS.map(m=>`<div class="mem-mood-chip${_memFiltroMood===m.id?' sel':''}" onclick="setFiltroMood('${m.id}')">${m.ico} ${m.label}</div>`).join('');
+  cont.innerHTML=chipTutti+chips;
+}
+function setFiltroMood(id){
+  tap('light');
+  // Click su un chip già selezionato lo deseleziona (torna a "Tutti");
+  // click su "Tutti" (id='') azzera sempre il filtro.
+  _memFiltroMood=(id===''||_memFiltroMood===id)?'':id;
+  renderMoodFiltro();
+  renderDiario();
+}
+function filtraDiario(){
+  _memFiltroTesto=document.getElementById('memCercaTxt')?.value.trim()||'';
+  renderDiario();
+}
+function diarioFiltrato(){
+  let lista=G.diario;
+  if(_memFiltroMood)lista=lista.filter(n=>n.umore===_memFiltroMood);
+  if(_memFiltroTesto){
+    const q=norm(_memFiltroTesto);
+    lista=lista.filter(n=>norm(n.testo||'').includes(q));
+  }
+  return lista;
+}
 
 function fmtDataDiario(iso){
   try{return new Date(iso).toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'});}
@@ -2470,8 +2784,16 @@ function fmtDataDiario(iso){
 
 async function caricaDiario(){
   const list=document.getElementById('mem-list');if(!list)return;
-  if(!G.u){list.innerHTML='<div class="vp">Accedi per iniziare il tuo diario.</div>';return;}
+  const filtriBox=document.getElementById('memFiltri');
+  if(!G.u){
+    if(filtriBox)filtriBox.style.display='none';
+    list.innerHTML='<div class="vp">Accedi per iniziare il tuo diario.</div>';
+    return;
+  }
   list.innerHTML=skelCards(3);
+  _memFiltroTesto='';_memFiltroMood='';
+  const txtInp=document.getElementById('memCercaTxt');if(txtInp)txtInp.value='';
+  renderMoodFiltro();
   try{
     const r=await fetch('/api/diario');
     if(r.ok)G.diario=await r.json();
@@ -2481,11 +2803,19 @@ async function caricaDiario(){
 
 function renderDiario(){
   const list=document.getElementById('mem-list');if(!list)return;
+  const filtriBox=document.getElementById('memFiltri');
   if(!G.diario.length){
+    if(filtriBox)filtriBox.style.display='none';
     list.innerHTML='<div class="vuoto"><h2>Nessuna voce ancora</h2><p>Scrivi il tuo primo pensiero con <em>"+ Nuova voce"</em>.</p></div>';
     return;
   }
-  list.innerHTML=G.diario.map(n=>{
+  if(filtriBox)filtriBox.style.display='block';
+  const voci=diarioFiltrato();
+  if(!voci.length){
+    list.innerHTML='<div class="mem-filtro-vuoto">Nessuna voce corrisponde al filtro selezionato.</div>';
+    return;
+  }
+  list.innerHTML=voci.map(n=>{
     const mood=MOODS.find(m=>m.id===n.umore);
     const moodHtml=mood?`<span class="mem-mood"><span class="mem-mood-ico">${mood.ico}</span>${mood.label}</span>`:'';
     const tagsHtml=(n.tag&&n.tag.length)?`<div class="mem-tags">${n.tag.map(t=>`<span class="mem-tag">${escHtml(t)}</span>`).join('')}</div>`:'';
@@ -2582,9 +2912,22 @@ function verificaBadgeDiario(){
   if(n>=50)unlockAndCeremony('diario_fedele');
 }
 
+/* Ordinamento predefinito dei risultati: "disponibili prima". Preferenza
+   persistita in localStorage, applicata come sort stabile (non tocca
+   l'ordine reciproco tra elementi con la stessa disponibilità). */
+let _ordinaDisponibili=true;
+(function(){try{const s=localStorage.getItem('rbbc_ordina_disp');if(s!==null)_ordinaDisponibili=s==='1';}catch{}})();
+function toggleOrdinamento(){
+  tap('light');
+  _ordinaDisponibili=!_ordinaDisponibili;
+  try{localStorage.setItem('rbbc_ordina_disp',_ordinaDisponibili?'1':'0');}catch{}
+  if(window._ultimiRisultati)renderRis(window._ultimiRisultati);
+}
 function renderRis(data){
-  const{query,biblioteca,risultati}=data;
-  if(!risultati?.length){main.innerHTML=`<div class="vuoto"><svg class="vuoto-ill" width="160" height="130" viewBox="0 0 160 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+  window._ultimiRisultati=data;
+  const{query,biblioteca}=data;
+  let risultati=data.risultati||[];
+  if(!risultati.length){main.innerHTML=`<div class="vuoto"><svg class="vuoto-ill" width="160" height="130" viewBox="0 0 160 130" fill="none" xmlns="http://www.w3.org/2000/svg">
   <ellipse cx="80" cy="108" rx="62" ry="18" fill="#0f2210" opacity=".3"/>
   <!-- libro chiuso -->
   <rect x="38" y="30" width="84" height="75" rx="3" fill="#1b3d1e"/>
@@ -2606,8 +2949,9 @@ function renderRis(data){
   <circle cx="140" cy="38" r="1" fill="#c8a44a" opacity=".25"/>
   <circle cx="30" cy="90" r="1" fill="#c8a44a" opacity=".2"/>
 </svg><h2>Nessun risultato</h2><p>Nessun libro per <em>"${query}"</em>.</p></div>`;return;}
+  if(_ordinaDisponibili)risultati=[...risultati].sort((a,b)=>(b.disponibile?1:0)-(a.disponibile?1:0));
   const nB=risultati.filter(r=>r.copie_rezzato?.length).length;
-  let h=`<div class="iq"><h2>«<strong>${query}</strong>»</h2><span class="bdg">${nB}/${risultati.length} a ${biblioteca}</span></div>`;
+  let h=`<div class="iq" style="align-items:center"><h2>«<strong>${query}</strong>»</h2><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><span class="bdg">${nB}/${risultati.length} a ${biblioteca}</span><button type="button" class="ordina-btn" onclick="toggleOrdinamento()" title="Cambia ordinamento risultati">${_ordinaDisponibili?'✓ Disponibili prima':'↕ Ordine catalogo'}</button></div></div>`;
   risultati.forEach((lib,i)=>{
     const cl=stC(lib.copie_rezzato),au=lib.autore&&lib.autore!=='—'?lib.autore:'';
     const lt=G.u?`<button class="bsalv bletto${G.letti.has(lib.url)?' on':''}" data-i="${i}">${G.letti.has(lib.url)?'✓ Letto':'○ Segna come letto'}</button>`:'';
@@ -2635,6 +2979,7 @@ async function cerca(){
     if(!r.ok)throw new Error(`Errore ${r.status}`);
     const data=await r.json();
     renderRis(data);
+    salvaRicercaRecente(q);
     // Badge: prima ricerca
     if(G.u&&data.risultati?.length)unlockAndCeremony('prima_ricerca');
     // Badge: alexandrino (50 ricerche) — controlla storico
@@ -4931,7 +5276,7 @@ async function segnaLettoDaWishlist(urlEnc){
     window._mlLett=G.lettiData;
     renderWishlistProf(window._wlList,window._wlTutti||false);
     renderLibriProf(window._mlLett,window._mlTutti||false);
-    renderObiettivo();renderCostellazioni();renderPantheon();
+    renderObiettivo();renderCostellazioni();renderPantheon();renderHeatmapLetture();
     if(libro.autore)fetchNazioneWikidata(libro.autore).then(()=>renderPantheon());
   }catch(e){console.error('segnaLettoDaWishlist',e);}
 }
@@ -5024,6 +5369,86 @@ function aggiornaUIProf(){
   const pbi=document.getElementById('pbi');if(pbi)pbi.value=G.bib||'';
   aggiornaSottotitoloRete();
 }
+/* ── HEATMAP DELLE LETTURE ───────────────────────────────────────────────
+   Griglia stile "contribuzioni GitHub": una casella per giorno dell'anno
+   corrente, colorata in base a quanti libri sono stati segnati come letti
+   in quel giorno (letto_il). Nessuna chiamata di rete: usa G.lettiData già
+   caricato. Allineata a settimane complete (da domenica a sabato) come da
+   convenzione di questo tipo di visualizzazione. */
+function renderHeatmapLetture(){
+  const cont=document.getElementById('heatmapLetture');
+  if(!cont)return;
+  if(!G.lettiData?.length){
+    cont.innerHTML='<p class="maphint" style="padding:4px 0">Nessuna lettura registrata ancora.</p>';
+    return;
+  }
+  const anno=new Date().getFullYear();
+  const inizio=new Date(anno,0,1),fine=new Date(anno,11,31);
+
+  const conteggio={};
+  G.lettiData.forEach(l=>{
+    if(!l.letto_il)return;
+    const d=new Date(l.letto_il);
+    if(isNaN(d)||d.getFullYear()!==anno)return;
+    const key=d.toISOString().slice(0,10);
+    conteggio[key]=(conteggio[key]||0)+1;
+  });
+  const totAnno=Object.values(conteggio).reduce((a,b)=>a+b,0);
+  if(!totAnno){
+    cont.innerHTML=`<p class="maphint" style="padding:4px 0">Nessuna lettura registrata nel ${anno} finora.</p>`;
+    return;
+  }
+  const max=Math.max(1,...Object.values(conteggio));
+
+  const startGrid=new Date(inizio);startGrid.setDate(startGrid.getDate()-startGrid.getDay());
+  const endGrid=new Date(fine);endGrid.setDate(endGrid.getDate()+(6-endGrid.getDay()));
+
+  const settimane=[];
+  let cur=new Date(startGrid);
+  while(cur<=endGrid){
+    const sett=[];
+    for(let i=0;i<7;i++){sett.push(new Date(cur));cur.setDate(cur.getDate()+1);}
+    settimane.push(sett);
+  }
+
+  const mesiLbl=['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+  let lastMonth=-1,monthsHtml='';
+  settimane.forEach((sett,wi)=>{
+    const primo=sett.find(d=>d.getFullYear()===anno)||sett[0];
+    const mese=primo.getMonth();
+    if(mese!==lastMonth&&primo.getDate()<=7){
+      monthsHtml+=`<div class="heat-mese" style="grid-column:${wi+1}">${mesiLbl[mese]}</div>`;
+      lastMonth=mese;
+    }
+  });
+
+  let cellsHtml='';
+  settimane.forEach((sett,wi)=>{
+    sett.forEach((giorno,gi)=>{
+      const inAnno=giorno.getFullYear()===anno;
+      const key=giorno.toISOString().slice(0,10);
+      const n=conteggio[key]||0;
+      let level=0;
+      if(inAnno&&n>0){
+        const pct=n/max;
+        level=pct>=.75?4:pct>=.5?3:pct>=.25?2:1;
+      }
+      const titolo=inAnno?`${giorno.toLocaleDateString('it-IT',{day:'numeric',month:'long'})}: ${n} libr${n===1?'o':'i'} lett${n===1?'o':'i'}`:'';
+      cellsHtml+=`<div class="heat-cell${inAnno?'':' vuota'} lv${level}" style="grid-column:${wi+1};grid-row:${gi+1}" title="${titolo}"></div>`;
+    });
+  });
+
+  cont.innerHTML=`
+    <div class="heat-scroll">
+      <div class="heat-months" style="grid-template-columns:repeat(${settimane.length},11px)">${monthsHtml}</div>
+      <div class="heat-grid" style="grid-template-columns:repeat(${settimane.length},11px);grid-template-rows:repeat(7,11px)">${cellsHtml}</div>
+    </div>
+    <div class="heat-legenda">
+      <span>${totAnno} libr${totAnno===1?'o letto':'i letti'} nel ${anno}</span>
+      <span class="heat-scala">Meno <span class="heat-cell lv0"></span><span class="heat-cell lv1"></span><span class="heat-cell lv2"></span><span class="heat-cell lv3"></span><span class="heat-cell lv4"></span> Più</span>
+    </div>`;
+}
+
 async function caricaProf(){
   if(!G.u)return;aggiornaUIProf();renderObiettivo();
   try{
@@ -5035,6 +5460,7 @@ async function caricaProf(){
     window._mlLett=lett;
     if(lett.length)renderLibriProf(lett,false);
     else ml.innerHTML='<div class="vp">Nessun libro segnato come letto.</div>';
+    renderHeatmapLetture();
 
     const rw=await fetch('/api/salvati');
     const wish=await rw.json();
@@ -5052,8 +5478,10 @@ async function toglLettoProf(urlEnc,btn){
   await fetch(`/api/letti/${urlEnc}`,{method:'DELETE'});
   const url=decodeURIComponent(urlEnc);
   G.letti.delete(url);G.lettiData=G.lettiData.filter(l=>l.url_opac!==url);
+  window._mlLett=G.lettiData;
   btn.closest('.wi').remove();
   await caricaSalv();
+  renderHeatmapLetture();
 }
 async function salvaProfilo(){
   const nome=document.getElementById('pni').value.trim();if(!nome)return;
