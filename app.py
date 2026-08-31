@@ -341,9 +341,6 @@ def init_db():
             cur.execute("""
                 ALTER TABLE ricerche ADD COLUMN IF NOT EXISTS rete VARCHAR(32) NOT NULL DEFAULT 'rbbc';
             """)
-            cur.execute("""
-                ALTER TABLE ricerche ADD COLUMN IF NOT EXISTS tipo VARCHAR(16) NOT NULL DEFAULT 'titolo';
-            """)
 
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS salvati (
@@ -546,38 +543,6 @@ def cerca_titolo(titolo, base_url=BASE_URL, rows=10, rete_debug=None, catalog_co
             rete_debug, url, len(html), catalog_code,
             "presente" if idx != -1 else "ASSENTE",
             contesto
-        )
-    return [{"titolo": tit, "url": f"{base_url}/opac/detail/view/{catalog_code}:catalog:{num}"}
-            for num, tit in list(visti.items())[:rows]]
-
-def cerca_autore(autore, base_url=BASE_URL, rows=10, rete_debug=None, catalog_code="test"):
-    """Cerca per autore usando il parametro solr= di DiscoveryNG (Comperio).
-    q= esegue full-text search (titolo/subject) e NON cerca per autore: per
-    l'autore serve interrogare direttamente i campi Solr fldin_txt_author_main
-    / fldin_txt_author, equivalente al campo 'autha' della ricerca avanzata DNG."""
-    solr_query = f'fldin_txt_author_main:"{autore}"^1000 OR fldin_txt_author:"{autore}"^10'
-    url = f"{base_url}/opac/search?solr={quote_plus(solr_query)}&rows={rows}"
-    html = curl_get(url)
-    if not html:
-        if rete_debug:
-            app.logger.warning("cerca_autore(%s): nessuna risposta da %s", rete_debug, url)
-        return []
-    pattern = (r'href="opac/detail/view/' + re.escape(catalog_code)
-               + r':catalog:(\d+)"[^>]{0,300}?title="([^"]{5,200})"')
-    visti = {}
-    for num, raw in re.findall(pattern, html):
-        if num not in visti:
-            t = strip_tags(raw)
-            if t and not t.lower().startswith("vai a"):
-                visti[num] = t
-    if not visti and rete_debug:
-        idx = html.find("detail/view")
-        contesto = html[max(0, idx - 100):idx + 150] if idx != -1 else None
-        app.logger.warning(
-            "cerca_autore(%s): risposta da %s (%d caratteri), 0 risultati con catalog_code=%r — "
-            "'detail/view' %s, contesto: %r",
-            rete_debug, url, len(html), catalog_code,
-            "presente" if idx != -1 else "ASSENTE", contesto
         )
     return [{"titolo": tit, "url": f"{base_url}/opac/detail/view/{catalog_code}:catalog:{num}"}
             for num, tit in list(visti.items())[:rows]]
@@ -914,17 +879,13 @@ def api_search():
     q          = request.args.get("q", "").strip()
     biblioteca = request.args.get("biblioteca", "").strip()
     rete       = rete_valida(request.args.get("rete", "").strip())
-    tipo       = request.args.get("tipo", "titolo").strip().lower()
-    if tipo not in ("titolo", "autore"):
-        tipo = "titolo"
     base_url   = RETI[rete]["base_url"]
     if not q or not biblioteca:
         return jsonify({"error": "Parametri mancanti"}), 400
 
     try:
-        cerca_fn = cerca_autore if tipo == "autore" else cerca_titolo
-        risultati_base = cerca_fn(q, base_url, rows=10, rete_debug=rete,
-                                   catalog_code=RETI[rete].get("catalog_code", "test"))
+        risultati_base = cerca_titolo(q, base_url, rows=10, rete_debug=rete,
+                                       catalog_code=RETI[rete].get("catalog_code", "test"))
         max_risultati = 10
         candidati = risultati_base[:max_risultati]
 
@@ -973,11 +934,11 @@ def api_search():
         if u and output:
             a_bib = sum(1 for r in output if r["copie_rezzato"])
             get_db().execute(
-                "INSERT INTO ricerche (utente_id,query,biblioteca,rete,tipo,trovati,a_bib) VALUES (%s,%s,%s,%s,%s,%s,%s)",
-                (u["id"], q, biblioteca, rete, tipo, len(output), a_bib))
+                "INSERT INTO ricerche (utente_id,query,biblioteca,rete,trovati,a_bib) VALUES (%s,%s,%s,%s,%s,%s)",
+                (u["id"], q, biblioteca, rete, len(output), a_bib))
             get_db().commit()
 
-        return jsonify({"query": q, "biblioteca": biblioteca, "rete": rete, "tipo": tipo, "risultati": output})
+        return jsonify({"query": q, "biblioteca": biblioteca, "rete": rete, "risultati": output})
 
     except Exception as e:
         # Log completo lato server (visibile nei log del processo/host) +
