@@ -211,6 +211,69 @@ h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:-.01em}
 .stub p{color:var(--ink-2);line-height:1.7;margin-bottom:30px}
 
 /* ══════════════════════════════════════════════════════════════════
+   PAGE HEADER (riusato da Lapides Miliarii e, in futuro, dalle altre
+   sezioni interne: stesso schema eyebrow + h1 + paragrafo della Home)
+   ══════════════════════════════════════════════════════════════════ */
+.page-header{padding:64px 0 48px;border-bottom:1px solid var(--line)}
+.page-header h1{font-size:clamp(2.2rem,4.4vw,3.2rem);color:var(--ink);margin-bottom:18px}
+.page-header p{color:var(--ink-2);max-width:620px;line-height:1.7;font-size:1.02rem}
+
+/* Barra di progresso: stesso trattino sottile dorato ovunque serva
+   mostrare un avanzamento (qui, poi in Pantheon/Sfide). */
+.progress-row{display:flex;align-items:center;gap:16px;margin-top:30px;max-width:420px}
+.progress-track{flex:1;height:2px;background:var(--line-strong);position:relative}
+.progress-fill{position:absolute;left:0;top:0;bottom:0;background:var(--gold);transition:width .5s cubic-bezier(.16,1,.3,1)}
+.progress-label{font-size:.78rem;color:var(--ink-3);white-space:nowrap;letter-spacing:.03em}
+
+/* Tab di filtro per stato di lettura */
+.status-tabs{display:flex;gap:2px;margin:36px 0 40px;border-bottom:1px solid var(--line)}
+.status-tab{
+  padding:12px 4px;margin-right:30px;background:none;border:none;color:var(--ink-3);
+  font-family:var(--sans);font-size:.88rem;font-weight:500;position:relative;transition:color .15s;
+}
+.status-tab:hover{color:var(--ink-2)}
+.status-tab.active{color:var(--gold-2)}
+.status-tab.active::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--gold)}
+
+/* ── Griglia libri ── */
+.book-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:28px 22px}
+@media(max-width:1080px){.book-grid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:720px){.book-grid{grid-template-columns:repeat(2,1fr);gap:24px 16px}}
+
+.book-card{position:relative}
+.book-cover{
+  position:relative;aspect-ratio:2/3;background:linear-gradient(155deg,var(--bg-3),#0c0a08);
+  border:1px solid var(--line);overflow:hidden;
+}
+.book-cover img{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .35s}
+.book-cover img.loaded{opacity:1}
+.book-cover-fallback{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-style:italic;font-size:2.6rem;color:var(--gold);opacity:.55;
+}
+.book-status-dot{
+  position:absolute;top:9px;right:9px;width:8px;height:8px;border-radius:50%;
+  background:var(--gold);opacity:0;transition:opacity .2s;box-shadow:0 0 6px rgba(201,162,39,.8);
+}
+.book-status-dot.show{opacity:1}
+.book-actions{
+  position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;gap:1px;
+  transform:translateY(100%);transition:transform .25s cubic-bezier(.16,1,.3,1);
+}
+.book-card:hover .book-actions,.book-card:focus-within .book-actions{transform:translateY(0)}
+.book-act{
+  background:rgba(10,8,6,.92);backdrop-filter:blur(4px);border:none;color:var(--ink-2);
+  font-family:var(--sans);font-size:.7rem;font-weight:600;letter-spacing:.02em;padding:8px 10px;
+  text-align:left;display:flex;align-items:center;gap:7px;transition:background .15s,color .15s;
+}
+.book-act:hover{background:rgba(201,162,39,.14);color:var(--ink)}
+.book-act.on{color:var(--gold-2)}
+.book-meta{padding-top:14px}
+.book-title{font-family:var(--serif);font-size:1rem;color:var(--ink);line-height:1.3;margin-bottom:3px}
+.book-author{font-size:.8rem;color:var(--ink-2);font-style:italic;margin-bottom:3px}
+.book-year{font-size:.72rem;color:var(--ink-3);letter-spacing:.06em}
+
+/* ══════════════════════════════════════════════════════════════════
    FOOTER
    ══════════════════════════════════════════════════════════════════ */
 .site-footer{border-top:1px solid var(--line);padding:34px 0}
@@ -346,6 +409,30 @@ h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:-.01em}
 
   </section>
 
+  <!-- ═══════════════ LAPIDES MILIARII ═══════════════ -->
+  <section class="page" id="page-lapides">
+    <div class="page-header">
+      <div class="wrap">
+        <p class="eyebrow">Le pietre miliari</p>
+        <h1>Lapides Miliarii</h1>
+        <p>Le opere che hanno definito il canone letterario. Aggiungile alla tua biblioteca, segnale come lette e conquista i traguardi del Pantheon.</p>
+        <div class="progress-row">
+          <div class="progress-track"><div class="progress-fill" id="lapidesProgressFill" style="width:0%"></div></div>
+          <span class="progress-label" id="lapidesProgressLabel">0 di 24 lette</span>
+        </div>
+      </div>
+    </div>
+    <div class="wrap section">
+      <div class="status-tabs" id="lapidesTabs">
+        <button class="status-tab active" data-filter="tutte">Tutte</button>
+        <button class="status-tab" data-filter="in_lettura">In lettura</button>
+        <button class="status-tab" data-filter="letto">Lette</button>
+        <button class="status-tab" data-filter="desiderio">Desideri</button>
+      </div>
+      <div class="book-grid" id="bookGrid"><!-- popolato da JS --></div>
+    </div>
+  </section>
+
   <!-- ═══════════════ SEZIONI ANCORA DA COSTRUIRE ═══════════════ -->
   <section class="page" id="page-stub">
     <div class="wrap stub">
@@ -455,18 +542,20 @@ function renderCta(){
    ROUTER — sezioni non ancora costruite mostrano uno stub coerente
    ══════════════════════════════════════════════════════════════════ */
 const STUBS={
-  lapides:{title:'Lapides Miliarii',desc:'Le pietre miliari della letteratura: la collezione curata dei grandi classici. Arriverà nel prossimo passaggio.'},
   percorsi:{title:'Percorsi Tematici',desc:'Mini-collezioni curate per esplorare la letteratura per tema: romanzi russi, tragedie greche, gotico e ombra.'},
   alexandria:{title:'Alexandria',desc:'La grande ricerca: milioni di opere da esplorare per titolo, autore o argomento.'},
   pantheon:{title:'Pantheon',desc:'Il tempio dei traguardi: le tue statistiche di lettura e i badge sbloccati.'},
   sfide:{title:'Sfide di Lettura',desc:'Metti alla prova la tua dedizione: Il Trittico, Il Decalogo, Odissea 2026.'},
   agora:{title:'Agorà',desc:'Il luogo del dibattito: discuti di libri e autori con altri lettori.'},
 };
+/* Pagine vere (non stub): id di navigazione → id della sezione nel DOM.
+   Aggiungere qui una riga man mano che costruiamo altre sezioni. */
+const REAL_PAGES={home:'page-home',lapides:'page-lapides'};
 function navigate(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-links a').forEach(a=>a.classList.toggle('active',a.dataset.nav===id));
-  if(id==='home'){
-    document.getElementById('page-home').classList.add('active');
+  if(REAL_PAGES[id]){
+    document.getElementById(REAL_PAGES[id]).classList.add('active');
   }else{
     const s=STUBS[id]||{title:'In costruzione',desc:'Questa sezione arriverà presto.'};
     document.getElementById('stubTitle').textContent=s.title;
@@ -564,12 +653,156 @@ function renderReviews(){
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   LAPIDES MILIARII — dati dei libri + stato di lettura personale
+   ══════════════════════════════════════════════════════════════════
+   Quando arriverà il backend, BOOKS potrà venire da un endpoint tipo
+   GET /api/lapides, e la libreria personale da GET/POST /api/libreria.
+   Per ora tutto vive qui e in localStorage. */
+const BOOKS=[
+  {id:'alice',t:"Alice's Adventures in Wonderland",a:'Lewis Carroll',y:1865},
+  {id:'christmas-carol',t:'A Christmas Carol',a:'Charles Dickens',y:1843},
+  {id:'wuthering-heights',t:'Wuthering Heights',a:'Emily Brontë',y:1847},
+  {id:'robinson-crusoe',t:'Robinson Crusoe',a:'Daniel Defoe',y:1719},
+  {id:'hamlet',t:'Hamlet',a:'William Shakespeare',y:1603},
+  {id:'emma',t:'Emma',a:'Jane Austen',y:1815},
+  {id:'sense-sensibility',t:'Sense and Sensibility',a:'Jane Austen',y:1811},
+  {id:'tale-two-cities',t:'A Tale of Two Cities',a:'Charles Dickens',y:1859},
+  {id:'wizard-of-oz',t:'The Wonderful Wizard of Oz',a:'L. Frank Baum',y:1900},
+  {id:'treasure-island',t:'Treasure Island',a:'Robert Louis Stevenson',y:1883},
+  {id:'macbeth',t:'Macbeth',a:'William Shakespeare',y:1606},
+  {id:'secret-garden',t:'The Secret Garden',a:'Frances Hodgson Burnett',y:1911},
+  {id:'don-quijote',t:'Don Quijote de la Mancha',a:'Miguel de Cervantes',y:1605},
+  {id:'madame-bovary',t:'Madame Bovary',a:'Gustave Flaubert',y:1857},
+  {id:'art-of-war',t:'The Art of War',a:'Sun Tzu',y:-500},
+  {id:'midsummer',t:"A Midsummer Night's Dream",a:'William Shakespeare',y:1595},
+  {id:'great-expectations',t:'Great Expectations',a:'Charles Dickens',y:1861},
+  {id:'julius-caesar',t:'Julius Caesar',a:'William Shakespeare',y:1599},
+  {id:'pride-prejudice',t:'Pride and Prejudice',a:'Jane Austen',y:1813},
+  {id:'moby-dick',t:'Moby-Dick',a:'Herman Melville',y:1851},
+  {id:'frankenstein',t:'Frankenstein',a:'Mary Shelley',y:1818},
+  {id:'odyssey',t:'The Odyssey',a:'Omero',y:-800},
+  {id:'anna-karenina',t:'Anna Karenina',a:'Lev Tolstoj',y:1877},
+  {id:'crime-punishment',t:'Crime and Punishment',a:'Fëdor Dostoevskij',y:1866},
+];
+function fmtYear(y){return y<0?`${Math.abs(y)} a.C.`:y;}
+
+const LS_LIB='aeterna_libreria';
+function getLibrary(){try{return JSON.parse(localStorage.getItem(LS_LIB))||{};}catch{return{};}}
+function setLibrary(lib){localStorage.setItem(LS_LIB,JSON.stringify(lib));}
+/* Imposta/toglie lo stato di un libro. Un solo stato attivo per libro
+   alla volta (cliccare di nuovo lo stesso pulsante lo azzera). */
+function setBookStatus(id,stato){
+  const lib=getLibrary();
+  lib[id]=(lib[id]===stato)?undefined:stato;
+  if(lib[id]===undefined)delete lib[id];
+  setLibrary(lib);
+  renderBookGrid();
+  renderLapidesProgress();
+}
+
+/* ── Copertine da Open Library, con cache in localStorage ──
+   Stessa tecnica già usata nella vecchia app: cerchiamo per titolo+
+   autore, prendiamo il primo cover_i, e costruiamo l'URL dell'immagine. */
+const LS_COVERS='aeterna_covers';
+function getCoverCache(){try{return JSON.parse(localStorage.getItem(LS_COVERS))||{};}catch{return{};}}
+function saveCoverCache(c){try{localStorage.setItem(LS_COVERS,JSON.stringify(c));}catch{}}
+async function fetchCover(book){
+  const cache=getCoverCache();
+  if(book.id in cache)return cache[book.id];
+  try{
+    const params=new URLSearchParams({title:book.t,author:book.a,limit:'1',fields:'cover_i'});
+    const r=await fetch(`https://openlibrary.org/search.json?${params}`,{signal:AbortSignal.timeout(6000)});
+    if(!r.ok)throw 0;
+    const d=await r.json();
+    const coverId=d.docs?.[0]?.cover_i;
+    const url=coverId?`https://covers.openlibrary.org/b/id/${coverId}-M.jpg`:null;
+    cache[book.id]=url;saveCoverCache(cache);
+    return url;
+  }catch{
+    cache[book.id]=null;saveCoverCache(cache);
+    return null;
+  }
+}
+/* Carica le copertine a piccoli lotti per non intasare l'API */
+async function loadCoversInBatches(books,batchSize=4){
+  for(let i=0;i<books.length;i+=batchSize){
+    const batch=books.slice(i,i+batchSize);
+    await Promise.all(batch.map(async b=>{
+      const url=await fetchCover(b);
+      if(!url)return;
+      const img=document.querySelector(`[data-cover="${b.id}"]`);
+      if(img){img.src=url;img.onload=()=>img.classList.add('loaded');}
+    }));
+  }
+}
+
+let lapidesFilter='tutte';
+function renderLapidesProgress(){
+  const lib=getLibrary();
+  const letti=BOOKS.filter(b=>lib[b.id]==='letto').length;
+  const fill=document.getElementById('lapidesProgressFill');
+  const label=document.getElementById('lapidesProgressLabel');
+  if(fill)fill.style.width=(letti/BOOKS.length*100).toFixed(1)+'%';
+  if(label)label.textContent=`${letti} di ${BOOKS.length} lette`;
+}
+function renderBookGrid(){
+  const grid=document.getElementById('bookGrid');
+  if(!grid)return;
+  const lib=getLibrary();
+  const visible=lapidesFilter==='tutte'?BOOKS:BOOKS.filter(b=>lib[b.id]===lapidesFilter);
+  if(!visible.length){
+    grid.innerHTML=`<p style="grid-column:1/-1;color:var(--ink-3);font-style:italic;padding:30px 0">Nessun libro in questa sezione, per ora.</p>`;
+    return;
+  }
+  grid.innerHTML=visible.map(b=>{
+    const stato=lib[b.id];
+    const act=(key,label,icon)=>`<button class="book-act${stato===key?' on':''}" data-act="${key}" data-id="${b.id}">${icon} ${label}</button>`;
+    return `
+    <div class="book-card">
+      <div class="book-cover">
+        <div class="book-cover-fallback">${b.t[0]}</div>
+        <img data-cover="${b.id}" alt="Copertina di ${b.t}">
+        <span class="book-status-dot${stato?' show':''}"></span>
+        <div class="book-actions">
+          ${act('in_lettura','In lettura','📖')}
+          ${act('letto','Letto','✓')}
+          ${act('desiderio','Desideri','♡')}
+        </div>
+      </div>
+      <div class="book-meta">
+        <div class="book-title">${b.t}</div>
+        <div class="book-author">${b.a}</div>
+        <div class="book-year">${fmtYear(b.y)}</div>
+      </div>
+    </div>`;
+  }).join('');
+  loadCoversInBatches(visible);
+}
+document.getElementById('bookGrid').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-act]');
+  if(!btn)return;
+  setBookStatus(btn.dataset.id,btn.dataset.act);
+});
+document.getElementById('lapidesTabs').addEventListener('click',e=>{
+  const tab=e.target.closest('.status-tab');
+  if(!tab)return;
+  lapidesFilter=tab.dataset.filter;
+  document.querySelectorAll('.status-tab').forEach(t=>t.classList.toggle('active',t===tab));
+  renderBookGrid();
+});
+function renderLapides(){
+  renderLapidesProgress();
+  renderBookGrid();
+}
+
+/* ══════════════════════════════════════════════════════════════════
    INIT
    ══════════════════════════════════════════════════════════════════ */
 renderNavUser();
 renderCta();
 renderQuote();
 renderReviews();
+renderLapides();
 </script>
 </body>
 </html>
