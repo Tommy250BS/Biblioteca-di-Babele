@@ -375,6 +375,23 @@ h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:-.01em}
 .profile-empty p{margin-bottom:22px;font-style:italic}
 
 /* ══════════════════════════════════════════════════════════════════
+   SFIDE DI LETTURA
+   ══════════════════════════════════════════════════════════════════ */
+.btn[disabled]{opacity:.55;cursor:default}
+.challenges{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line)}
+.challenge-row{
+  background:var(--bg);padding:40px 44px;display:flex;justify-content:space-between;align-items:center;
+  gap:30px;flex-wrap:wrap;transition:background .2s;
+}
+.challenge-row.completed{background:var(--bg-2)}
+.challenge-text h3{font-size:1.5rem;color:var(--ink);margin-bottom:10px}
+.challenge-row.completed .challenge-text h3{color:var(--gold-2)}
+.challenge-text p{color:var(--ink-2);font-size:.92rem}
+.challenge-progress{display:flex;align-items:center;gap:14px;margin-top:18px;max-width:360px}
+.challenge-progress .progress-track{flex:1}
+.challenge-progress span{font-size:.76rem;color:var(--ink-3);white-space:nowrap}
+
+/* ══════════════════════════════════════════════════════════════════
    FOOTER
    ══════════════════════════════════════════════════════════════════ */
 .site-footer{border-top:1px solid var(--line);padding:34px 0}
@@ -668,6 +685,19 @@ h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:-.01em}
     </div>
   </section>
 
+  <!-- ═══════════════ SFIDE DI LETTURA ═══════════════ -->
+  <section class="page" id="page-sfide">
+    <div class="page-header">
+      <div class="wrap">
+        <p class="eyebrow">Metti alla prova la tua dedizione</p>
+        <h1>Sfide di Lettura</h1>
+      </div>
+    </div>
+    <div class="wrap section">
+      <div class="challenges" id="challengesList"><!-- popolato da JS --></div>
+    </div>
+  </section>
+
   <!-- ═══════════════ SEZIONI ANCORA DA COSTRUIRE ═══════════════ -->
   <section class="page" id="page-stub">
     <div class="wrap stub">
@@ -782,12 +812,11 @@ function renderCta(){
    ══════════════════════════════════════════════════════════════════ */
 const STUBS={
   percorsi:{title:'Percorsi Tematici',desc:'Mini-collezioni curate per esplorare la letteratura per tema: romanzi russi, tragedie greche, gotico e ombra.'},
-  sfide:{title:'Sfide di Lettura',desc:'Metti alla prova la tua dedizione: Il Trittico, Il Decalogo, Odissea 2026.'},
   agora:{title:'Agorà',desc:'Il luogo del dibattito: discuti di libri e autori con altri lettori.'},
 };
 /* Pagine vere (non stub): id di navigazione → id della sezione nel DOM.
    Aggiungere qui una riga man mano che costruiamo altre sezioni. */
-const REAL_PAGES={home:'page-home',lapides:'page-lapides',pantheon:'page-pantheon',alexandria:'page-alexandria',profilo:'page-profilo'};
+const REAL_PAGES={home:'page-home',lapides:'page-lapides',pantheon:'page-pantheon',alexandria:'page-alexandria',profilo:'page-profilo',sfide:'page-sfide'};
 function navigate(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-links a').forEach(a=>a.classList.toggle('active',a.dataset.nav===id));
@@ -796,6 +825,7 @@ function navigate(id){
     if(id==='lapides')renderLapides();
     if(id==='pantheon')renderPantheon();
     if(id==='profilo')renderProfilo();
+    if(id==='sfide')renderSfide();
   }else{
     const s=STUBS[id]||{title:'In costruzione',desc:'Questa sezione arriverà presto.'};
     document.getElementById('stubTitle').textContent=s.title;
@@ -961,6 +991,7 @@ function setBookStatus(book,stato){
   renderPantheon();
   if(typeof renderAlexResults==='function')renderAlexResults();
   if(typeof renderProfilo==='function')renderProfilo();
+  if(typeof renderSfide==='function')renderSfide();
 }
 
 /* ── Copertine da Open Library, con cache in localStorage ──
@@ -1244,7 +1275,7 @@ function renderProfilo(){
   document.getElementById('profStatBiblioteca').textContent=entries.length;
   document.getElementById('profStatLetti').textContent=letti;
   document.getElementById('profStatRecensioni').textContent=0; // arriverà con le recensioni in Alexandria
-  document.getElementById('profStatSfide').textContent=0; // arriverà con la sezione Sfide
+  document.getElementById('profStatSfide').textContent=typeof completedChallenges==='function'?completedChallenges():0;
 
   document.getElementById('goalYear').textContent=new Date().getFullYear();
   const goal=getGoal();
@@ -1323,6 +1354,70 @@ document.getElementById('goalForm').addEventListener('submit',e=>{
 document.getElementById('profiloLoginLink')?.addEventListener('click',e=>{e.preventDefault();openAuth('login');});
 
 /* ══════════════════════════════════════════════════════════════════
+   SFIDE DI LETTURA — progresso calcolato sui libri "letto" totali,
+   stesso identico dato usato in Pantheon e Profilo. Una sfida si
+   considera completata quando, da accettata, il totale letti raggiunge
+   il target: semplice ma coerente con come funzionano già i traguardi.
+   ══════════════════════════════════════════════════════════════════ */
+const CHALLENGES=[
+  {id:'trittico',title:'Il Trittico',desc:'Un assaggio: leggi 3 grandi classici.',target:3},
+  {id:'decalogo',title:'Il Decalogo',desc:'Dieci pietre miliari della letteratura.',target:10},
+  {id:'odissea2026',title:'Odissea 2026',desc:'La grande sfida: 12 classici in un anno.',target:12},
+];
+const LS_SFIDE='aeterna_sfide';
+function getAccepted(){try{return JSON.parse(localStorage.getItem(LS_SFIDE))||{};}catch{return{};}}
+function setAccepted(obj){localStorage.setItem(LS_SFIDE,JSON.stringify(obj));}
+function totalLetti(){return Object.values(getLibrary()).filter(e=>e.stato==='letto').length;}
+function completedChallenges(){
+  const acc=getAccepted();
+  const letti=totalLetti();
+  return CHALLENGES.filter(c=>acc[c.id]&&letti>=c.target).length;
+}
+function toggleChallenge(id){
+  const acc=getAccepted();
+  if(acc[id])delete acc[id];else acc[id]=true;
+  setAccepted(acc);
+  renderSfide();
+  renderProfilo();
+}
+function renderSfide(){
+  const list=document.getElementById('challengesList');
+  if(!list)return;
+  const acc=getAccepted();
+  const letti=totalLetti();
+  list.innerHTML=CHALLENGES.map(c=>{
+    const accepted=!!acc[c.id];
+    const current=Math.min(letti,c.target);
+    const completed=accepted&&current>=c.target;
+    const pct=(current/c.target*100).toFixed(0);
+    const progress=accepted?`
+      <div class="challenge-progress">
+        <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+        <span>${current} / ${c.target} letti</span>
+      </div>`:'';
+    const btn=completed
+      ? `<button class="btn btn-outline" disabled>✓ Completata</button>`
+      : accepted
+        ? `<button class="btn btn-outline" data-toggle="${c.id}">Abbandona</button>`
+        : `<button class="btn btn-gold" data-toggle="${c.id}">Accetta la sfida</button>`;
+    return `
+    <div class="challenge-row${completed?' completed':''}">
+      <div class="challenge-text">
+        <h3>${c.title}</h3>
+        <p>${c.desc}</p>
+        ${progress}
+      </div>
+      ${btn}
+    </div>`;
+  }).join('');
+}
+document.getElementById('challengesList').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-toggle]');
+  if(!btn)return;
+  toggleChallenge(btn.dataset.toggle);
+});
+
+/* ══════════════════════════════════════════════════════════════════
    INIT
    ══════════════════════════════════════════════════════════════════ */
 renderNavUser();
@@ -1332,6 +1427,7 @@ renderReviews();
 renderLapides();
 renderPantheon();
 renderProfilo();
+renderSfide();
 </script>
 </body>
 </html>
