@@ -1244,6 +1244,7 @@ document.getElementById('authSubmit').addEventListener('click',async()=>{
       :{email,password};
     const d=await apiFetch(isReg?'/api/auth/registra':'/api/auth/login',{method:'POST',body:JSON.stringify(body)});
     currentUser={nome:d.nome,email:d.email,obiettivo_annuale:d.obiettivo_annuale};
+    renderNavUser();renderCta();
     await loadUserData();
     closeAuth();
     offerGuestMigration();
