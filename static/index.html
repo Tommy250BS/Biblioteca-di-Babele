@@ -7,7 +7,7 @@
 <meta name="description" content="Un santuario digitale per gli amanti della letteratura. Traccia le tue letture, discuti con altri lettori e conquista un posto nel Pantheon.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ══════════════════════════════════════════════════════════════════
    DESIGN TOKENS
@@ -64,6 +64,91 @@ h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:-.01em}
 .btn-quiet{color:var(--ink-2);font-size:.88rem;font-weight:500}
 .btn-quiet:hover{color:var(--ink)}
 
+/* ══════════════════════════════════════════════════════════════════
+   SPLASH SCREEN — piuma che scrive "Biblioteca Aeterna" in corsivo,
+   poi apertura a tendina (come una copertina di libro) verso l'app.
+   ══════════════════════════════════════════════════════════════════ */
+body.splash-lock{overflow:hidden}
+.splash{
+  position:fixed;inset:0;z-index:3000;
+  background:#0b0906;
+}
+.splash-panel{
+  position:absolute;top:0;bottom:0;width:50%;
+  background:
+    radial-gradient(circle at 50% 42%,rgba(201,162,39,.07),transparent 60%),
+    #0b0906;
+  transition:transform 1.05s cubic-bezier(.76,0,.24,1);
+  will-change:transform;
+}
+.splash-panel-left{left:0;border-right:1px solid var(--line)}
+.splash-panel-right{right:0}
+.splash-content{
+  position:relative;z-index:2;height:100%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  transition:opacity .5s ease,transform .5s ease;
+}
+.splash-title-wrap{position:relative;display:inline-block}
+.splash-feather{
+  position:absolute;top:-30px;left:0%;
+  transform:translateX(-30%) rotate(-14deg);
+  filter:drop-shadow(0 3px 10px rgba(201,162,39,.3));
+}
+.splash-title{
+  font-family:'Alex Brush',cursive;
+  font-weight:400;
+  font-size:clamp(2.8rem,10vw,5.2rem);
+  color:var(--gold-2);
+  line-height:1;
+  white-space:nowrap;
+  clip-path:inset(0 100% 0 0);
+}
+.splash-skip{
+  position:absolute;right:28px;bottom:26px;z-index:2;
+  color:var(--ink-3);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;
+  background:none;border:none;padding:8px;transition:color .15s;
+}
+.splash-skip:hover{color:var(--ink-2)}
+
+/* Scrittura: parte quando .splash riceve la classe "writing" */
+.splash.writing .splash-title{
+  animation:splashReveal 2.6s linear forwards;
+}
+.splash.writing .splash-feather{
+  animation:splashFeatherTravel 2.6s linear forwards;
+}
+@keyframes splashReveal{
+  from{clip-path:inset(0 100% 0 0)}
+  to{clip-path:inset(0 0% 0 0)}
+}
+@keyframes splashFeatherTravel{
+  0%{left:0%;transform:translateX(-30%) translateY(0) rotate(-14deg)}
+  8%{transform:translateX(-30%) translateY(-4px) rotate(3deg)}
+  16%{transform:translateX(-30%) translateY(2px) rotate(-12deg)}
+  24%{transform:translateX(-30%) translateY(-3px) rotate(4deg)}
+  32%{transform:translateX(-30%) translateY(2px) rotate(-10deg)}
+  40%{transform:translateX(-30%) translateY(-3px) rotate(3deg)}
+  48%{transform:translateX(-30%) translateY(1px) rotate(-9deg)}
+  56%{transform:translateX(-30%) translateY(-2px) rotate(5deg)}
+  64%{transform:translateX(-30%) translateY(2px) rotate(-11deg)}
+  72%{transform:translateX(-30%) translateY(-3px) rotate(3deg)}
+  80%{transform:translateX(-30%) translateY(1px) rotate(-8deg)}
+  90%{transform:translateX(-30%) translateY(-2px) rotate(2deg)}
+  100%{left:100%;transform:translateX(-30%) translateY(0) rotate(-10deg)}
+}
+
+/* Apertura a tendina: le due metà scorrono via, il contenuto sfuma */
+.splash.opening .splash-panel-left{transform:translateX(-100%)}
+.splash.opening .splash-panel-right{transform:translateX(100%)}
+.splash.opening .splash-content{opacity:0;transform:scale(.95)}
+.splash.opening .splash-skip{opacity:0;pointer-events:none}
+
+@media(prefers-reduced-motion:reduce){
+  .splash.writing .splash-title,.splash.writing .splash-feather{animation:none}
+  .splash-title{clip-path:none}
+  .splash-panel{transition:opacity .4s ease}
+  .splash.opening .splash-panel-left,.splash.opening .splash-panel-right{transform:none;opacity:0}
+}
 /* ══════════════════════════════════════════════════════════════════
    NAV
    ══════════════════════════════════════════════════════════════════ */
@@ -558,6 +643,25 @@ h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:-.01em}
 </head>
 <body>
 
+<!-- ═══════════════ SPLASH SCREEN ═══════════════ -->
+<div class="splash" id="splashScreen" aria-hidden="true">
+  <div class="splash-panel splash-panel-left"></div>
+  <div class="splash-panel splash-panel-right"></div>
+  <div class="splash-content" id="splashContent">
+    <div class="splash-title-wrap">
+      <svg class="splash-feather" id="splashFeather" width="42" height="46" viewBox="0 0 24 26" fill="none" stroke="#c9a227" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/>
+        <line x1="16" y1="8" x2="2" y2="22"/>
+        <line x1="17.5" y1="15" x2="9" y2="15"/>
+        <line x1="14.5" y1="11.5" x2="7" y2="11.5"/>
+        <path d="M2 22c-0.8 0.8 -1.3 1.7 -1.6 2.6"/>
+      </svg>
+      <h1 class="splash-title" id="splashTitle">Biblioteca Aeterna</h1>
+    </div>
+  </div>
+  <button class="splash-skip" id="splashSkip" type="button">Salta →</button>
+</div>
+
 <!-- ═══════════════ NAV ═══════════════ -->
 <header class="nav">
   <div class="nav-inner">
@@ -1025,6 +1129,64 @@ h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:-.01em}
 </div>
 
 <script>
+/* ══════════════════════════════════════════════════════════════════
+   SPLASH SCREEN — piuma che scrive il titolo, poi apertura a tendina.
+   Compare una sola volta per sessione di navigazione (sessionStorage),
+   non ad ogni navigazione interna della SPA. Rispetta prefers-reduced-
+   motion e offre un link "Salta" per chi non vuole aspettare.
+   ══════════════════════════════════════════════════════════════════ */
+(function initSplash(){
+  const splash=document.getElementById('splashScreen');
+  if(!splash)return;
+
+  if(sessionStorage.getItem('aeterna_splash_seen')){
+    splash.remove();
+    return;
+  }
+
+  const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.body.classList.add('splash-lock');
+
+  function openCurtain(){
+    if(splash.classList.contains('opening'))return; // evita doppio trigger (skip + fine scrittura)
+    splash.classList.add('opening');
+    const leftPanel=splash.querySelector('.splash-panel-left');
+    const finish=()=>{
+      splash.remove();
+      document.body.classList.remove('splash-lock');
+      sessionStorage.setItem('aeterna_splash_seen','1');
+    };
+    if(reduceMotion){
+      setTimeout(finish,450);
+    }else{
+      leftPanel.addEventListener('transitionend',finish,{once:true});
+      setTimeout(finish,1600); // rete di sicurezza se transitionend non parte
+    }
+  }
+
+  document.getElementById('splashSkip').addEventListener('click',openCurtain);
+
+  if(reduceMotion){
+    // niente scrittura animata: breve pausa e via, dissolvenza semplice
+    setTimeout(openCurtain,700);
+    return;
+  }
+
+  // Aspetta che il font corsivo sia pronto per evitare un lampo col
+  // font di fallback proprio mentre il testo si sta "scrivendo".
+  const start=()=>requestAnimationFrame(()=>splash.classList.add('writing'));
+  if(document.fonts&&document.fonts.ready){
+    Promise.race([document.fonts.ready,new Promise(r=>setTimeout(r,600))]).then(start);
+  }else{
+    start();
+  }
+
+  splash.addEventListener('animationend',e=>{
+    if(e.animationName==='splashReveal'){
+      setTimeout(openCurtain,550); // piccola pausa dopo l'ultima lettera
+    }
+  });
+})();
 /* ══════════════════════════════════════════════════════════════════
    STATO — autenticazione reale contro il backend Flask (/api/auth/*).
    currentUser vive solo in memoria: chi tiene la sessione "loggata" è
