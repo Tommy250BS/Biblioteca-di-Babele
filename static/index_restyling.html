@@ -852,6 +852,19 @@ h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:-.01em}
   </div>
 </div>
 
+<!-- ═══════════════ MIGRAZIONE DATI OSPITE → ACCOUNT ═══════════════ -->
+<div class="modal-overlay" id="migrateOverlay">
+  <div class="modal">
+    <button class="modal-close" id="migrateClose" aria-label="Chiudi">✕</button>
+    <h2>Dati trovati su questo dispositivo</h2>
+    <p class="modal-sub" id="migrateSub">Abbiamo trovato dei dati salvati come ospite su questo dispositivo.</p>
+    <div class="modal-actions">
+      <button class="btn btn-gold" id="migrateConfirm" style="justify-content:center">Importa nel mio account</button>
+      <button class="btn btn-outline" id="migrateSkip" style="justify-content:center">No, ignora</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══════════════ PASSWORD DIMENTICATA ═══════════════ -->
 <div class="modal-overlay" id="forgotOverlay">
   <div class="modal">
@@ -1123,6 +1136,7 @@ document.getElementById('authSubmit').addEventListener('click',async()=>{
     currentUser={nome:d.nome,email:d.email,obiettivo_annuale:d.obiettivo_annuale};
     await loadUserData();
     closeAuth();
+    offerGuestMigration();
     navigate('pantheon');
   }catch(err){
     showAuthError(err.data?.error||'Si è verificato un errore. Riprova.');
@@ -1774,6 +1788,101 @@ function toggleChallenge(id){
     writeLocalAccepted(acceptedCache);
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   MIGRAZIONE DATI OSPITE → ACCOUNT
+   ══════════════════════════════════════════════════════════════════
+   Dopo login o registrazione, prima che loadUserData() sostituisca le
+   cache con i dati del backend, i dati "da ospite" restano comunque
+   intatti in localStorage (loadUserData non li tocca). Qui li
+   leggiamo di nuovo e, se presenti, offriamo di importarli:
+   - libri: aggiunti solo se non già presenti nell'account (non si
+     sovrascrive mai uno stato già impostato lato server)
+   - sfide accettate: aggiunte solo se non già accettate
+   - obiettivo: importato solo se l'account è ancora al valore di
+     default (12) e quello locale è diverso, per non sovrascrivere
+     una scelta già fatta sull'account
+   A importazione (o rifiuto) avvenuta, i dati da ospite vengono
+   rimossi da questo dispositivo per non riproporre la stessa scelta
+   ad ogni login. */
+let pendingMigration=null;
+
+function offerGuestMigration(){
+  const localLib=readLocalLibrary();
+  const localAcc=readLocalAccepted();
+  const rawGoal=localStorage.getItem(LS_GOAL);
+  const localGoal=rawGoal?parseInt(rawGoal):null;
+
+  const nLibri=Object.keys(localLib).length;
+  const nSfide=Object.keys(localAcc).length;
+  const goalDiverso=!!(localGoal&&localGoal!==12&&localGoal!==goalValue);
+
+  if(!nLibri&&!nSfide&&!goalDiverso)return; // niente da migrare
+
+  pendingMigration={localLib,localAcc,localGoal};
+  const parti=[];
+  if(nLibri)parti.push(`${nLibri} ${nLibri===1?'libro':'libri'} in libreria`);
+  if(nSfide)parti.push(`${nSfide} ${nSfide===1?'sfida accettata':'sfide accettate'}`);
+  if(goalDiverso)parti.push(`un obiettivo di lettura personalizzato (${localGoal})`);
+  document.getElementById('migrateSub').textContent=
+    `Su questo dispositivo, da ospite, avevi salvato: ${parti.join(', ')}. Vuoi importarli nel tuo account?`;
+  document.getElementById('migrateOverlay').classList.add('open');
+}
+
+function dismissGuestData(){
+  localStorage.removeItem(LS_LIB);
+  localStorage.removeItem(LS_SFIDE);
+  localStorage.removeItem(LS_GOAL);
+  pendingMigration=null;
+}
+
+async function importGuestData(){
+  if(!pendingMigration)return;
+  const{localLib,localAcc,localGoal}=pendingMigration;
+
+  const existingLib=getLibrary();
+  for(const[id,e]of Object.entries(localLib)){
+    if(existingLib[id])continue; // non sovrascrivere ciò che è già nell'account
+    try{
+      await apiFetch('/api/libreria',{method:'PUT',body:JSON.stringify({
+        book_id:id,stato:e.stato,titolo:e.titolo,autore:e.autore||'',anno:e.anno,cover:e.cover
+      })});
+      existingLib[id]=e;
+    }catch(err){console.error('importGuestData: libro',id,err);}
+  }
+
+  const existingAcc=getAccepted();
+  for(const id of Object.keys(localAcc)){
+    if(existingAcc[id])continue;
+    try{
+      await apiFetch('/api/sfide',{method:'POST',body:JSON.stringify({sfida_id:id})});
+      existingAcc[id]=true;
+    }catch(err){console.error('importGuestData: sfida',id,err);}
+  }
+
+  if(localGoal&&goalValue===12&&localGoal!==12){
+    setGoal(localGoal);
+  }
+
+  dismissGuestData();
+  renderAllViews();
+}
+
+document.getElementById('migrateClose').addEventListener('click',()=>{
+  document.getElementById('migrateOverlay').classList.remove('open');
+  dismissGuestData();
+});
+document.getElementById('migrateSkip').addEventListener('click',()=>{
+  document.getElementById('migrateOverlay').classList.remove('open');
+  dismissGuestData();
+});
+document.getElementById('migrateConfirm').addEventListener('click',async()=>{
+  const btn=document.getElementById('migrateConfirm');
+  btn.disabled=true;btn.textContent='Importazione…';
+  await importGuestData();
+  document.getElementById('migrateOverlay').classList.remove('open');
+  btn.disabled=false;btn.textContent='Importa nel mio account';
+});
 function renderSfide(){
   const list=document.getElementById('challengesList');
   if(!list)return;
