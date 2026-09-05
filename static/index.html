@@ -82,27 +82,25 @@ h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:-.01em}
 .brand em{font-style:italic;color:var(--gold-2)}
 
 /* ── Logo a piuma: al passaggio del mouse (sul testo o sull'icona,
-   entrambi dentro .brand/.footer-brand) si "ridisegna" tratto dopo
-   tratto, come una piuma che scrive — corpo, poi stelo, poi le due
-   barbe, infine il ricciolo della punta. */
-.logo-feather{overflow:visible}
-.logo-feather path,.logo-feather line{stroke-dasharray:80;stroke-dashoffset:0}
-.brand:hover .logo-feather path,.brand:hover .logo-feather line,
-.footer-brand:hover .logo-feather path,.footer-brand:hover .logo-feather line{
-  animation:featherWrite .55s ease-out both;
+   entrambi dentro .brand/.footer-brand) la piuma intera oscilla come
+   se stesse scrivendo — piccoli scatti di rotazione attorno alla
+   punta (il pennino), non un semplice "ridisegno" del contorno. */
+.logo-feather{overflow:visible;transform-origin:12% 88%}
+.brand:hover .logo-feather,
+.footer-brand:hover .logo-feather{
+  animation:featherWrite .9s ease-in-out infinite;
 }
-.logo-feather *:nth-child(1){animation-delay:0s}
-.logo-feather *:nth-child(2){animation-delay:.3s}
-.logo-feather *:nth-child(3){animation-delay:.5s}
-.logo-feather *:nth-child(4){animation-delay:.62s}
-.logo-feather *:nth-child(5){animation-delay:.8s}
 @keyframes featherWrite{
-  from{stroke-dashoffset:80}
-  to{stroke-dashoffset:0}
+  0%,100%{transform:rotate(0deg) translate(0,0)}
+  15%{transform:rotate(-11deg) translate(-1px,.5px)}
+  30%{transform:rotate(7deg) translate(1px,-.5px)}
+  45%{transform:rotate(-9deg) translate(-1px,.5px)}
+  60%{transform:rotate(5deg) translate(1px,-.3px)}
+  80%{transform:rotate(-3deg) translate(-.5px,.3px)}
 }
 @media(prefers-reduced-motion:reduce){
-  .brand:hover .logo-feather path,.brand:hover .logo-feather line,
-  .footer-brand:hover .logo-feather path,.footer-brand:hover .logo-feather line{animation:none}
+  .brand:hover .logo-feather,
+  .footer-brand:hover .logo-feather{animation:none}
 }
 .nav-links{display:flex;gap:34px;flex:1}
 @media(max-width:940px){.nav-links{display:none}}
