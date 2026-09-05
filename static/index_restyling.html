@@ -487,6 +487,15 @@ h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:-.01em}
 .modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--ink-3);font-size:1.1rem;padding:6px}
 .modal-close:hover{color:var(--ink)}
 .modal{position:relative}
+.auth-error{
+  background:rgba(200,60,50,.12);border:1px solid rgba(200,60,50,.35);color:#e28b82;
+  font-size:.84rem;padding:11px 14px;border-radius:var(--radius);margin-bottom:18px;line-height:1.4;
+}
+.auth-success{
+  background:var(--gold-wash);border:1px solid var(--gold);color:var(--gold-2);
+  font-size:.84rem;padding:11px 14px;border-radius:var(--radius);margin-bottom:18px;line-height:1.4;
+}
+.btn[disabled]{pointer-events:none}
 </style>
 </head>
 <body>
@@ -816,18 +825,70 @@ h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:-.01em}
     <button class="modal-close" id="authClose" aria-label="Chiudi">✕</button>
     <h2 id="authTitle">Accedi</h2>
     <p class="modal-sub" id="authSub">Bentornato nella tua biblioteca personale.</p>
+    <p class="auth-error" id="authError" style="display:none"></p>
     <div class="field" id="fieldNome" style="display:none">
       <label>Nome</label>
-      <input type="text" id="authNome" placeholder="Il tuo nome">
+      <input type="text" id="authNome" placeholder="Il tuo nome" autocomplete="name">
     </div>
     <div class="field">
       <label>Email</label>
-      <input type="email" id="authEmail" placeholder="la@tua.email">
+      <input type="email" id="authEmail" placeholder="la@tua.email" autocomplete="email">
     </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="authPassword" placeholder="Almeno 6 caratteri" autocomplete="current-password">
+    </div>
+    <div class="field" id="fieldPasswordConferma" style="display:none">
+      <label>Conferma password</label>
+      <input type="password" id="authPasswordConferma" placeholder="Ripeti la password" autocomplete="new-password">
+    </div>
+    <p class="modal-switch" id="authForgotRow" style="margin-top:-6px;margin-bottom:18px;text-align:right">
+      <a href="#" id="authForgotLink">Password dimenticata?</a>
+    </p>
     <div class="modal-actions">
       <button class="btn btn-gold" id="authSubmit" style="justify-content:center">Accedi</button>
     </div>
     <p class="modal-switch" id="authSwitch">Non hai un account? <a href="#" id="authToggle">Registrati</a></p>
+  </div>
+</div>
+
+<!-- ═══════════════ PASSWORD DIMENTICATA ═══════════════ -->
+<div class="modal-overlay" id="forgotOverlay">
+  <div class="modal">
+    <button class="modal-close" id="forgotClose" aria-label="Chiudi">✕</button>
+    <h2>Password dimenticata</h2>
+    <p class="modal-sub">Inserisci la tua email: se è registrata, riceverai un link per reimpostare la password.</p>
+    <p class="auth-error" id="forgotError" style="display:none"></p>
+    <p class="auth-success" id="forgotSuccess" style="display:none"></p>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="forgotEmail" placeholder="la@tua.email" autocomplete="email">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-gold" id="forgotSubmit" style="justify-content:center">Invia link di reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ REIMPOSTA PASSWORD (da link email) ═══════════════ -->
+<div class="modal-overlay" id="resetOverlay">
+  <div class="modal">
+    <button class="modal-close" id="resetClose" aria-label="Chiudi">✕</button>
+    <h2>Reimposta la password</h2>
+    <p class="modal-sub">Scegli una nuova password per il tuo account.</p>
+    <p class="auth-error" id="resetError" style="display:none"></p>
+    <p class="auth-success" id="resetSuccess" style="display:none"></p>
+    <div class="field">
+      <label>Nuova password</label>
+      <input type="password" id="resetPassword" placeholder="Almeno 6 caratteri" autocomplete="new-password">
+    </div>
+    <div class="field">
+      <label>Conferma nuova password</label>
+      <input type="password" id="resetPasswordConferma" placeholder="Ripeti la password" autocomplete="new-password">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-gold" id="resetSubmit" style="justify-content:center">Reimposta password</button>
+    </div>
   </div>
 </div>
 
@@ -840,6 +901,7 @@ h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:-.01em}
     <p class="thread-meta" id="threadMeta"></p>
     <div class="thread-divider"></div>
     <div class="thread-replies" id="threadReplies"></div>
+    <p class="auth-error" id="threadError" style="display:none"></p>
     <form class="reply-bar" id="replyForm">
       <input type="text" id="replyInput" placeholder="Rispondi…" autocomplete="off">
       <button type="submit" aria-label="Invia risposta">➤</button>
@@ -853,6 +915,7 @@ h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:-.01em}
     <button class="modal-close" id="newThreadClose" aria-label="Chiudi">✕</button>
     <h2>Nuova discussione</h2>
     <p class="modal-sub">Condividi una domanda o un pensiero con la comunità.</p>
+    <p class="auth-error" id="newThreadError" style="display:none"></p>
     <div class="field">
       <label>Titolo</label>
       <input type="text" id="newThreadTitle" placeholder="Di cosa vuoi parlare?">
@@ -869,15 +932,40 @@ h1,h2,h3{font-family:var(--serif);font-weight:400;letter-spacing:-.01em}
 
 <script>
 /* ══════════════════════════════════════════════════════════════════
-   STATO — per ora tutto finto, salvato in localStorage.
-   Quando ci sarà un backend vero, questa sezione va sostituita con
-   vere chiamate fetch('/api/...'). Il resto del codice (router, UI)
-   può restare com'è: legge sempre da getUser()/setUser().
+   STATO — autenticazione reale contro il backend Flask (/api/auth/*).
+   currentUser vive solo in memoria: chi tiene la sessione "loggata" è
+   il cookie di sessione del backend, verificato ad ogni avvio tramite
+   /api/auth/me. Tutte le funzioni che leggono/scrivono dati personali
+   (libreria, obiettivo, sfide) restano sincrone verso il resto del
+   codice: leggono da una cache in memoria che viene popolata da
+   loadUserData() dopo login/registrazione/avvio, e scrivono sia nella
+   cache sia (in background) verso l'API giusta.
    ══════════════════════════════════════════════════════════════════ */
-const LS_USER='aeterna_user';
-function getUser(){try{return JSON.parse(localStorage.getItem(LS_USER));}catch{return null;}}
-function setUser(u){localStorage.setItem(LS_USER,JSON.stringify(u));renderNavUser();renderCta();}
-function clearUser(){localStorage.removeItem(LS_USER);renderNavUser();renderCta();}
+let currentUser=null; // {nome, email, obiettivo_annuale} oppure null se ospite
+
+async function apiFetch(url,options={}){
+  const res=await fetch(url,{credentials:'same-origin',headers:{'Content-Type':'application/json'},...options});
+  let data=null;
+  try{data=await res.json();}catch{data=null;}
+  if(!res.ok){
+    const err=new Error((data&&data.error)||'Errore di rete');
+    err.status=res.status;err.data=data;
+    throw err;
+  }
+  return data;
+}
+
+function getUser(){return currentUser;}
+
+async function checkAuth(){
+  try{
+    const d=await apiFetch('/api/auth/me');
+    currentUser=d.autenticato?{nome:d.nome,email:d.email,obiettivo_annuale:d.obiettivo_annuale}:null;
+  }catch{
+    currentUser=null;
+  }
+  renderNavUser();renderCta();
+}
 
 function avatarUrl(nome){
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(nome)}&background=1a1613&color=e2c15c&bold=true&font-size=0.38`;
@@ -906,7 +994,14 @@ function renderNavUser(){
     e.stopPropagation();
     document.getElementById('userMenu').classList.toggle('open');
   });
-  document.getElementById('btnLogout').addEventListener('click',()=>{clearUser();});
+  document.getElementById('btnLogout').addEventListener('click',async()=>{
+    try{await apiFetch('/api/auth/logout',{method:'POST'});}catch{}
+    currentUser=null;
+    loadGuestData();
+    renderNavUser();renderCta();
+    renderAllViews();
+    navigate('home');
+  });
 }
 /* Chiude il menu utente cliccando altrove — un solo listener registrato
    una volta sola, non ad ogni renderNavUser() (altrimenti si accumulano
@@ -962,41 +1057,155 @@ document.addEventListener('click',e=>{
   navigate(link.dataset.nav);
 });
 document.getElementById('btnEnterLibrary').addEventListener('click',()=>{
-  getUser()?navigate('pantheon'):openAuth('login');
+  currentUser?navigate('pantheon'):openAuth('login');
 });
 
 /* ══════════════════════════════════════════════════════════════════
-   MODALE AUTH (finto)
+   MODALE AUTH — login e registrazione veri, contro /api/auth/*
    ══════════════════════════════════════════════════════════════════ */
 let authMode='login';
+function showAuthError(msg){
+  const el=document.getElementById('authError');
+  el.textContent=msg;el.style.display='block';
+}
+function hideAuthError(){document.getElementById('authError').style.display='none';}
+
 function openAuth(mode){
   authMode=mode;
+  hideAuthError();
   const isReg=mode==='register';
   document.getElementById('authTitle').textContent=isReg?'Crea account':'Accedi';
   document.getElementById('authSub').textContent=isReg?'Inizia la tua biblioteca personale.':'Bentornato nella tua biblioteca personale.';
   document.getElementById('fieldNome').style.display=isReg?'block':'none';
+  document.getElementById('fieldPasswordConferma').style.display=isReg?'block':'none';
+  document.getElementById('authForgotRow').style.display=isReg?'none':'block';
+  document.getElementById('authPassword').autocomplete=isReg?'new-password':'current-password';
   document.getElementById('authSubmit').textContent=isReg?'Crea account':'Accedi';
+  document.getElementById('authSubmit').disabled=false;
   document.getElementById('authSwitch').innerHTML=isReg
     ? 'Hai già un account? <a href="#" id="authToggle">Accedi</a>'
     : 'Non hai un account? <a href="#" id="authToggle">Registrati</a>';
   document.getElementById('authToggle').addEventListener('click',e=>{e.preventDefault();openAuth(isReg?'login':'register');});
-  document.getElementById('authOverlay').classList.add('open');
-}
-document.getElementById('authClose').addEventListener('click',()=>document.getElementById('authOverlay').classList.remove('open'));
-document.getElementById('authOverlay').addEventListener('click',e=>{if(e.target.id==='authOverlay')e.currentTarget.classList.remove('open');});
-document.getElementById('authSubmit').addEventListener('click',()=>{
-  const email=document.getElementById('authEmail').value.trim();
-  if(!email)return;
-  let nome=document.getElementById('authNome').value.trim();
-  if(!nome){
-    const existing=getUser();
-    nome=(existing&&existing.email===email)?existing.nome:email.split('@')[0];
-  }
-  setUser({nome,email});
-  document.getElementById('authOverlay').classList.remove('open');
   document.getElementById('authEmail').value='';
   document.getElementById('authNome').value='';
-  navigate('pantheon');
+  document.getElementById('authPassword').value='';
+  document.getElementById('authPasswordConferma').value='';
+  document.getElementById('authOverlay').classList.add('open');
+}
+function closeAuth(){document.getElementById('authOverlay').classList.remove('open');}
+document.getElementById('authClose').addEventListener('click',closeAuth);
+document.getElementById('authOverlay').addEventListener('click',e=>{if(e.target.id==='authOverlay')closeAuth();});
+
+document.getElementById('authSubmit').addEventListener('click',async()=>{
+  hideAuthError();
+  const email=document.getElementById('authEmail').value.trim();
+  const password=document.getElementById('authPassword').value;
+  const isReg=authMode==='register';
+
+  if(!email||!password){showAuthError('Inserisci email e password.');return;}
+  if(isReg){
+    const nome=document.getElementById('authNome').value.trim();
+    const conferma=document.getElementById('authPasswordConferma').value;
+    if(!nome){showAuthError('Inserisci il tuo nome.');return;}
+    if(password.length<6){showAuthError('La password deve avere almeno 6 caratteri.');return;}
+    if(password!==conferma){showAuthError('Le due password non coincidono.');return;}
+  }
+
+  const btn=document.getElementById('authSubmit');
+  btn.disabled=true;
+  const testoOriginale=btn.textContent;
+  btn.textContent=isReg?'Creazione in corso…':'Accesso in corso…';
+  try{
+    const body=isReg
+      ?{email,password,nome:document.getElementById('authNome').value.trim()}
+      :{email,password};
+    const d=await apiFetch(isReg?'/api/auth/registra':'/api/auth/login',{method:'POST',body:JSON.stringify(body)});
+    currentUser={nome:d.nome,email:d.email,obiettivo_annuale:d.obiettivo_annuale};
+    await loadUserData();
+    closeAuth();
+    navigate('pantheon');
+  }catch(err){
+    showAuthError(err.data?.error||'Si è verificato un errore. Riprova.');
+  }finally{
+    btn.disabled=false;
+    btn.textContent=testoOriginale;
+  }
+});
+
+document.getElementById('authForgotLink').addEventListener('click',e=>{
+  e.preventDefault();
+  closeAuth();
+  openForgot();
+});
+
+/* ── Password dimenticata ── */
+function openForgot(){
+  document.getElementById('forgotError').style.display='none';
+  document.getElementById('forgotSuccess').style.display='none';
+  document.getElementById('forgotEmail').value=document.getElementById('authEmail').value.trim();
+  document.getElementById('forgotSubmit').disabled=false;
+  document.getElementById('forgotSubmit').textContent='Invia link di reset';
+  document.getElementById('forgotOverlay').classList.add('open');
+}
+document.getElementById('forgotClose').addEventListener('click',()=>document.getElementById('forgotOverlay').classList.remove('open'));
+document.getElementById('forgotOverlay').addEventListener('click',e=>{if(e.target.id==='forgotOverlay')e.currentTarget.classList.remove('open');});
+document.getElementById('forgotSubmit').addEventListener('click',async()=>{
+  const errEl=document.getElementById('forgotError'),okEl=document.getElementById('forgotSuccess');
+  errEl.style.display='none';okEl.style.display='none';
+  const email=document.getElementById('forgotEmail').value.trim();
+  if(!email){errEl.textContent='Inserisci la tua email.';errEl.style.display='block';return;}
+  const btn=document.getElementById('forgotSubmit');
+  btn.disabled=true;btn.textContent='Invio in corso…';
+  try{
+    const d=await apiFetch('/api/auth/password-dimenticata',{method:'POST',body:JSON.stringify({email})});
+    okEl.textContent=d.message||'Se l\u2019indirizzo è registrato, riceverai a breve un\u2019email con le istruzioni.';
+    okEl.style.display='block';
+  }catch(err){
+    errEl.textContent=err.data?.error||'Si è verificato un errore. Riprova.';
+    errEl.style.display='block';
+    btn.disabled=false;btn.textContent='Invia link di reset';
+  }
+});
+
+/* ── Reimposta password (arrivo dal link nell'email: ?reset=TOKEN) ── */
+let resetToken=null;
+function openReset(token){
+  resetToken=token;
+  document.getElementById('resetError').style.display='none';
+  document.getElementById('resetSuccess').style.display='none';
+  document.getElementById('resetPassword').value='';
+  document.getElementById('resetPasswordConferma').value='';
+  document.getElementById('resetSubmit').disabled=false;
+  document.getElementById('resetSubmit').textContent='Reimposta password';
+  document.getElementById('resetOverlay').classList.add('open');
+}
+document.getElementById('resetClose').addEventListener('click',()=>{
+  document.getElementById('resetOverlay').classList.remove('open');
+  history.replaceState(null,'',location.pathname);
+});
+document.getElementById('resetSubmit').addEventListener('click',async()=>{
+  const errEl=document.getElementById('resetError'),okEl=document.getElementById('resetSuccess');
+  errEl.style.display='none';okEl.style.display='none';
+  const nuova=document.getElementById('resetPassword').value;
+  const conferma=document.getElementById('resetPasswordConferma').value;
+  if(nuova.length<6){errEl.textContent='La password deve avere almeno 6 caratteri.';errEl.style.display='block';return;}
+  if(nuova!==conferma){errEl.textContent='Le due password non coincidono.';errEl.style.display='block';return;}
+  const btn=document.getElementById('resetSubmit');
+  btn.disabled=true;btn.textContent='Salvataggio…';
+  try{
+    await apiFetch('/api/auth/reset-password',{method:'POST',body:JSON.stringify({token:resetToken,nuova_password:nuova})});
+    okEl.textContent='Password aggiornata! Ora puoi accedere con la nuova password.';
+    okEl.style.display='block';
+    history.replaceState(null,'',location.pathname);
+    setTimeout(()=>{
+      document.getElementById('resetOverlay').classList.remove('open');
+      openAuth('login');
+    },1400);
+  }catch(err){
+    errEl.textContent=err.data?.error||'Link non valido o scaduto. Richiedine uno nuovo.';
+    errEl.style.display='block';
+    btn.disabled=false;btn.textContent='Reimposta password';
+  }
 });
 
 /* ══════════════════════════════════════════════════════════════════
@@ -1097,36 +1306,44 @@ const BOOKS=[
 ];
 function fmtYear(y){return y<0?`${Math.abs(y)} a.C.`:y;}
 
-const LS_LIB='aeterna_libreria';
 /* Ogni voce è un oggetto {stato, titolo, autore, anno, cover} — non solo
    una stringa — perché da Alexandria arriveranno libri che non fanno
    parte dei 24 curati di Lapides Miliarii, e ci serve poterli mostrare
-   ovunque (Pantheon, Profilo) senza doverli ricercare in BOOKS. */
-function getLibrary(){
+   ovunque (Pantheon, Profilo) senza doverli ricercare in BOOKS.
+
+   libreriaCache è la fonte di verità letta da tutte le view (sincrona).
+   Viene popolata:
+   - da localStorage, per gli ospiti (loadGuestData)
+   - da GET /api/libreria, per chi ha effettuato l'accesso (loadUserData)
+   Le scritture (setBookStatus) aggiornano subito la cache e ridisegnano
+   la UI, poi persistono in background sul posto giusto (API o localStorage). */
+const LS_LIB='aeterna_libreria';
+let libreriaCache={};
+function getLibrary(){return libreriaCache;}
+function readLocalLibrary(){
   let lib;try{lib=JSON.parse(localStorage.getItem(LS_LIB))||{};}catch{lib={};}
-  let migrated=false;
   Object.keys(lib).forEach(id=>{
     if(typeof lib[id]==='string'){ // formato vecchio: solo lo stato come stringa
       const b=BOOKS.find(x=>x.id===id);
       lib[id]={stato:lib[id],titolo:b?b.t:id,autore:b?b.a:'',anno:b?b.y:null,cover:null};
-      migrated=true;
     }
   });
-  if(migrated)setLibrary(lib);
   return lib;
 }
-function setLibrary(lib){localStorage.setItem(LS_LIB,JSON.stringify(lib));}
+function writeLocalLibrary(lib){localStorage.setItem(LS_LIB,JSON.stringify(lib));}
+
 /* Imposta/toglie lo stato di un libro (book = {id,t,a,y,cover?}).
    Un solo stato attivo per libro alla volta: cliccare di nuovo lo
-   stesso pulsante lo azzera. */
+   stesso pulsante lo azzera. Aggiornamento ottimistico: la UI si
+   ridisegna subito, la chiamata di rete (se loggati) parte dopo. */
 function setBookStatus(book,stato){
   const lib=getLibrary();
-  if(lib[book.id]&&lib[book.id].stato===stato){
+  const rimuove=lib[book.id]&&lib[book.id].stato===stato;
+  if(rimuove){
     delete lib[book.id];
   }else{
     lib[book.id]={stato,titolo:book.t,autore:book.a,anno:book.y,cover:book.cover||null};
   }
-  setLibrary(lib);
   renderBookGrid();
   renderLapidesProgress();
   renderPantheon();
@@ -1134,6 +1351,17 @@ function setBookStatus(book,stato){
   if(typeof renderProfilo==='function')renderProfilo();
   if(typeof renderSfide==='function')renderSfide();
   if(typeof renderPercorsi==='function')renderPercorsi();
+
+  if(currentUser){
+    const req=rimuove
+      ? apiFetch('/api/libreria/'+encodeURI(book.id),{method:'DELETE'})
+      : apiFetch('/api/libreria',{method:'PUT',body:JSON.stringify({
+          book_id:book.id,stato,titolo:book.t,autore:book.a,anno:book.y,cover:book.cover||null
+        })});
+    req.catch(err=>console.error('setBookStatus',err));
+  }else{
+    writeLocalLibrary(lib);
+  }
 }
 
 /* ── Copertine da Open Library, con cache in localStorage ──
@@ -1401,8 +1629,20 @@ document.querySelectorAll('.chip').forEach(chip=>{
    solo un'altra vista sugli stessi libri già visti in Lapides/Alexandria.
    ══════════════════════════════════════════════════════════════════ */
 const LS_GOAL='aeterna_obiettivo';
-function getGoal(){const v=parseInt(localStorage.getItem(LS_GOAL));return isNaN(v)||v<=0?12:v;}
-function setGoal(v){localStorage.setItem(LS_GOAL,String(v));}
+let goalValue=12;
+function getGoal(){return goalValue;}
+function readLocalGoal(){const v=parseInt(localStorage.getItem(LS_GOAL));return isNaN(v)||v<=0?12:v;}
+function writeLocalGoal(v){localStorage.setItem(LS_GOAL,String(v));}
+function setGoal(v){
+  goalValue=v;
+  if(currentUser){
+    apiFetch('/api/obiettivo',{method:'POST',body:JSON.stringify({obiettivo:v})})
+      .then(d=>{goalValue=d.obiettivo_annuale;currentUser.obiettivo_annuale=d.obiettivo_annuale;})
+      .catch(err=>console.error('setGoal',err));
+  }else{
+    writeLocalGoal(v);
+  }
+}
 
 let profiloFilter='in_lettura';
 
@@ -1510,8 +1750,10 @@ const CHALLENGES=[
   {id:'odissea2026',title:'Odissea 2026',desc:'La grande sfida: 12 classici in un anno.',target:12},
 ];
 const LS_SFIDE='aeterna_sfide';
-function getAccepted(){try{return JSON.parse(localStorage.getItem(LS_SFIDE))||{};}catch{return{};}}
-function setAccepted(obj){localStorage.setItem(LS_SFIDE,JSON.stringify(obj));}
+let acceptedCache={};
+function getAccepted(){return acceptedCache;}
+function readLocalAccepted(){try{return JSON.parse(localStorage.getItem(LS_SFIDE))||{};}catch{return{};}}
+function writeLocalAccepted(obj){localStorage.setItem(LS_SFIDE,JSON.stringify(obj));}
 function totalLetti(){return Object.values(getLibrary()).filter(e=>e.stato==='letto').length;}
 function completedChallenges(){
   const acc=getAccepted();
@@ -1519,11 +1761,18 @@ function completedChallenges(){
   return CHALLENGES.filter(c=>acc[c.id]&&letti>=c.target).length;
 }
 function toggleChallenge(id){
-  const acc=getAccepted();
-  if(acc[id])delete acc[id];else acc[id]=true;
-  setAccepted(acc);
+  const eraAccettata=!!acceptedCache[id];
+  if(eraAccettata)delete acceptedCache[id];else acceptedCache[id]=true;
   renderSfide();
   renderProfilo();
+  if(currentUser){
+    const req=eraAccettata
+      ? apiFetch('/api/sfide/'+encodeURIComponent(id),{method:'DELETE'})
+      : apiFetch('/api/sfide',{method:'POST',body:JSON.stringify({sfida_id:id})});
+    req.catch(err=>console.error('toggleChallenge',err));
+  }else{
+    writeLocalAccepted(acceptedCache);
+  }
 }
 function renderSfide(){
   const list=document.getElementById('challengesList');
@@ -1651,125 +1900,178 @@ document.getElementById('percorsiContent').addEventListener('click',e=>{
 function escapeHtml(s){
   return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-const LS_AGORA='aeterna_agora';
-const SEED_THREADS=[
-  {id:'t1',title:'Il finale di Delitto e Castigo vi ha convinti?',
-   body:"Raskol'nikov si redime davvero, o la sua confessione è solo stanchezza? Ci penso ancora giorni dopo aver finito il libro.",
-   author:'Elena B.',createdAt:Date.now()-1000*60*60*24*3,
-   replies:[
-     {id:'r1',text:"Per me la redenzione vera arriva solo nell'epilogo in Siberia, non prima.",author:'Marco T.',createdAt:Date.now()-1000*60*60*24*2},
-     {id:'r2',text:'Concordo, la confessione mi è sembrata più paura che pentimento.',author:'Giulia R.',createdAt:Date.now()-1000*60*60*20},
-   ]},
-  {id:'t2',title:'Meglio Guerra e Pace o Anna Karenina?',
-   body:'Sto per iniziare il mio primo Tolstoj e non riesco a decidermi tra i due. Da dove avete iniziato voi?',
-   author:'Marco T.',createdAt:Date.now()-1000*60*60*24*6,
-   replies:[
-     {id:'r3',text:'Anna Karenina è più compatto ed è un ottimo primo approccio.',author:'Elena B.',createdAt:Date.now()-1000*60*60*24*5},
-   ]},
-  {id:'t3',title:'Da dove iniziare col percorso "Tragedie Greche"?',
-   body:'Vorrei seguire il percorso tematico ma non so quale dei cinque testi affrontare per primo. Consigli?',
-   author:'Giulia R.',createdAt:Date.now()-1000*60*60*10,replies:[]},
-];
-function getThreads(){
+/* threadsCache viene popolata da GET /api/agora (lettura libera, anche
+   da ospiti). Il dettaglio con le risposte si carica al volo quando si
+   apre una discussione, con GET /api/agora/<id>. Scrivere (nuova
+   discussione o risposta) richiede invece un account: se non loggati,
+   i pulsanti aprono la modale di accesso invece di quella di scrittura. */
+let threadsCache=[];
+async function loadThreads(){
   try{
-    const raw=localStorage.getItem(LS_AGORA);
-    if(raw)return JSON.parse(raw);
-  }catch{}
-  setThreads(SEED_THREADS);
-  return SEED_THREADS;
+    threadsCache=await apiFetch('/api/agora');
+  }catch(err){
+    console.error('loadThreads',err);
+    threadsCache=[];
+  }
+  renderAgora();
 }
-function setThreads(list){localStorage.setItem(LS_AGORA,JSON.stringify(list));}
-function currentAuthorName(){const u=getUser();return u?u.nome.split(' ')[0]:'Ospite';}
 
 function renderAgora(){
   const list=document.getElementById('threadsList');
   if(!list)return;
-  const threads=getThreads().slice().sort((a,b)=>b.createdAt-a.createdAt);
+  const threads=threadsCache.slice().sort((a,b)=>new Date(b.creato_il)-new Date(a.creato_il));
   if(!threads.length){
     list.innerHTML=`<div class="alex-state">Nessuna discussione ancora. Sii il primo ad aprirne una.</div>`;
     return;
   }
   list.innerHTML=threads.map(t=>`
     <div class="thread-row" data-id="${t.id}">
-      <h3>${escapeHtml(t.title)}</h3>
-      <p>${escapeHtml(t.body)}</p>
+      <h3>${escapeHtml(t.titolo)}</h3>
+      <p>${escapeHtml(t.corpo)}</p>
       <div class="thread-foot">
-        <span class="thread-author">${escapeHtml(t.author)}</span>
-        <span class="thread-replies">↳ ${t.replies.length} risposte</span>
+        <span class="thread-author">${escapeHtml(t.autore_nome)}</span>
+        <span class="thread-replies">↳ ${t.n_risposte} risposte</span>
       </div>
     </div>`).join('');
 }
 document.getElementById('threadsList').addEventListener('click',e=>{
   const row=e.target.closest('.thread-row');
-  if(row)openThread(row.dataset.id);
+  if(row)openThread(parseInt(row.dataset.id,10));
 });
 
 let openThreadId=null;
-function openThread(id){
-  const t=getThreads().find(x=>x.id===id);
-  if(!t)return;
+async function openThread(id){
   openThreadId=id;
-  document.getElementById('threadTitle').textContent=t.title;
-  document.getElementById('threadBody').textContent=t.body;
-  document.getElementById('threadMeta').textContent='— '+t.author.toUpperCase();
-  renderThreadReplies(t);
+  document.getElementById('threadTitle').textContent='Caricamento…';
+  document.getElementById('threadBody').textContent='';
+  document.getElementById('threadMeta').textContent='';
+  document.getElementById('threadReplies').innerHTML='';
   document.getElementById('replyInput').value='';
   document.getElementById('threadOverlay').classList.add('open');
+  try{
+    const t=await apiFetch('/api/agora/'+id);
+    if(openThreadId!==id)return; // l'utente ha già aperto un'altra discussione
+    document.getElementById('threadTitle').textContent=t.titolo;
+    document.getElementById('threadBody').textContent=t.corpo;
+    document.getElementById('threadMeta').textContent='— '+t.autore_nome.toUpperCase();
+    renderThreadReplies(t);
+  }catch(err){
+    document.getElementById('threadTitle').textContent='Discussione non trovata';
+  }
 }
 function renderThreadReplies(t){
   const el=document.getElementById('threadReplies');
-  el.innerHTML=t.replies.length
-    ? t.replies.map(r=>`<div class="reply-item"><p>${escapeHtml(r.text)}</p><span>${escapeHtml(r.author)}</span></div>`).join('')
+  el.innerHTML=t.risposte.length
+    ? t.risposte.map(r=>`<div class="reply-item"><p>${escapeHtml(r.testo)}</p><span>${escapeHtml(r.autore_nome)}</span></div>`).join('')
     : `<p style="color:var(--ink-3);font-style:italic;font-size:.86rem">Ancora nessuna risposta. Scrivi la prima.</p>`;
 }
 document.getElementById('threadClose').addEventListener('click',()=>document.getElementById('threadOverlay').classList.remove('open'));
 document.getElementById('threadOverlay').addEventListener('click',e=>{if(e.target.id==='threadOverlay')e.currentTarget.classList.remove('open');});
-document.getElementById('replyForm').addEventListener('submit',e=>{
+document.getElementById('replyForm').addEventListener('submit',async e=>{
   e.preventDefault();
   const input=document.getElementById('replyInput');
   const text=input.value.trim();
   if(!text||!openThreadId)return;
-  const threads=getThreads();
-  const t=threads.find(x=>x.id===openThreadId);
-  if(!t)return;
-  t.replies.push({id:'r'+Date.now(),text,author:currentAuthorName(),createdAt:Date.now()});
-  setThreads(threads);
-  input.value='';
-  renderThreadReplies(t);
-  renderAgora();
+  if(!currentUser){
+    document.getElementById('threadOverlay').classList.remove('open');
+    openAuth('login');
+    return;
+  }
+  const errEl=document.getElementById('threadError');
+  errEl.style.display='none';
+  try{
+    await apiFetch(`/api/agora/${openThreadId}/risposte`,{method:'POST',body:JSON.stringify({testo:text})});
+    input.value='';
+    const t=await apiFetch('/api/agora/'+openThreadId);
+    renderThreadReplies(t);
+    loadThreads();
+  }catch(err){
+    errEl.textContent=err.data?.error||'Impossibile inviare la risposta. Riprova.';
+    errEl.style.display='block';
+  }
 });
 
 document.getElementById('btnNewThread').addEventListener('click',()=>{
+  if(!currentUser){openAuth('login');return;}
+  document.getElementById('newThreadError').style.display='none';
   document.getElementById('newThreadTitle').value='';
   document.getElementById('newThreadBody').value='';
   document.getElementById('newThreadOverlay').classList.add('open');
 });
 document.getElementById('newThreadClose').addEventListener('click',()=>document.getElementById('newThreadOverlay').classList.remove('open'));
 document.getElementById('newThreadOverlay').addEventListener('click',e=>{if(e.target.id==='newThreadOverlay')e.currentTarget.classList.remove('open');});
-document.getElementById('newThreadSubmit').addEventListener('click',()=>{
+document.getElementById('newThreadSubmit').addEventListener('click',async()=>{
   const title=document.getElementById('newThreadTitle').value.trim();
   const body=document.getElementById('newThreadBody').value.trim();
+  const errEl=document.getElementById('newThreadError');
+  errEl.style.display='none';
   if(!title||!body)return;
-  const threads=getThreads();
-  threads.unshift({id:'t'+Date.now(),title,body,author:currentAuthorName(),createdAt:Date.now(),replies:[]});
-  setThreads(threads);
-  document.getElementById('newThreadOverlay').classList.remove('open');
-  renderAgora();
+  try{
+    await apiFetch('/api/agora',{method:'POST',body:JSON.stringify({titolo:title,corpo:body})});
+    document.getElementById('newThreadOverlay').classList.remove('open');
+    await loadThreads();
+  }catch(err){
+    errEl.textContent=err.data?.error||'Impossibile pubblicare la discussione. Riprova.';
+    errEl.style.display='block';
+  }
 });
 
 /* ══════════════════════════════════════════════════════════════════
    INIT
-   ══════════════════════════════════════════════════════════════════ */
-renderNavUser();
-renderCta();
-renderQuote();
-renderReviews();
-renderLapides();
-renderPantheon();
-renderProfilo();
-renderSfide();
-renderPercorsi();
-renderAgora();
+   ══════════════════════════════════════════════════════════════════
+   Ordine: dati "ospite" da localStorage subito disponibili (così la UI
+   non parte vuota), poi verifica della sessione con /api/auth/me; se
+   risulta un account autenticato, i dati vengono sovrascritti con
+   quelli reali del backend (loadUserData). L'Agorà è sempre pubblica
+   quindi si carica in parallelo, indipendentemente dal login. */
+function renderAllViews(){
+  renderLapidesProgress();
+  renderBookGrid();
+  renderPantheon();
+  renderProfilo();
+  renderSfide();
+  if(typeof renderPercorsi==='function')renderPercorsi();
+  if(typeof renderAlexResults==='function')renderAlexResults();
+}
+
+function loadGuestData(){
+  libreriaCache=readLocalLibrary();
+  goalValue=readLocalGoal();
+  acceptedCache=readLocalAccepted();
+}
+
+async function loadUserData(){
+  try{
+    const[libRows,sfideIds]=await Promise.all([apiFetch('/api/libreria'),apiFetch('/api/sfide')]);
+    const lib={};
+    libRows.forEach(r=>{lib[r.book_id]={stato:r.stato,titolo:r.titolo,autore:r.autore,anno:r.anno,cover:r.cover};});
+    libreriaCache=lib;
+    const acc={};
+    sfideIds.forEach(id=>acc[id]=true);
+    acceptedCache=acc;
+    goalValue=currentUser.obiettivo_annuale||12;
+  }catch(err){
+    console.error('loadUserData',err);
+  }
+  renderAllViews();
+}
+
+function checkResetLink(){
+  const token=new URLSearchParams(location.search).get('reset');
+  if(token)openReset(token);
+}
+
+async function initApp(){
+  renderQuote();
+  renderReviews();
+  loadGuestData();
+  renderAllViews();
+  loadThreads();
+  await checkAuth();
+  if(currentUser)await loadUserData();
+  checkResetLink();
+}
+initApp();
 </script>
 </body>
 </html>
