@@ -2931,24 +2931,52 @@ function setBookStatus(book,stato){
   // senza obbligo, di scrivere subito la recensione con il libro già
   // precompilato. Niente proposta se una recensione per quel libro esiste
   // già, per non essere ripetitivi ad ogni piccola modifica.
-  if(!rimuove&&stato==='letto')maybeOfferReview(book);
-  if(!rimuove&&stato==='letto')checkPostcardUnlock(book);
+  //
+  // Se lo stesso "letto" sblocca ANCHE una cartolina dell'Epistolarium, le
+  // due notifiche non devono accavallarsi: il prompt di recensione è un
+  // vero modale a schermo intero, e un toast che comparisse nel frattempo
+  // passerebbe inosservato (motivo del bug segnalato). Quindi: se il
+  // prompt si apre, la cartolina resta "in sospeso" e scatta solo alla sua
+  // chiusura (qualunque bottone si scelga); se il prompt non si apre
+  // affatto (libro già recensito), la cartolina parte subito come prima.
+  if(!rimuove&&stato==='letto'){
+    const cartolina=trovaCartolinaSbloccata(book);
+    const promptAperto=maybeOfferReview(book);
+    if(cartolina){
+      if(promptAperto)cartolinaInSospeso=cartolina;
+      else attivaToastCartolina(cartolina);
+    }
+  }
 }
 
 /* ── Proposta di recensione dopo "Letto" ──────────────────────────────── */
 let reviewPromptBook=null;
+let cartolinaInSospeso=null; // valorizzata da setBookStatus quando il prompt di recensione precede la notifica della cartolina
 function maybeOfferReview(book){
   const giaRecensito=getScriptorium().some(n=>n.tipo==='recensione'&&n.book_id===book.id);
-  if(giaRecensito)return;
+  if(giaRecensito)return false;
   reviewPromptBook=book;
   document.getElementById('reviewPromptSub').textContent=
     `Hai segnato «${book.t}» come letto. Vuoi lasciare subito una recensione nello Scriptorium?`;
   document.getElementById('reviewPromptOverlay').classList.add('open');
+  return true;
 }
-document.getElementById('reviewPromptClose').addEventListener('click',()=>document.getElementById('reviewPromptOverlay').classList.remove('open'));
-document.getElementById('reviewPromptLater').addEventListener('click',()=>document.getElementById('reviewPromptOverlay').classList.remove('open'));
-document.getElementById('reviewPromptWrite').addEventListener('click',()=>{
+function chiudiPromptRecensione(){
   document.getElementById('reviewPromptOverlay').classList.remove('open');
+  // Qualunque sia stata la scelta (scrivi ora / più tardi / chiudi), è
+  // questo il momento in cui la schermata del prompt si considera
+  // "finita": è qui che una cartolina eventualmente in sospeso può
+  // finalmente farsi notare.
+  if(cartolinaInSospeso){
+    const carta=cartolinaInSospeso;
+    cartolinaInSospeso=null;
+    attivaToastCartolina(carta);
+  }
+}
+document.getElementById('reviewPromptClose').addEventListener('click',chiudiPromptRecensione);
+document.getElementById('reviewPromptLater').addEventListener('click',chiudiPromptRecensione);
+document.getElementById('reviewPromptWrite').addEventListener('click',()=>{
+  chiudiPromptRecensione();
   if(reviewPromptBook)openScriptoriumModal(null,{tipo:'recensione',book_id:reviewPromptBook.id});
 });
 
@@ -4432,10 +4460,18 @@ function segnaCartolinaNotificata(id){
   const viste=getCartolineNotificate();
   if(!viste.includes(id)){viste.push(id);localStorage.setItem(LS_CARTOLINE_NOTIFICATE,JSON.stringify(viste));}
 }
-function checkPostcardUnlock(book){
+/* Cerca SENZA consumare: può essere chiamata anche solo per sapere se
+   c'è una cartolina in arrivo (usata da setBookStatus per decidere se
+   metterla in sospeso dietro al prompt di recensione), senza per questo
+   segnarla già come notificata — quello lo fa solo attivaToastCartolina,
+   nel momento in cui il toast compare davvero. */
+function trovaCartolinaSbloccata(book){
   const carta=EPISTOLARIUM_CARDE.find(c=>c.libroChiave===book.id);
-  if(!carta)return;
-  if(getCartolineNotificate().includes(carta.id))return;
+  if(!carta)return null;
+  if(getCartolineNotificate().includes(carta.id))return null;
+  return carta;
+}
+function attivaToastCartolina(carta){
   segnaCartolinaNotificata(carta.id);
   mostraToastCartolina(carta);
 }
