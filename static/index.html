@@ -1135,6 +1135,31 @@ body.splash-lock{overflow:hidden}
 .diario-vuoto::before{content:'';position:absolute;left:16px;top:0;bottom:0;width:1px;background:rgba(201,162,39,.22)}
 .diario-vuoto-lock{font-size:1.9rem;margin-bottom:18px;color:var(--gold-2)}
 .diario-vuoto p{color:rgba(226,193,92,.75);font-style:italic;font-size:.92rem;line-height:1.65}
+/* pagina bianca (sezione del diario aperta ma ancora senza note) — a
+   differenza del diario chiuso qui il diario È aperto, è solo il
+   capitolo scelto a non avere ancora pagine scritte. */
+.diario-pagina-vuota{text-align:center;padding:74px 30px;color:#6b5636;font-style:italic;font-size:.92rem;line-height:1.6}
+.diario-pagina-vuota .dpv-ico{font-size:1.8rem;margin-bottom:14px;opacity:.75;font-style:normal}
+/* indice del diario — la prima cosa che si vede aprendo lo Scriptorium
+   (scheda "Tutte") non appena esiste almeno una nota: elenca le
+   sezioni come un vero indice di libro, righe puntinate che portano al
+   conteggio pagine. Toccarne una equivale a sfogliare fino alla sua
+   prima pagina (= applica il filtro corrispondente). */
+.diario-indice-title{font-family:var(--serif);font-style:italic;font-size:1.6rem;color:#2c2013;margin-bottom:6px}
+.diario-indice-sub{font-size:.84rem;color:#6b5636;margin-bottom:28px}
+.diario-indice-righe{display:flex;flex-direction:column}
+.diario-indice-riga{
+  display:flex;align-items:baseline;gap:11px;width:100%;padding:14px 2px;
+  background:none;border:none;border-bottom:1px dotted rgba(44,32,19,.3);
+  font-family:inherit;color:#3d3324;text-align:left;cursor:pointer;transition:color .15s;
+}
+.diario-indice-riga:last-child{border-bottom:none}
+.diario-indice-riga .din-ico{font-size:1.05rem;flex-shrink:0}
+.diario-indice-riga .din-nome{font-family:var(--serif);font-size:1.06rem;flex-shrink:0}
+.diario-indice-riga .din-dots{flex:1;align-self:end;margin:0 2px 6px;border-bottom:1px dotted rgba(44,32,19,.32)}
+.diario-indice-riga .din-count{font-size:.8rem;color:#6b5636;flex-shrink:0;white-space:nowrap}
+.diario-indice-riga:hover:not(:disabled) .din-nome{color:#9c4a1f}
+.diario-indice-riga:disabled{cursor:default;opacity:.4}
 .field select{
   width:100%;padding:12px 14px;background:var(--bg);border:1px solid var(--line-strong);color:var(--ink);
   font-family:var(--sans);font-size:.92rem;border-radius:var(--radius);transition:border-color .15s;
@@ -3516,16 +3541,50 @@ function eliminaNotaScriptorium(id){
 
 const SCRIPTORIUM_TIPO_LABEL={nota:'Nota libera',citazione:'Citazione',recensione:'Recensione',riflessione:'Riflessione',sessione:'Sessione di lettura'};
 const SCRIPTORIUM_TIPO_ICON={nota:'📌',citazione:'🖋️',recensione:'⭐',riflessione:'🌿',sessione:'📖'};
+// Stesso ordine dei tab in #scriptoriumTabs: usato per generare le righe
+// dell'indice del diario nello stesso ordine in cui appaiono le schede.
+const SCRIPTORIUM_SEZIONI=['sessione','citazione','recensione','riflessione','nota'];
 let scriptoriumFilter='tutte';
 let scriptoriumEditId=null;
+
+// Righe puntinate dell'indice: una per sezione, con conteggio pagine.
+// Le sezioni senza note restano nell'elenco ma disabilitate (si vede
+// cosa manca ancora, non solo cosa c'è già), coerente con un vero
+// indice di libro che elenca tutti i capitoli previsti.
+function diarioIndiceHTML(tutte){
+  const rot=(stampAngle('diario-indice')/3).toFixed(2);
+  const righe=SCRIPTORIUM_SEZIONI.map(tipo=>{
+    const n=tutte.filter(x=>x.tipo===tipo).length;
+    const vuota=n===0;
+    return `
+    <button class="diario-indice-riga" data-tipo="${tipo}"${vuota?' disabled':''}>
+      <span class="din-ico">${SCRIPTORIUM_TIPO_ICON[tipo]}</span>
+      <span class="din-nome">${SCRIPTORIUM_TIPO_LABEL[tipo]}</span>
+      <span class="din-dots"></span>
+      <span class="din-count">${vuota?'—':n+(n===1?' pagina':' pagine')}</span>
+    </button>`;
+  }).join('');
+  return `
+    <div class="diario-page diario-indice" style="--r:${rot}deg">
+      <div class="diario-indice-title">Indice</div>
+      <p class="diario-indice-sub">${tutte.length} ${tutte.length===1?'pagina scritta finora':'pagine scritte finora'}. Tocca una sezione per sfogliarla.</p>
+      <div class="diario-indice-righe">${righe}</div>
+    </div>`;
+}
 
 function renderScriptorium(){
   const guestNote=document.getElementById('scriptoriumGuestNote');
   if(guestNote)guestNote.style.display=getUser()?'none':'flex';
   const list=document.getElementById('scriptoriumList');
   if(!list)return;
-  const note=getScriptorium().filter(n=>scriptoriumFilter==='tutte'||n.tipo===scriptoriumFilter);
-  if(!note.length){
+  const tutte=getScriptorium();
+
+  // Diario davvero chiuso: nessuna nota in NESSUNA sezione. Prima questo
+  // messaggio compariva anche solo perché la sezione selezionata era
+  // vuota (es. hai scritto una citazione ma sei sulla scheda
+  // "Recensioni"), risultando fuorviante: ora è riservato al caso in
+  // cui non hai ancora scritto proprio nulla.
+  if(!tutte.length){
     list.innerHTML=`
       <div class="diario-vuoto">
         <div class="diario-vuoto-lock">🔒</div>
@@ -3533,6 +3592,32 @@ function renderScriptorium(){
       </div>`;
     return;
   }
+
+  // Scheda "Tutte": non più un elenco misto di tutte le note insieme,
+  // ma l'indice del diario — si "apre" non appena c'è almeno una pagina
+  // scritta da qualche parte.
+  if(scriptoriumFilter==='tutte'){
+    list.innerHTML=diarioIndiceHTML(tutte);
+    return;
+  }
+
+  const note=tutte.filter(n=>n.tipo===scriptoriumFilter);
+
+  // Il diario è aperto, ma questo capitolo non ha ancora pagine: stato
+  // diverso dal diario chiuso, stessa carta del resto (pagina bianca),
+  // non il libro col lucchetto.
+  if(!note.length){
+    const rot=(stampAngle('diario-vuota-'+scriptoriumFilter)/2.5).toFixed(2);
+    list.innerHTML=`
+      <div class="diario-page" style="--r:${rot}deg">
+        <div class="diario-pagina-vuota">
+          <div class="dpv-ico">🖋️</div>
+          <p>Nessuna pagina ancora in «${SCRIPTORIUM_TIPO_LABEL[scriptoriumFilter]}».</p>
+        </div>
+      </div>`;
+    return;
+  }
+
   list.innerHTML=`<div class="scriptorium-list">${note.map(n=>{
     // Stessa tecnica di rotazione "a caso ma stabile" già usata per steli
     // e timbri (stampAngle, definita più sotto nel file — disponibile qui
@@ -3561,6 +3646,14 @@ document.getElementById('scriptoriumTabs').addEventListener('click',e=>{
   renderScriptorium();
 });
 document.getElementById('scriptoriumList').addEventListener('click',e=>{
+  const riga=e.target.closest('[data-tipo]');
+  if(riga){
+    if(riga.disabled)return;
+    scriptoriumFilter=riga.dataset.tipo;
+    document.querySelectorAll('#scriptoriumTabs .status-tab').forEach(t=>t.classList.toggle('active',t.dataset.filter===scriptoriumFilter));
+    renderScriptorium();
+    return;
+  }
   const del=e.target.closest('[data-delete]');
   if(del){
     const rawId=del.dataset.delete;
