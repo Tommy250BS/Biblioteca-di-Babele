@@ -4759,7 +4759,7 @@ const TOUR_OSPITE_STEPS=[
   {page:'pantheon',selector:'#pantheonTabs',eyebrow:'Pantheon',
     title:'La Vetrina',
     text:'Qui trovi i distintivi legati ad Aurei, XP e streak: si sbloccano solo avendo un account.'},
-  {page:'pantheon',selector:'#navProfileArea',eyebrow:'Ultimo passo',
+  {id:'crea-account',page:'pantheon',selector:'#navProfileArea',eyebrow:'Ultimo passo',
     title:'Crea un account',
     text:'Stai esplorando come ospite: i progressi restano solo su questo dispositivo. Crea un account per non perderli e iniziare a guadagnare Aurei, XP e streak.'},
 ];
@@ -4987,7 +4987,12 @@ function resumeAccountTourIfPending(){
 }
 
 document.getElementById('btnRifaiTour')?.addEventListener('click',()=>{
-  const steps=currentUser?[...TOUR_OSPITE_STEPS,...TOUR_ACCOUNT_STEPS]:TOUR_OSPITE_STEPS;
+  // A) Loggato: tour completo (ospite + account), ma senza la tappa "Crea un
+  //    account" — non ha senso proporla a chi un account ce l'ha già.
+  // B) Ospite: esattamente lo stesso tour della primissima visita.
+  const steps=currentUser
+    ?[...TOUR_OSPITE_STEPS.filter(s=>s.id!=='crea-account'),...TOUR_ACCOUNT_STEPS]
+    :TOUR_OSPITE_STEPS;
   startTour(withRifaiStep(steps),()=>{});
 });
 
