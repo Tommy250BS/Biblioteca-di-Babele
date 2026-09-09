@@ -976,6 +976,8 @@ body.splash-lock{overflow:hidden}
 .pc-tone-oceanico{background:radial-gradient(circle at 30% 25%,#1c3a4a,#070f14 78%)}
 .pc-tone-iberico{background:radial-gradient(circle at 30% 25%,#4a3320,#0f0803 78%)}
 .pc-tone-ellenico{background:radial-gradient(circle at 30% 25%,#2c4a3e,#070f0c 78%)}
+.pc-tone-orientale{background:radial-gradient(circle at 30% 25%,#5a2432,#160709 78%)}
+.pc-tone-sahariano{background:radial-gradient(circle at 30% 25%,#5a3c1a,#150e05 78%)}
 .postcard-lock{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(6,5,4,.4)}
 .postcard-lock span{font-size:1.4rem;opacity:.75}
 .postcard-stamp-corner{position:absolute;top:8px;right:8px;font-size:1.2rem;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))}
@@ -2706,6 +2708,55 @@ const BOOKS=[
   {id:'fahrenheit-451',t:'Fahrenheit 451',a:'Ray Bradbury',y:1953},
   {id:'around-world-80-days',t:'Around the World in Eighty Days',a:'Jules Verne',y:1873},
   {id:'huckleberry-finn',t:'The Adventures of Huckleberry Finn',a:'Mark Twain',y:1884},
+  /* ── Italia ── */
+  {id:'divina-commedia',t:'Divina Commedia',a:'Dante Alighieri',y:1320},
+  {id:'decameron',t:'Decameron',a:'Giovanni Boccaccio',y:1353},
+  {id:'promessi-sposi',t:'I promessi sposi',a:'Alessandro Manzoni',y:1827},
+  {id:'principe',t:'Il Principe',a:'Niccolò Machiavelli',y:1532},
+  {id:'orlando-furioso',t:'Orlando furioso',a:'Ludovico Ariosto',y:1516},
+  /* ── Germania ── */
+  {id:'faust',t:'Faust',a:'Johann Wolfgang von Goethe',y:1808},
+  {id:'werther',t:'I dolori del giovane Werther',a:'Johann Wolfgang von Goethe',y:1774},
+  {id:'fiabe-grimm',t:'Fiabe del focolare',a:'Fratelli Grimm',y:1812},
+  /* ── Portogallo ── */
+  {id:'lusiadi',t:'Os Lusíadas (Le Lusiadi)',a:'Luís de Camões',y:1572},
+  /* ── Scandinavia ── */
+  {id:'casa-di-bambola',t:'Casa di bambola',a:'Henrik Ibsen',y:1879},
+  {id:'fiabe-andersen',t:'Fiabe',a:'Hans Christian Andersen',y:1837},
+  /* ── Giappone ── */
+  {id:'genji-monogatari',t:'Genji monogatari',a:'Murasaki Shikibu',y:1008},
+  {id:'kokoro',t:'Kokoro',a:'Natsume Sōseki',y:1914},
+  /* ── India ── */
+  {id:'gitanjali',t:'Gitanjali',a:'Rabindranath Tagore',y:1910},
+  {id:'panchatantra',t:'Panchatantra',a:'Vishnu Sharma',y:-300},
+  /* ── Cina (aggiunte) ── */
+  {id:'viaggio-occidente',t:'Viaggio in Occidente',a:"Wu Cheng'en",y:1592},
+  {id:'sogno-camera-rossa',t:'Sogno della camera rossa',a:'Cao Xueqin',y:1791},
+  /* ── Medio Oriente ── */
+  {id:'mille-una-notte',t:'Le mille e una notte',a:'Anonimo',y:800},
+  {id:'rubaiyat',t:'Rubʿiyyāt',a:'Omar Khayyam',y:1120},
+  /* ── Africa ── */
+  {id:'crollo',t:'Il crollo',a:'Chinua Achebe',y:1958},
+  {id:'fattoria-africana',t:'Storia di una fattoria africana',a:'Olive Schreiner',y:1883},
+  /* ── Oceania ── */
+  {id:'termine-naturale',t:'Per il termine della sua vita naturale',a:'Marcus Clarke',y:1874},
+  /* ── Americhe (aggiunte) ── */
+  {id:'finzioni',t:'Finzioni',a:'Jorge Luis Borges',y:1944},
+  {id:'tom-sawyer',t:'Le avventure di Tom Sawyer',a:'Mark Twain',y:1876},
+  {id:'lettera-scarlatta',t:'La lettera scarlatta',a:'Nathaniel Hawthorne',y:1850},
+  {id:'piccole-donne',t:'Piccole donne',a:'Louisa May Alcott',y:1868},
+  {id:'racconti-poe',t:'Racconti del terrore',a:'Edgar Allan Poe',y:1845},
+  {id:'cent-anni-solitudine',t:"Cent'anni di solitudine",a:'Gabriel García Márquez',y:1967},
+  /* ── Regno Unito (aggiunte) ── */
+  {id:'jane-eyre',t:'Jane Eyre',a:'Charlotte Brontë',y:1847},
+  {id:'libro-giungla',t:'Il libro della giungla',a:'Rudyard Kipling',y:1894},
+  /* ── Francia (aggiunte) ── */
+  {id:'tre-moschettieri',t:'I tre moschettieri',a:'Alexandre Dumas',y:1844},
+  {id:'conte-montecristo',t:'Il conte di Montecristo',a:'Alexandre Dumas',y:1844},
+  {id:'miserabili',t:'I miserabili',a:'Victor Hugo',y:1862},
+  {id:'ventimila-leghe',t:'Ventimila leghe sotto i mari',a:'Jules Verne',y:1870},
+  /* ── Russia (aggiunte) ── */
+  {id:'eugenio-onegin',t:'Eugenio Onegin',a:'Aleksandr Puškin',y:1833},
 ];
 function fmtYear(y){return y<0?`${Math.abs(y)} a.C.`:y;}
 
@@ -2952,40 +3003,48 @@ async function registraSessioneLettura(libro){
 function numeroRecensioni(){return getScriptorium().filter(n=>n.tipo==='recensione').length;}
 
 const ACHIEVEMENTS=[
-  {id:'primo-passo',tier:'bronze',title:'Primo Passo',desc:'Aggiungi il tuo primo volume alla biblioteca.',target:1,
+  {id:'prima-pagina',tier:'bronze',title:'Prima Pagina',desc:'Aggiungi il tuo primo volume alla biblioteca.',target:1,
     current:lib=>Object.keys(lib).length},
-  {id:'lettore-vorace',tier:'silver',title:'Lettore Vorace',desc:'Termina 5 grandi classici.',target:5,
+  {id:'fiamma-del-lettore',tier:'silver',title:'La Fiamma del Lettore',desc:'Termina 5 grandi classici.',target:5,
     current:lib=>Object.values(lib).filter(e=>e.stato==='letto').length},
-  {id:'bibliofilo',tier:'gold',title:'Bibliofilo',desc:'Termina 10 grandi classici.',target:10,
+  {id:'custode-dei-classici',tier:'gold',title:'Custode dei Classici',desc:'Termina 10 grandi classici.',target:10,
     current:lib=>Object.values(lib).filter(e=>e.stato==='letto').length},
-  {id:'erudito',tier:'platinum',title:'Erudito Assoluto',desc:`Termina l'intera collezione di ${BOOKS.length} classici.`,target:BOOKS.length,
+  {id:'immortale',tier:'platinum',title:"L'Immortale",desc:`Termina l'intera collezione di ${BOOKS.length} classici: il tuo nome non morirà mai tra questi scaffali.`,target:BOOKS.length,
     current:lib=>BOOKS.filter(b=>lib[b.id]?.stato==='letto').length},
-  {id:'cercatore',tier:'bronze',title:'Cercatore',desc:'Metti 3 opere nella tua lista dei desideri.',target:3,
+  {id:'cartografo-dei-desideri',tier:'bronze',title:'Cartografo dei Desideri',desc:'Metti 3 opere nella tua lista dei desideri.',target:3,
     current:lib=>Object.values(lib).filter(e=>e.stato==='desiderio').length},
-  {id:'collezionista-desideri',tier:'silver',title:'Collezionista',desc:'Metti 8 opere nella tua lista dei desideri.',target:8,
+  {id:'atlante-dei-desideri',tier:'silver',title:'Atlante dei Desideri',desc:'Metti 8 opere nella tua lista dei desideri.',target:8,
     current:lib=>Object.values(lib).filter(e=>e.stato==='desiderio').length},
-  {id:'multitasking',tier:'bronze',title:'Doppia Pagina',desc:'Tieni 2 opere in lettura contemporaneamente.',target:2,
+  {id:'giano-bifronte',tier:'bronze',title:'Giano Bifronte',desc:'Tieni 2 opere in lettura contemporaneamente, come il dio dai due volti che guarda in direzioni opposte.',target:2,
     current:lib=>Object.values(lib).filter(e=>e.stato==='in_lettura').length},
-  {id:'in-cammino',tier:'silver',title:'In Cammino',desc:'Tieni 5 opere in lettura contemporaneamente.',target:5,
+  {id:'pellegrino-instancabile',tier:'silver',title:'Pellegrino Instancabile',desc:'Tieni 5 opere in lettura contemporaneamente.',target:5,
     current:lib=>Object.values(lib).filter(e=>e.stato==='in_lettura').length},
-  {id:'poliedrico',tier:'silver',title:'Poliedrico',desc:'Leggi opere di almeno 5 autori diversi.',target:5,
+  {id:'politeista-delle-lettere',tier:'silver',title:'Politeista delle Lettere',desc:'Leggi opere di almeno 5 autori diversi: tanti dèi, un solo tempio.',target:5,
     current:lib=>new Set(Object.values(lib).filter(e=>e.stato==='letto').map(e=>e.autore).filter(Boolean)).size},
-  {id:'enciclopedico',tier:'gold',title:'Enciclopedico',desc:'Leggi opere di almeno 10 autori diversi.',target:10,
+  {id:'pantheon-dei-nomi',tier:'gold',title:'Pantheon dei Nomi',desc:'Leggi opere di almeno 10 autori diversi.',target:10,
     current:lib=>new Set(Object.values(lib).filter(e=>e.stato==='letto').map(e=>e.autore).filter(Boolean)).size},
-  {id:'prima-voce',tier:'bronze',title:'Prima Voce',desc:'Scrivi la tua prima recensione nello Scriptorium.',target:1,
+  {id:'voce-degli-antichi',tier:'bronze',title:'La Voce degli Antichi',desc:"Leggi un'opera scritta prima dell'anno zero: ascolta chi parlava già venticinque secoli fa.",target:1,
+    current:lib=>Object.values(lib).filter(e=>e.stato==='letto'&&typeof e.anno==='number'&&e.anno<0).length},
+  {id:'filo-del-tempo',tier:'gold',title:'Il Filo del Tempo',desc:"Fai in modo che le tue letture attraversino insieme almeno 2500 anni, dall'opera più antica alla più recente.",target:2500,
+    current:lib=>{
+      const anni=Object.values(lib).filter(e=>e.stato==='letto'&&typeof e.anno==='number').map(e=>e.anno);
+      return anni.length<2?0:Math.max(...anni)-Math.min(...anni);
+    }},
+  {id:'prima-iscrizione',tier:'bronze',title:'Prima Iscrizione',desc:'Scrivi la tua prima recensione nello Scriptorium.',target:1,
     current:()=>numeroRecensioni()},
-  {id:'critico-letterario',tier:'silver',title:'Critico Letterario',desc:'Scrivi 5 recensioni nello Scriptorium.',target:5,
+  {id:'oracolo-dei-classici',tier:'silver',title:'Oracolo dei Classici',desc:'Scrivi 5 recensioni nello Scriptorium.',target:5,
     current:()=>getScriptorium().filter(n=>n.tipo==='recensione').length},
-  {id:'cronista',tier:'silver',title:'Cronista dei Classici',desc:'Scrivi 10 note nello Scriptorium, tra citazioni, recensioni e riflessioni.',target:10,
+  {id:'scriba-del-tempio',tier:'silver',title:'Scriba del Tempio',desc:'Scrivi 10 note nello Scriptorium, tra citazioni, recensioni e riflessioni.',target:10,
     current:()=>getScriptorium().length},
-  {id:'filosofo-taccuino',tier:'gold',title:'Filosofo del Taccuino',desc:'Scrivi 25 note nello Scriptorium, tra citazioni, recensioni e riflessioni.',target:25,
+  {id:'filosofo-peripatetico',tier:'gold',title:'Filosofo Peripatetico',desc:'Scrivi 25 note nello Scriptorium: come Aristotele nel suo Liceo, il pensiero si affina camminando tra i classici.',target:25,
     current:()=>getScriptorium().length},
-  {id:'guardiano-canone',tier:'gold',title:'Guardiano del Canone',desc:'Sblocca tutti gli altri traguardi del Pantheon.',target:0,
-    current:lib=>ACHIEVEMENTS.filter(a=>a.id!=='guardiano-canone').filter(a=>a.current(lib)>=a.target).length},
+  {id:'guardiano-del-pantheon',tier:'platinum',title:'Guardiano del Pantheon',desc:'Sblocca tutti gli altri traguardi del Pantheon.',target:0,
+    current:lib=>ACHIEVEMENTS.filter(a=>a.id!=='guardiano-del-pantheon').filter(a=>a.current(lib)>=a.target).length},
 ];
-// Il target di "guardiano-canone" dipende dal numero degli altri traguardi:
-// va fissato dopo la creazione dell'array (che contiene già se stesso).
-ACHIEVEMENTS.find(a=>a.id==='guardiano-canone').target=ACHIEVEMENTS.length-1;
+// Il target di "guardiano-del-pantheon" dipende dal numero degli altri
+// traguardi: va fissato dopo la creazione dell'array (che contiene già se
+// stesso).
+ACHIEVEMENTS.find(a=>a.id==='guardiano-del-pantheon').target=ACHIEVEMENTS.length-1;
 const TIER_LABEL={bronze:'Bronze',silver:'Silver',gold:'Gold',platinum:'Platinum'};
 
 /* Icone delle steli del Pantheon — un'icona per ciascun traguardo di
@@ -2994,10 +3053,11 @@ const TIER_LABEL={bronze:'Bronze',silver:'Silver',gold:'Gold',platinum:'Platinum
    collezione ha criteri propri e non condivide più i dati di questi
    traguardi. */
 const ACH_ICONS={
-  'primo-passo':'📖','lettore-vorace':'🔥','bibliofilo':'🦉','erudito':'👑',
-  'cercatore':'🧭','collezionista-desideri':'🧳','multitasking':'🔀','in-cammino':'🕯️',
-  'poliedrico':'🎭','enciclopedico':'🌐','prima-voce':'🖋️','critico-letterario':'📝',
-  'cronista':'📜','filosofo-taccuino':'📓','guardiano-canone':'🛡️',
+  'prima-pagina':'📖','fiamma-del-lettore':'🔥','custode-dei-classici':'🦉','immortale':'👑',
+  'cartografo-dei-desideri':'🧭','atlante-dei-desideri':'🧳','giano-bifronte':'🔀','pellegrino-instancabile':'🕯️',
+  'politeista-delle-lettere':'🎭','pantheon-dei-nomi':'🌐','voce-degli-antichi':'🏺','filo-del-tempo':'⏳',
+  'prima-iscrizione':'🖋️','oracolo-dei-classici':'📝','scriba-del-tempio':'📜','filosofo-peripatetico':'📓',
+  'guardiano-del-pantheon':'🛡️',
 };
 let pantheonView='traguardi';
 
@@ -3860,20 +3920,43 @@ const CONTINENTI=[
 ];
 
 const PAESI=[
+  /* ── Europa ── */
   {id:'russia',continente:'europa',nome:'Russia',bandiera:'🇷🇺',
-   libri:['anna-karenina','crime-punishment','war-and-peace','brothers-karamazov','fathers-sons','dead-souls']},
+   libri:['anna-karenina','crime-punishment','war-and-peace','brothers-karamazov','fathers-sons','dead-souls','eugenio-onegin']},
   {id:'regno-unito',continente:'europa',nome:'Regno Unito',bandiera:'🇬🇧',
    libri:['hamlet','macbeth','julius-caesar','midsummer','pride-prejudice','emma','sense-sensibility',
           'wuthering-heights','christmas-carol','tale-two-cities','great-expectations','frankenstein',
           'dracula','jekyll-hyde','dorian-gray','treasure-island','secret-garden','alice',
-          'gullivers-travels','robinson-crusoe','1984','brave-new-world','utopia']},
+          'gullivers-travels','robinson-crusoe','1984','brave-new-world','utopia','jane-eyre','libro-giungla']},
   {id:'spagna',continente:'europa',nome:'Spagna',bandiera:'🇪🇸',libri:['don-quijote']},
-  {id:'francia',continente:'europa',nome:'Francia',bandiera:'🇫🇷',libri:['madame-bovary','around-world-80-days']},
+  {id:'francia',continente:'europa',nome:'Francia',bandiera:'🇫🇷',
+   libri:['madame-bovary','around-world-80-days','tre-moschettieri','conte-montecristo','miserabili','ventimila-leghe']},
   {id:'grecia',continente:'europa',nome:'Grecia',bandiera:'🇬🇷',
    libri:['odyssey','oedipus-rex','antigone','medea','oresteia','prometheus-bound']},
-  {id:'cina',continente:'asia',nome:'Cina',bandiera:'🇨🇳',libri:['art-of-war']},
+  {id:'italia',continente:'europa',nome:'Italia',bandiera:'🇮🇹',
+   libri:['divina-commedia','decameron','promessi-sposi','principe','orlando-furioso']},
+  {id:'germania',continente:'europa',nome:'Germania',bandiera:'🇩🇪',
+   libri:['faust','werther','fiabe-grimm']},
+  {id:'portogallo',continente:'europa',nome:'Portogallo',bandiera:'🇵🇹',libri:['lusiadi']},
+  {id:'norvegia',continente:'europa',nome:'Norvegia',bandiera:'🇳🇴',libri:['casa-di-bambola']},
+  {id:'danimarca',continente:'europa',nome:'Danimarca',bandiera:'🇩🇰',libri:['fiabe-andersen']},
+  /* ── Asia ── */
+  {id:'cina',continente:'asia',nome:'Cina',bandiera:'🇨🇳',
+   libri:['art-of-war','viaggio-occidente','sogno-camera-rossa']},
+  {id:'giappone',continente:'asia',nome:'Giappone',bandiera:'🇯🇵',libri:['genji-monogatari','kokoro']},
+  {id:'india',continente:'asia',nome:'India',bandiera:'🇮🇳',libri:['gitanjali','panchatantra']},
+  {id:'medio-oriente',continente:'asia',nome:'Medio Oriente',bandiera:'🌙',libri:['mille-una-notte','rubaiyat']},
+  /* ── Americhe ── */
   {id:'usa',continente:'americhe',nome:'Stati Uniti',bandiera:'🇺🇸',
-   libri:['moby-dick','wizard-of-oz','huckleberry-finn','fahrenheit-451']},
+   libri:['moby-dick','wizard-of-oz','huckleberry-finn','fahrenheit-451','tom-sawyer',
+          'lettera-scarlatta','piccole-donne','racconti-poe']},
+  {id:'argentina',continente:'americhe',nome:'Argentina',bandiera:'🇦🇷',libri:['finzioni']},
+  {id:'colombia',continente:'americhe',nome:'Colombia',bandiera:'🇨🇴',libri:['cent-anni-solitudine']},
+  /* ── Africa ── */
+  {id:'nigeria',continente:'africa',nome:'Nigeria',bandiera:'🇳🇬',libri:['crollo']},
+  {id:'sudafrica',continente:'africa',nome:'Sudafrica',bandiera:'🇿🇦',libri:['fattoria-africana']},
+  /* ── Oceania ── */
+  {id:'australia',continente:'oceania',nome:'Australia',bandiera:'🇦🇺',libri:['termine-naturale']},
 ];
 
 // libroChiave deve essere un id presente in BOOKS. tono/icona sono la
@@ -3912,6 +3995,26 @@ const EPISTOLARIUM_CARDE=[
    luogo:'Isole greche',francobollo:'🏺',tono:'ellenico',icona:'⛵',
    retro:"Per secoli si è discusso se Omero sia esistito davvero o se il suo nome raccolga il lavoro di più cantori orali di un'intera tradizione.",
    citazione:"Musa, dammi di quell'uomo il multiforme ingegno."},
+  {id:'dante',autore:'Dante Alighieri',libroChiave:'divina-commedia',
+   luogo:'Firenze, poi l\u2019esilio a Ravenna',francobollo:'🔥',tono:'mediterraneo',icona:'🕯️',
+   retro:'Esiliato da Firenze nel 1302 con l\u2019accusa di corruzione, Dante non fece più ritorno in patria: scrisse gran parte della Commedia in fuga, città dopo città.',
+   citazione:"Nel mezzo del cammin di nostra vita."},
+  {id:'goethe',autore:'Johann Wolfgang von Goethe',libroChiave:'faust',
+   luogo:'Weimar, Sacro Romano Impero',francobollo:'🕯️',tono:'vittoriano',icona:'📖',
+   retro:"Goethe lavorò al Faust per quasi sessant'anni, dalla giovinezza fino a pochi mesi prima della morte: l'opera fu pubblicata per intero solo postuma.",
+   citazione:'Grigia, amico mio, è ogni teoria.'},
+  {id:'murasaki',autore:'Murasaki Shikibu',libroChiave:'genji-monogatari',
+   luogo:'Corte di Heian-kyō, Giappone',francobollo:'🎎',tono:'orientale',icona:'🏯',
+   retro:'Scritto da una dama di corte più di mille anni fa, il Genji monogatari è considerato da molti studiosi il primo romanzo psicologico della storia della letteratura.',
+   citazione:'Anche i fiori più splendenti appassiscono.'},
+  {id:'achebe',autore:'Chinua Achebe',libroChiave:'crollo',
+   luogo:'Villaggio igbo, Nigeria',francobollo:'🌍',tono:'sahariano',icona:'🌾',
+   retro:'Il titolo del romanzo, "Things Fall Apart", è tratto da un verso della poesia "The Second Coming" di W.B. Yeats.',
+   citazione:'Quando i rami litigano tra loro, le radici si spezzano.'},
+  {id:'borges',autore:'Jorge Luis Borges',libroChiave:'finzioni',
+   luogo:'Buenos Aires, Argentina',francobollo:'🪞',tono:'iberico',icona:'🌀',
+   retro:'Borges perse quasi del tutto la vista negli ultimi decenni della sua vita, eppure divenne direttore della Biblioteca Nazionale Argentina: definì questa coincidenza "l\u2019ironia di Dio".',
+   citazione:'Il paradiso, per me, ha sempre avuto la forma di una biblioteca.'},
 ];
 
 /* ══════════════════════════════════════════════════════════════════
