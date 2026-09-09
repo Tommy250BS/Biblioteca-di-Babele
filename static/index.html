@@ -1084,13 +1084,38 @@ body.splash-lock{overflow:hidden}
   transition:transform .2s ease,box-shadow .2s;
   padding:36px 34px 30px 68px;border-radius:2px;color:#3d3324;
   background:
+    /* texture di grana della carta: due retini di puntini sfalsati, non
+       un'immagine esterna — coerente con lo stile "a gradienti impilati"
+       già usato in tutta l'app (splash, steli, timbri). */
+    radial-gradient(rgba(90,66,32,.055) 1px,transparent 1.3px),
+    radial-gradient(rgba(90,66,32,.045) 1px,transparent 1.3px),
+    /* macchia di caffè/inchiostro: un anello, non una macchia piena.
+       Raggio 0 di default (invisibile): il JS imposta --macchia-* solo su
+       una parte delle pagine, per un effetto sparso e non ripetitivo. */
+    radial-gradient(circle at var(--macchia-x,50%) var(--macchia-y,50%),
+      transparent calc(var(--macchia-r,0px) - 7px),
+      rgba(120,72,30,.16) calc(var(--macchia-r,0px) - 6px),
+      rgba(120,72,30,.09) calc(var(--macchia-r,0px) - 2px),
+      transparent var(--macchia-r,0px)),
     repeating-linear-gradient(180deg,transparent,transparent 27px,rgba(70,108,158,.16) 27px,rgba(70,108,158,.16) 28px),
     linear-gradient(90deg,transparent 0,transparent 52px,rgba(168,58,52,.4) 52px,rgba(168,58,52,.4) 53px,transparent 53px),
     #f4efe0;
+  background-size:3px 3px,5px 5px,auto,auto,auto;
+  background-position:0 0,1.5px 2.5px,0 0,0 0,0 0;
   box-shadow:0 10px 22px rgba(0,0,0,.35),inset 0 0 40px rgba(60,45,20,.07);
 }
 .diario-page:hover{transform:rotate(0deg);box-shadow:0 16px 32px rgba(0,0,0,.48),inset 0 0 40px rgba(60,45,20,.07)}
 @media(max-width:640px){.diario-page{padding:30px 20px 26px 46px}}
+/* bordo inferiore stracciato: striscia sovrapposta agli ultimi px della
+   pagina, ritagliata a zig-zag — un foglio staccato a mano, non tagliato
+   di netto. Separata dal corpo della pagina (invece di un clip-path
+   sull'intero elemento) per non tagliare via anche i fori perforati e
+   l'ombra della pagina, che restano intatti. */
+.diario-page::after{
+  content:'';position:absolute;left:0;right:0;bottom:-10px;height:14px;
+  background-color:#f4efe0;pointer-events:none;
+  clip-path:polygon(0 0,100% 0,95% 60%,90% 0,85% 60%,80% 0,75% 60%,70% 0,65% 60%,60% 0,55% 60%,50% 0,45% 60%,40% 0,35% 60%,30% 0,25% 60%,20% 0,15% 60%,10% 0,5% 60%,0 0);
+}
 /* fori perforati del quaderno a spirale, lungo il bordo superiore: il
    colore scuro corrisponde allo sfondo della pagina, così sembrano
    veri "buchi" che lasciano intravedere ciò che sta sotto. */
@@ -1120,12 +1145,40 @@ body.splash-lock{overflow:hidden}
 }
 .diario-titolo{font-family:var(--serif);font-size:1.28rem;color:#2c2013;margin-bottom:10px}
 .diario-testo{font-size:.96rem;line-height:1.75;white-space:pre-wrap;color:#3d3324}
+/* colore dell'inchiostro: varia per pagina (assegnato dal JS in modo
+   stabile per nota, non a caso a ogni render) così non tutte le voci
+   sembrano scritte con la stessa penna. La data resta invece in un
+   marrone neutro fisso, come un campo prestampato del diario. */
+.diario-page.inchiostro-blu .diario-titolo,.diario-page.inchiostro-blu .diario-testo{color:#2c3a52}
+.diario-page.inchiostro-nero .diario-titolo,.diario-page.inchiostro-nero .diario-testo{color:#221f1a}
+.diario-page.inchiostro-seppia .diario-titolo,.diario-page.inchiostro-seppia .diario-testo{color:#6b4423}
+/* citazioni: corsivo a mano con virgolette disegnate, non il font di
+   lettura standard usato per recensioni/riflessioni più lunghe. */
+.diario-page[data-tipo="citazione"] .diario-testo{
+  font-family:'Caveat',cursive;font-size:1.5rem;line-height:1.45;
+}
+.diario-page[data-tipo="citazione"] .diario-testo::before{content:'“';font-family:var(--serif);font-style:italic;color:rgba(61,51,36,.4);margin-right:2px}
+.diario-page[data-tipo="citazione"] .diario-testo::after{content:'”';font-family:var(--serif);font-style:italic;color:rgba(61,51,36,.4);margin-left:2px}
 .diario-actions{display:flex;gap:4px;margin-top:20px;justify-content:flex-end}
 .diario-actions button{
   background:none;border:none;color:rgba(61,51,36,.5);padding:5px 9px;
   font-family:var(--sans);font-size:.72rem;font-weight:600;transition:color .15s;
 }
 .diario-actions button:hover{color:#3d3324}
+/* l'indice non è un foglio staccato ma la prima pagina rilegata del
+   diario: niente fori di spirale né bordo strappato (li eredita da
+   .diario-page, qui li annullo), al loro posto un segnalibro a nastro. */
+.diario-page.diario-indice::before{
+  content:'';position:absolute;top:-4px;left:40px;width:26px;height:52px;
+  background:linear-gradient(180deg,#9c4a1f,#7a3416);
+  clip-path:polygon(0 0,100% 0,100% 78%,50% 100%,0 78%);
+  box-shadow:2px 3px 6px rgba(0,0,0,.35);
+}
+.diario-page.diario-indice::after{content:none}
+/* piccolo indizio che la pagina è stata scritta da poco: solo sulla nota
+   più recente della sezione, e solo per un paio di giorni — dopo torna
+   una pagina come le altre. */
+.diario-fresca{display:inline-flex;align-items:center;gap:5px;font-size:.7rem;font-style:italic;color:rgba(156,74,31,.75);margin:-4px 0 14px}
 /* diario chiuso — stato vuoto, al posto del generico placeholder testuale */
 .diario-vuoto{
   max-width:320px;margin:30px auto;padding:50px 32px;text-align:center;position:relative;
@@ -3572,6 +3625,26 @@ function diarioIndiceHTML(tutte){
     </div>`;
 }
 
+// Hash 0..1 stabile per stringa — come stampAngle ma con più risoluzione,
+// per pescare in modo deterministico (stessa nota → stesso risultato a
+// ogni render) inchiostro e presenza/posizione della macchia di pagina.
+function hash01(str){
+  let h=0;for(let i=0;i<str.length;i++)h=(h*31+str.charCodeAt(i))>>>0;
+  return (h%1000)/1000;
+}
+const INCHIOSTRI=['','inchiostro-blu','inchiostro-nero','inchiostro-seppia'];
+function decorazioniPagina(id){
+  const seme=String(id);
+  const inchiostro=INCHIOSTRI[Math.floor(hash01(seme+'ink')*INCHIOSTRI.length)];
+  // Solo una pagina su tre-quattro ha una macchia: sparsa, non su ogni
+  // pagina — altrimenti perde di realismo diventando un motivo ripetuto.
+  const haMacchia=hash01(seme+'macchia')<0.32;
+  const macchiaStyle=haMacchia
+    ?`--macchia-x:${(15+hash01(seme+'mx')*70).toFixed(0)}%;--macchia-y:${(8+hash01(seme+'my')*30).toFixed(0)}%;--macchia-r:${(28+hash01(seme+'mr')*22).toFixed(0)}px;`
+    :'';
+  return{inchiostro,macchiaStyle};
+}
+
 function renderScriptorium(){
   const guestNote=document.getElementById('scriptoriumGuestNote');
   if(guestNote)guestNote.style.display=getUser()?'none':'flex';
@@ -3618,16 +3691,24 @@ function renderScriptorium(){
     return;
   }
 
-  list.innerHTML=`<div class="scriptorium-list">${note.map(n=>{
+  const dueGiorniMs=1000*60*60*24*2;
+  list.innerHTML=`<div class="scriptorium-list">${note.map((n,i)=>{
     // Stessa tecnica di rotazione "a caso ma stabile" già usata per steli
     // e timbri (stampAngle, definita più sotto nel file — disponibile qui
     // per hoisting): ogni pagina ha un'inclinazione leggermente diversa,
     // come fogli veri lasciati cadere uno sull'altro sulla scrivania.
     const rot=(stampAngle('diario'+n.id)/2.5).toFixed(2);
+    const{inchiostro,macchiaStyle}=decorazioniPagina(n.id);
+    // "Fresca": solo la nota più recente di QUESTA sezione (note[] è già
+    // in ordine dal più recente, sia da /api/scriptorium ORDER BY
+    // creato_il DESC sia dall'unshift() lato ospite), e solo per un paio
+    // di giorni dopo — poi torna una pagina come le altre.
+    const fresca=i===0&&(Date.now()-new Date(n.creato_il).getTime()<dueGiorniMs);
     return `
-    <div class="diario-page" data-id="${n.id}" style="--r:${rot}deg">
+    <div class="diario-page ${inchiostro}" data-id="${n.id}" data-tipo="${n.tipo}" style="--r:${rot}deg;${macchiaStyle}">
       <div class="diario-tab tipo-${n.tipo}">${SCRIPTORIUM_TIPO_ICON[n.tipo]||'✎'} ${SCRIPTORIUM_TIPO_LABEL[n.tipo]||n.tipo}</div>
       <div class="diario-data">${new Date(n.creato_il).toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'})}</div>
+      ${fresca?'<div class="diario-fresca">✒️ inchiostro ancora fresco</div>':''}
       ${n.titolo_libro?`<div class="diario-libro">📎 ${escapeHtml(n.titolo_libro)}${n.autore_libro?' · '+escapeHtml(n.autore_libro):''}</div>`:''}
       ${n.titolo?`<div class="diario-titolo">${escapeHtml(n.titolo)}</div>`:''}
       <div class="diario-testo">${escapeHtml(n.testo)}</div>
