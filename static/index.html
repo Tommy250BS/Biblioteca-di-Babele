@@ -4182,7 +4182,7 @@ function stampCardHTML(paese,lib){
             <div style="font-size:.72rem;color:#7a684a;margin-top:6px">${letti} / ${sogliaOro} letti</div>
           </div>
         </div>
-        <div class="stamp-books" onclick="event.stopPropagation()">
+        <div class="stamp-books" onclick="if(!event.target.closest('[data-act]'))event.stopPropagation()">
           <div class="book-grid">${books.map(b=>bookCardHTML(b,lib[b.id]?.stato)).join('')}</div>
         </div>
       </div>`;
