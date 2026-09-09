@@ -1318,6 +1318,12 @@ body.splash-lock{overflow:hidden}
 .tour-text{font-size:.88rem;color:var(--ink-2);line-height:1.62;margin-bottom:22px}
 .tour-actions{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .tour-actions-right{display:flex;gap:8px}
+.tour-skip-btn{
+  background:rgba(200,60,50,.12);border:1px solid rgba(200,60,50,.4);color:#e28b82;
+  padding:9px 16px;font-family:var(--sans);font-weight:600;font-size:.8rem;
+  border-radius:var(--radius);transition:background .15s,border-color .15s,color .15s;
+}
+.tour-skip-btn:hover{background:rgba(200,60,50,.22);border-color:rgba(200,60,50,.7);color:#f2a89e}
 @keyframes tourTooltipIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media(max-width:720px){
   .tour-tooltip.tour-tooltip-sheet{
@@ -4684,6 +4690,18 @@ function buildAccountTourSteps(){
   return[...base,...TOUR_ACCOUNT_STEPS];
 }
 
+/* Ultima tappa, comune a tutti i percorsi: spiega che il tour si può
+   sempre rifare da "Chi siamo", e ci naviga davvero sopra così la
+   spiega non resta solo teorica. Tenuta separata dagli array sopra (e
+   accodata con withRifaiStep) per non ritrovarsela duplicata quando
+   "Rifai il tour" concatena guest+account in un unico giro. */
+const TOUR_STEP_RIFAI={
+  page:'about',selector:'#btnRifaiTour',eyebrow:'Un\u2019ultima cosa',
+  title:'Puoi rifare il tour quando vuoi',
+  text:'Se un giorno ti servisse ripassare queste indicazioni, torna qui su "Chi siamo" e tocca questo pulsante.'
+};
+function withRifaiStep(steps){return[...steps,TOUR_STEP_RIFAI];}
+
 let tourState=null;
 let tourLastTarget=null;
 let tourRepositionQueued=false;
@@ -4754,7 +4772,10 @@ function endTour(){
   tourState=null;tourLastTarget=null;
   if(typeof finish==='function')finish();
 }
-function skipTour(){endTour();}
+function skipTour(){
+  if(!confirm('Vuoi davvero saltare il tour guidato? Potrai rifarlo in qualsiasi momento da "Chi siamo".'))return;
+  endTour();
+}
 async function tourNext(){
   if(!tourState)return;
   if(tourState.index<tourState.steps.length-1){
@@ -4813,7 +4834,7 @@ function renderTourTooltip(step,target){
     <h3 class="tour-title">${step.title}</h3>
     <p class="tour-text">${step.text}</p>
     <div class="tour-actions">
-      <button class="btn-quiet" id="tourSkip" type="button">Salta il tour</button>
+      <button class="tour-skip-btn" id="tourSkip" type="button">Salta il tour</button>
       <div class="tour-actions-right">
         ${tourState.index>0?'<button class="btn btn-outline" id="tourBack" type="button">Indietro</button>':''}
         <button class="btn btn-gold" id="tourNext" type="button">${isLast?'Fine →':'Avanti →'}</button>
@@ -4853,7 +4874,7 @@ let pendingAccountTourAfterMigration=false;
 function maybeStartAccountTour(){
   if(localStorage.getItem(LS_TOUR_ACCOUNT))return;
   setTimeout(()=>{
-    startTour(buildAccountTourSteps(),()=>{
+    startTour(withRifaiStep(buildAccountTourSteps()),()=>{
       localStorage.setItem(LS_TOUR_ACCOUNT,'1');
       localStorage.setItem(LS_TOUR_OSPITE,'1'); // copre comunque le basi già mostrate
     });
@@ -4867,7 +4888,7 @@ function resumeAccountTourIfPending(){
 
 document.getElementById('btnRifaiTour')?.addEventListener('click',()=>{
   const steps=currentUser?[...TOUR_OSPITE_STEPS,...TOUR_ACCOUNT_STEPS]:TOUR_OSPITE_STEPS;
-  startTour(steps,()=>{});
+  startTour(withRifaiStep(steps),()=>{});
 });
 
 /* ══════════════════════════════════════════════════════════════════
@@ -4936,7 +4957,7 @@ async function initApp(){
   // che parte subito dopo la registrazione (vedi authSubmit).
   afterSplash(()=>{
     if(!currentUser&&!localStorage.getItem(LS_TOUR_OSPITE)){
-      setTimeout(()=>startTour(TOUR_OSPITE_STEPS,()=>localStorage.setItem(LS_TOUR_OSPITE,'1')),300);
+      setTimeout(()=>startTour(withRifaiStep(TOUR_OSPITE_STEPS),()=>localStorage.setItem(LS_TOUR_OSPITE,'1')),300);
     }
   });
 }
