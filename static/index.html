@@ -987,8 +987,8 @@ body.splash-lock{overflow:hidden}
 .postcard-hint{font-size:.78rem;color:var(--ink-3);line-height:1.5;padding:12px 4px 0}
 
 /* ── modale: la cartolina si gira ── */
-.postcard-modal{max-width:560px}
-.postcard-flip{aspect-ratio:3/2;min-height:300px;position:relative;perspective:1400px;margin-top:6px}
+.modal.postcard-modal{max-width:760px;padding:32px 30px}
+.postcard-flip{aspect-ratio:3/2;min-height:300px;width:100%;box-sizing:border-box;position:relative;perspective:1400px;margin-top:6px}
 .postcard-face{position:absolute;inset:0;backface-visibility:hidden;transition:transform .6s cubic-bezier(.4,.2,.2,1);box-shadow:0 6px 22px rgba(0,0,0,.4)}
 .postcard-front{transform:rotateY(0deg);background:#f4efe3;padding:14px}
 .postcard-front-scene{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
@@ -1042,8 +1042,47 @@ body.splash-lock{overflow:hidden}
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   AGORÀ
+   TOAST SBLOCCO CARTOLINA — a differenza del toast Aurei (testuale e
+   fugace), qui l'evento merita più presenza: una mini-cartolina che
+   scivola dall'angolo basso, con la stessa "tinta di scena" (pc-tone-*)
+   della cartolina vera, così da anticiparne subito l'atmosfera. Resta
+   cliccabile (porta dritti all'Epistolarium, cartolina già aperta) e
+   si autodistrugge dopo qualche secondo se ignorata.
    ══════════════════════════════════════════════════════════════════ */
+.postcard-toast-wrap{
+  position:fixed;right:24px;bottom:98px;z-index:2000;
+  display:flex;flex-direction:column-reverse;gap:12px;align-items:flex-end;
+}
+@media(min-width:941px){.postcard-toast-wrap{bottom:24px}}
+@media(max-width:600px){.postcard-toast-wrap{right:14px;left:14px;bottom:84px;align-items:stretch}}
+.postcard-toast{
+  cursor:pointer;display:flex;align-items:stretch;gap:0;overflow:hidden;
+  width:308px;max-width:100%;background:var(--bg-3);border:1px solid rgba(201,162,39,.4);
+  border-radius:3px;box-shadow:0 16px 34px rgba(0,0,0,.5);
+  animation:postcardToastIn .45s cubic-bezier(.16,1,.3,1) both,postcardToastOut .4s ease 6.6s forwards;
+}
+.postcard-toast:hover{border-color:rgba(201,162,39,.7)}
+.postcard-toast-thumb{
+  width:58px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;position:relative;
+}
+.postcard-toast-thumb::after{ /* dentellatura da francobollo sul bordo destro */
+  content:'';position:absolute;top:0;bottom:0;right:-4px;width:8px;
+  background-image:radial-gradient(circle,var(--bg-3) 0 3px,transparent 3.2px);
+  background-size:8px 10px;background-repeat:repeat-y;
+}
+.postcard-toast-body{flex:1;min-width:0;padding:12px 16px 12px 14px;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.postcard-toast-eyebrow{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-2);display:flex;align-items:center;gap:5px}
+.postcard-toast-title{font-family:var(--serif);font-style:italic;font-size:1rem;color:var(--ink);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.postcard-toast-sub{font-size:.72rem;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.postcard-toast-close{
+  align-self:flex-start;background:none;border:none;color:var(--ink-3);font-size:.85rem;
+  padding:8px 10px 0 0;flex-shrink:0;
+}
+.postcard-toast-close:hover{color:var(--ink)}
+@keyframes postcardToastIn{from{opacity:0;transform:translateY(20px) scale(.92)}to{opacity:1;transform:none}}
+@keyframes postcardToastOut{to{opacity:0;transform:translateY(-6px) scale(.96)}}
+@media(prefers-reduced-motion:reduce){.postcard-toast{animation:postcardToastOut 0s ease 6.6s forwards}}
 .page-header-flex{display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap}
 .threads{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line)}
 .thread-row{background:var(--bg);padding:30px 40px;cursor:pointer;transition:background .15s}
@@ -2894,6 +2933,7 @@ function setBookStatus(book,stato){
   // precompilato. Niente proposta se una recensione per quel libro esiste
   // già, per non essere ripetitivi ad ogni piccola modifica.
   if(!rimuove&&stato==='letto')maybeOfferReview(book);
+  if(!rimuove&&stato==='letto')checkPostcardUnlock(book);
 }
 
 /* ── Proposta di recensione dopo "Letto" ──────────────────────────────── */
@@ -4360,7 +4400,7 @@ function openPostcard(id){
           <div class="pb-address-to">A</div>
           <div class="pb-address-line">chi ha letto</div>
           <div class="pb-address-line">«${libroTitolo}»</div>
-          <div class="pb-address-line">Biblioteca Aeterna</div>
+          <div class="pb-address-line">Da Biblioteca Aeterna</div>
           <p class="pb-cit">«${card.citazione}»</p>
         </div>
       </div>
@@ -4377,6 +4417,60 @@ document.getElementById('postcardFlipBtn').addEventListener('click',()=>{
 });
 document.getElementById('postcardClose').addEventListener('click',()=>document.getElementById('postcardOverlay').classList.remove('open'));
 document.getElementById('postcardOverlay').addEventListener('click',e=>{if(e.target.id==='postcardOverlay')e.currentTarget.classList.remove('open');});
+
+/* ── Notifica di sblocco cartolina ────────────────────────────────────
+   Un libro-chiave letto sblocca una cartolina dell'Epistolarium (vedi
+   EPISTOLARIUM_CARDE più sotto, disponibile qui per hoisting essendo
+   una const di primo livello valutata prima che l'utente possa mai
+   segnare un libro come "letto"). LS_CARTOLINE_NOTIFICATE tiene traccia
+   di quali cartoline hanno già ricevuto la loro notifica UNA VOLTA
+   nella vita di questo dispositivo: evita di ripetere il toast se
+   l'utente toglie e rimette "letto" sullo stesso libro-chiave, o se lo
+   stesso libro sblocca la stessa cartolina dopo un logout/login. */
+const LS_CARTOLINE_NOTIFICATE='aeterna_cartoline_notificate';
+function getCartolineNotificate(){try{return JSON.parse(localStorage.getItem(LS_CARTOLINE_NOTIFICATE))||[];}catch{return[];}}
+function segnaCartolinaNotificata(id){
+  const viste=getCartolineNotificate();
+  if(!viste.includes(id)){viste.push(id);localStorage.setItem(LS_CARTOLINE_NOTIFICATE,JSON.stringify(viste));}
+}
+function checkPostcardUnlock(book){
+  const carta=EPISTOLARIUM_CARDE.find(c=>c.libroChiave===book.id);
+  if(!carta)return;
+  if(getCartolineNotificate().includes(carta.id))return;
+  segnaCartolinaNotificata(carta.id);
+  mostraToastCartolina(carta);
+}
+
+let postcardToastWrap=null;
+function mostraToastCartolina(carta){
+  if(!postcardToastWrap){
+    postcardToastWrap=document.createElement('div');
+    postcardToastWrap.className='postcard-toast-wrap';
+    postcardToastWrap.setAttribute('aria-live','polite');
+    document.body.appendChild(postcardToastWrap);
+  }
+  const el=document.createElement('div');
+  el.className='postcard-toast';
+  el.innerHTML=`
+    <div class="postcard-toast-thumb pc-tone-${carta.tono}">${carta.icona}</div>
+    <div class="postcard-toast-body">
+      <span class="postcard-toast-eyebrow">📮 Nuova cartolina ricevuta</span>
+      <span class="postcard-toast-title">${escapeHtml(carta.autore)}</span>
+      <span class="postcard-toast-sub">${escapeHtml(carta.luogo)} · tocca per aprirla</span>
+    </div>
+    <button class="postcard-toast-close" aria-label="Ignora">✕</button>`;
+  const rimuovi=()=>el.remove();
+  const timer=setTimeout(rimuovi,7000);
+  el.addEventListener('click',ev=>{
+    clearTimeout(timer);
+    if(ev.target.closest('.postcard-toast-close')){rimuovi();return;}
+    rimuovi();
+    tabellariumView='epistolarium';
+    navigate('tabellarium');
+    setTimeout(()=>openPostcard(carta.id),200);
+  });
+  postcardToastWrap.appendChild(el);
+}
 
 /* ══════════════════════════════════════════════════════════════════
    AGORÀ — unica sezione con testo libero scritto dagli utenti: qui,
