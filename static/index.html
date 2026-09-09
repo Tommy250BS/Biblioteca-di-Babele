@@ -1050,11 +1050,10 @@ body.splash-lock{overflow:hidden}
    si autodistrugge dopo qualche secondo se ignorata.
    ══════════════════════════════════════════════════════════════════ */
 .postcard-toast-wrap{
-  position:fixed;right:24px;bottom:98px;z-index:2000;
-  display:flex;flex-direction:column-reverse;gap:12px;align-items:flex-end;
+  position:fixed;top:140px;left:50%;transform:translateX(-50%);z-index:2000;
+  display:flex;flex-direction:column;gap:12px;align-items:center;
 }
-@media(min-width:941px){.postcard-toast-wrap{bottom:24px}}
-@media(max-width:600px){.postcard-toast-wrap{right:14px;left:14px;bottom:84px;align-items:stretch}}
+@media(max-width:600px){.postcard-toast-wrap{width:calc(100% - 28px);max-width:340px}}
 .postcard-toast{
   cursor:pointer;display:flex;align-items:stretch;gap:0;overflow:hidden;
   width:308px;max-width:100%;background:var(--bg-3);border:1px solid rgba(201,162,39,.4);
@@ -4768,7 +4767,7 @@ const TOUR_OSPITE_STEPS=[
 const TOUR_ACCOUNT_STEPS=[
   {page:'home',selector:'#economiaWidget',eyebrow:'Il tuo account',
     title:'Aurei ed Esperienza',
-    text:'Ora guadagni Aurei e XP completando libri, scrivendo nello Scriptorium, partecipando in Agorà e rispondendo all\u2019Ephemeris.'},
+    text:'Ora guadagni Aurei e XP completando libri, scrivendo nello Scriptorium, partecipando in Agorà e rispondendo all\u2019Ephemeris. Gli Aurei sono per ora in fase di test: in futuro potrai spenderli davvero all\u2019interno della Biblioteca.'},
   {page:'home',selector:'#navProfileArea',eyebrow:'Il tuo rango',
     title:'Il tuo titolo',
     text:'Il titolo accanto al tuo nome sale di livello con l\u2019XP accumulata: da Discepolo fino a Bibliotecario Immortale.'},
