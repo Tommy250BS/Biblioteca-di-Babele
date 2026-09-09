@@ -1662,6 +1662,7 @@ body.splash-lock{overflow:hidden}
           <span>🔒</span>
           <span>Stai esplorando come ospite: i progressi restano su questo dispositivo. <a href="#" id="profiloLoginLink">Accedi</a> per non perderli.</span>
         </div>
+        <button class="btn btn-outline" id="btnLogoutProfilo" style="display:none;margin-top:30px">Esci dall'account</button>
       </div>
     </div>
 
@@ -2238,7 +2239,7 @@ function renderNavUser(){
   const titolo=economiaCache.livello||'Discepolo';
   const nick=u.nickname||u.nome;
   el.innerHTML=`
-    <button class="nav-profile-btn" data-nav="pantheon" title="Vai al tuo Pantheon">
+    <button class="nav-profile-btn" data-nav="profilo" title="Vai al tuo profilo">
       <img src="${avatarUrl(nick)}" alt="">
       <span class="nav-profile-text">
         <span class="nav-profile-name">${escapeHtml(nick)}</span>
@@ -3449,6 +3450,7 @@ function renderProfilo(){
   const u=getUser();
   document.getElementById('profiloNome').textContent=u?u.nome.split(' ')[0]:'Ospite';
   document.getElementById('profiloGuestNote').style.display=u?'none':'flex';
+  document.getElementById('btnLogoutProfilo').style.display=u?'inline-flex':'none';
 
   const accountCard=document.getElementById('accountCard');
   if(accountCard){
@@ -3545,6 +3547,7 @@ document.getElementById('goalForm').addEventListener('submit',e=>{
   renderProfilo();
 });
 document.getElementById('profiloLoginLink')?.addEventListener('click',e=>{e.preventDefault();openAuth('login');});
+document.getElementById('btnLogoutProfilo').addEventListener('click',eseguiLogout);
 
 /* ── Modifica account: nome (privato) + nickname (pubblico) ── */
 document.getElementById('accountForm').addEventListener('submit',async e=>{
