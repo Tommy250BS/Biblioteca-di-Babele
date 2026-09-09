@@ -3727,7 +3727,7 @@ document.getElementById('scriptoriumTabs').addEventListener('click',e=>{
   renderScriptorium();
 });
 document.getElementById('scriptoriumList').addEventListener('click',e=>{
-  const riga=e.target.closest('[data-tipo]');
+  const riga=e.target.closest('.diario-indice-riga');
   if(riga){
     if(riga.disabled)return;
     scriptoriumFilter=riga.dataset.tipo;
