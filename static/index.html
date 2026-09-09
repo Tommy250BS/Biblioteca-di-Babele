@@ -3521,15 +3521,15 @@ function eliminaNotaScriptorium(id){
   if(currentUser){
     apiFetch('/api/scriptorium/'+id,{method:'DELETE'})
       .then(res=>{
-        // Il backend toglie Aurei/XP solo se la nota eliminata era una
-        // sessione di lettura (premio fisso, sempre concesso alla
-        // creazione — vedi elimina_nota_scriptorium): per gli altri tipi
-        // di nota "economia" non è presente nella risposta, quindi qui
-        // non cambia nulla.
+        // Il backend toglie Aurei/XP per QUALSIASI nota che ne aveva
+        // fruttati alla creazione (non solo le sessioni di lettura come
+        // prima): "economia" è presente solo quando la nota eliminata
+        // aveva davvero dato un premio (vedi aurei_guadagnati/
+        // xp_guadagnati registrati su ogni riga in crea_nota_scriptorium).
         if(res&&res.economia){
           economiaCache=res.economia;
           renderEconomia();
-          if(res.aurei_rimossi)mostraToastAurei(-res.aurei_rimossi,'Sessione eliminata');
+          if(res.aurei_rimossi)mostraToastAurei(-res.aurei_rimossi,'Nota eliminata');
           renderPantheon(); // aggiorna la Vetrina, che dipende da economiaCache
         }
       })
