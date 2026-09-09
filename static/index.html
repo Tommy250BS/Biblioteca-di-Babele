@@ -988,7 +988,7 @@ body.splash-lock{overflow:hidden}
 
 /* ── modale: la cartolina si gira ── */
 .postcard-modal{max-width:560px}
-.postcard-flip{aspect-ratio:3/2;position:relative;perspective:1400px;margin-top:6px}
+.postcard-flip{aspect-ratio:3/2;min-height:300px;position:relative;perspective:1400px;margin-top:6px}
 .postcard-face{position:absolute;inset:0;backface-visibility:hidden;transition:transform .6s cubic-bezier(.4,.2,.2,1);box-shadow:0 6px 22px rgba(0,0,0,.4)}
 .postcard-front{transform:rotateY(0deg);background:#f4efe3;padding:14px}
 .postcard-front-scene{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
@@ -1014,17 +1014,24 @@ body.splash-lock{overflow:hidden}
 .pb-title{text-align:center;font-family:var(--serif);letter-spacing:.22em;font-size:.78rem;color:#6b5636;
   border-bottom:1px solid rgba(44,32,19,.25);padding-bottom:7px;margin-bottom:10px}
 .pb-columns{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:0}
-.pb-message{border-right:1px dashed rgba(44,32,19,.3);padding-right:14px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
-.pb-message p{font-family:'Caveat',cursive;font-size:1.2rem;line-height:1.3;color:#2c2013}
+.pb-message{
+  border-right:1px dashed rgba(44,32,19,.3);padding-right:14px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  overflow-y:auto;overflow-x:hidden;
+  scrollbar-width:thin;scrollbar-color:rgba(44,32,19,.35) transparent;
+}
+.pb-message::-webkit-scrollbar{width:5px}
+.pb-message::-webkit-scrollbar-thumb{background:rgba(44,32,19,.32);border-radius:3px}
+.pb-message p{font-family:'Caveat',cursive;font-size:1.08rem;line-height:1.32;color:#2c2013}
 .pb-firma{margin-top:8px;font-size:1.1rem;text-align:right}
 .pb-address{padding-left:14px;display:flex;flex-direction:column;gap:2px}
 .pb-address-to{font-family:'Caveat',cursive;font-size:1.4rem;color:#2c2013;margin-bottom:2px}
 .pb-address-line{font-family:'Caveat',cursive;font-size:1.08rem;color:#2c2013;border-bottom:1px dotted rgba(44,32,19,.35);padding-bottom:1px}
 .pb-cit{margin-top:12px;font-family:var(--serif);font-style:italic;font-size:.74rem;color:#6b5636}
 @media(max-width:480px){
-  .postcard-flip{aspect-ratio:3/3.6}
+  .postcard-flip{aspect-ratio:3/3.6;min-height:380px}
   .pb-columns{grid-template-columns:1fr}
-  .pb-message{border-right:none;border-bottom:1px dashed rgba(44,32,19,.3);padding-right:0;padding-bottom:10px;margin-bottom:10px}
+  .pb-message{border-right:none;border-bottom:1px dashed rgba(44,32,19,.3);padding-right:0;padding-bottom:10px;margin-bottom:10px;max-height:150px}
   .pb-address{padding-left:0}
 }
 @media(prefers-reduced-motion:reduce){
