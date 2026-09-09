@@ -295,6 +295,29 @@ def init_db():
                 CHECK (tipo IN ('nota','citazione','recensione','riflessione','sessione'));
             """)
 
+            # Quanti Aurei/XP ha fruttato QUESTA riga alla creazione — non
+            # ricalcolabile a posteriori in modo affidabile per le note
+            # "non-sessione", il cui premio dipende da un tetto giornaliero
+            # (vedi CAP_NOTE_PREMIATE_AL_GIORNO più sotto): registrarlo qui
+            # è ciò che permette a elimina_nota_scriptorium di restituire
+            # l'importo esatto per QUALSIASI tipo di nota, non solo le
+            # sessioni. Le sessioni create prima di queste colonne avevano
+            # comunque diritto al premio fisso (concesso sempre, senza
+            # tetto): il backfill qui sotto lo registra anche per loro, una
+            # tantum (il WHERE aurei_guadagnati=0 lo rende idempotente). I
+            # valori 5 e 3 sono ripetuti come letterali invece di
+            # referenziare SESSIONE_AUREI/SESSIONE_XP perché, a questo
+            # punto del modulo, quelle costanti non sono ancora definite
+            # (init_db() viene chiamata molto prima nel file) — trattandosi
+            # di un backfill storico una tantum, non del calcolo del premio
+            # per le nuove note, la duplicazione qui non è un problema.
+            cur.execute("ALTER TABLE scriptorium ADD COLUMN IF NOT EXISTS aurei_guadagnati INTEGER NOT NULL DEFAULT 0;")
+            cur.execute("ALTER TABLE scriptorium ADD COLUMN IF NOT EXISTS xp_guadagnati INTEGER NOT NULL DEFAULT 0;")
+            cur.execute("""
+                UPDATE scriptorium SET aurei_guadagnati=5, xp_guadagnati=3
+                WHERE tipo='sessione' AND aurei_guadagnati=0;
+            """)
+
             # Reset password: token monouso con scadenza (stessa logica del
             # vecchio app.py).
             cur.execute("""
@@ -1252,25 +1275,30 @@ def crea_nota_scriptorium():
     row = dict(cur.fetchone())
     db.commit()
 
-    # Le sessioni concedono un premio fisso e dedicato (SESSIONE_AUREI/XP,
-    # una volta al giorno per libro, già verificato più sopra). Gli altri
-    # tipi di nota (citazioni, recensioni, riflessioni, note libere) erano
-    # gratuiti: ora concedono anch'essi un piccolo premio, ma entro un tetto
-    # giornaliero — il conteggio include la nota appena creata, quindi
-    # "<= CAP" premia esattamente le prime CAP note del giorno, non una in
-    # più. Il frontend legge "economia" dalla risposta solo quando presente,
-    # per aggiornare subito il saldo mostrato in nav senza una chiamata
-    # separata.
-    row["aurei_guadagnati"] = 0
+    # Quanto frutta QUESTA nota, se qualcosa: le sessioni hanno un premio
+    # fisso sempre concesso; le altre note un piccolo premio ma solo entro
+    # un tetto giornaliero (il conteggio include la nota appena creata,
+    # quindi "<= CAP" premia esattamente le prime CAP note del giorno).
+    # Il valore viene SCRITTO sulla riga (aurei_guadagnati/xp_guadagnati)
+    # invece di restare solo nella risposta HTTP: è quello che permette a
+    # elimina_nota_scriptorium di restituire poi esattamente quanto questa
+    # nota aveva dato — per qualunque tipo, non solo le sessioni.
+    premio_aurei, premio_xp = 0, 0
     if valori["tipo"] == "sessione":
-        riga_economia = accredita_economia(db, u["id"], aurei=SESSIONE_AUREI, xp=SESSIONE_XP)
-        row["aurei_guadagnati"] = SESSIONE_AUREI
-        row["economia"] = _serializza_economia(riga_economia)
+        premio_aurei, premio_xp = SESSIONE_AUREI, SESSIONE_XP
     elif _conta_oggi(db, "scriptorium", u["id"]) <= CAP_NOTE_PREMIATE_AL_GIORNO:
-        riga_economia = accredita_economia(
-            db, u["id"], aurei=AUREI_NOTA_SCRIPTORIUM, xp=XP_NOTA_SCRIPTORIUM
+        premio_aurei, premio_xp = AUREI_NOTA_SCRIPTORIUM, XP_NOTA_SCRIPTORIUM
+
+    row["aurei_guadagnati"] = 0
+    if premio_aurei or premio_xp:
+        db.execute(
+            "UPDATE scriptorium SET aurei_guadagnati=%s, xp_guadagnati=%s WHERE id=%s",
+            (premio_aurei, premio_xp, row["id"])
         )
-        row["aurei_guadagnati"] = AUREI_NOTA_SCRIPTORIUM
+        db.commit()
+        riga_economia = accredita_economia(db, u["id"], aurei=premio_aurei, xp=premio_xp)
+        row["aurei_guadagnati"] = premio_aurei
+        row["xp_guadagnati"] = premio_xp
         row["economia"] = _serializza_economia(riga_economia)
 
     return jsonify(row)
@@ -1313,25 +1341,26 @@ def elimina_nota_scriptorium(nid):
     u = utente_corrente()
     db = get_db()
 
-    # Va letto PRIMA della DELETE, altrimenti non sapremmo più dire di che
-    # tipo fosse la nota eliminata. Solo le sessioni hanno un premio FISSO
-    # e sempre concesso alla creazione (SESSIONE_AUREI/XP, vedi
-    # crea_nota_scriptorium): per le altre note il premio dipende da un
-    # tetto giornaliero già speso al momento della creazione, quindi non è
-    # possibile risalire con certezza a quanto "restituire" — si lascia
-    # come già accade oggi, evitando di introdurre un ledger dedicato per
-    # un caso limite.
+    # Letto PRIMA della DELETE: aurei_guadagnati/xp_guadagnati sono i
+    # valori esatti registrati alla creazione di QUESTA nota (vedi
+    # crea_nota_scriptorium) — validi per qualunque tipo, non solo le
+    # sessioni di lettura come accadeva prima di queste colonne. Se la
+    # nota non aveva fruttato nulla (es. era oltre il tetto giornaliero
+    # del suo giorno), qui risultano 0 e non si tocca l'economia.
     riga = db.execute(
-        "SELECT tipo FROM scriptorium WHERE id=%s AND utente_id=%s", (nid, u["id"])
+        "SELECT aurei_guadagnati, xp_guadagnati FROM scriptorium WHERE id=%s AND utente_id=%s",
+        (nid, u["id"])
     ).fetchone()
 
     db.execute("DELETE FROM scriptorium WHERE id=%s AND utente_id=%s", (nid, u["id"]))
     db.commit()
 
     risposta = {"ok": True}
-    if riga and riga["tipo"] == "sessione":
-        riga_economia = decrementa_economia(db, u["id"], aurei=SESSIONE_AUREI, xp=SESSIONE_XP)
-        risposta["aurei_rimossi"] = SESSIONE_AUREI
+    if riga and (riga["aurei_guadagnati"] or riga["xp_guadagnati"]):
+        riga_economia = decrementa_economia(
+            db, u["id"], aurei=riga["aurei_guadagnati"], xp=riga["xp_guadagnati"]
+        )
+        risposta["aurei_rimossi"] = riga["aurei_guadagnati"]
         risposta["economia"] = _serializza_economia(riga_economia)
     return jsonify(risposta)
 
