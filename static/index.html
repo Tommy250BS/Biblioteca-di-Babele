@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Biblioteca Aeterna — Dove le grandi opere non muoiono mai</title>
 <meta name="description" content="Un santuario digitale per gli amanti della letteratura. Traccia le tue letture, discuti con altri lettori e conquista un posto nel Pantheon.">
-<link rel="manifest" href="/manifest.json">
-<link rel="apple-touch-icon" href="/icon-192.png">
-<meta name="theme-color" content="#0b0906">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Caveat:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -537,24 +534,6 @@ body.splash-lock{overflow:hidden}
 
 .eph-locked{color:#6b5636;font-style:italic;font-size:.86rem;margin-top:18px}
 .eph-locked a{color:#9c4a1f;font-weight:600;font-style:normal}
-
-/* ── Vero o Falso: due grandi pulsanti invece della griglia a 4 ── */
-.eph-tf-row{display:flex;gap:14px;justify-content:center;margin-top:4px;flex-wrap:wrap}
-.eph-tf-btn{flex:1;min-width:130px;max-width:170px;text-align:center;justify-content:center;font-weight:700}
-
-/* ── Cronologia: lista riordinabile con frecce su/giù (niente drag&drop
-   vero e proprio, per restare affidabile anche su mobile) ── */
-.eph-crono-list{display:flex;flex-direction:column;gap:8px;text-align:left;max-width:400px;margin:0 auto}
-.eph-crono-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1px solid rgba(44,32,19,.28);background:rgba(255,255,255,.4)}
-.eph-crono-num{font-family:var(--serif);font-weight:700;color:#9c4a1f;width:16px;flex-shrink:0;text-align:center}
-.eph-crono-testo{flex:1;font-size:.85rem;color:#3d1a18;line-height:1.3}
-.eph-crono-arrows{display:flex;gap:4px;flex-shrink:0}
-.eph-crono-arrows button{width:28px;height:28px;border:1px solid rgba(44,32,19,.3);background:rgba(255,255,255,.55);color:#3d1a18;font-size:.85rem;border-radius:2px;transition:background .15s}
-.eph-crono-arrows button:hover:not(:disabled){background:rgba(255,255,255,.85)}
-.eph-crono-arrows button:disabled{opacity:.3;cursor:default}
-.eph-reveal-crono{text-align:left;max-width:360px;margin:0 auto 6px;color:#3d1a18;font-size:.86rem;line-height:1.75;list-style:none;padding:0}
-.eph-reveal-crono li{border-bottom:1px dotted rgba(44,32,19,.25);padding:4px 0}
-.eph-reveal-crono li:last-child{border-bottom:none}
 
 /* ══════════════════════════════════════════════════════════════════
    COMMUNITY / TESTIMONIALS
@@ -1527,7 +1506,6 @@ body.splash-lock{overflow:hidden}
     <a href="#" data-nav="alexandria">Alexandria</a>
     <a href="#" data-nav="tabellarium">Tabellarium</a>
     <a href="#" data-nav="scriptorium">Scriptorium</a>
-    <a href="#" data-nav="atelier">Atelier</a>
     <a href="#" data-nav="agora">Agorà</a>
     <a href="#" data-nav="pantheon">Pantheon</a>
     <a href="#" data-nav="profilo">Profilo</a>
@@ -1552,10 +1530,6 @@ body.splash-lock{overflow:hidden}
   <a href="#" class="bottom-nav-item" data-nav="scriptorium">
     <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M6 3h12v18l-6-4-6 4V3Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
     Scriptorium
-  </a>
-  <a href="#" class="bottom-nav-item" data-nav="atelier">
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2.1-.9 2.1-1.9 0-.5-.2-.9-.4-1.3-.2-.4-.4-.8-.4-1.3 0-1 .8-1.8 1.8-1.8h1.7A4.2 4.2 0 0 0 21 10.5C21 6.4 16.97 3 12 3Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="7.6" cy="10.8" r="1.15" fill="currentColor"/><circle cx="9.8" cy="7.3" r="1.15" fill="currentColor"/><circle cx="14.6" cy="7.3" r="1.15" fill="currentColor"/></svg>
-    Atelier
   </a>
   <a href="#" class="bottom-nav-item" data-nav="pantheon">
     <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M3 9.5 12 4l9 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 9.5v9.5M8 9.5v9.5M12 9.5v9.5M16 9.5v9.5M19.5 9.5v9.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M3 19h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -2510,12 +2484,7 @@ window.addEventListener('resize',()=>{if(window.innerWidth>940)closeMobileMenu()
 /* ══════════════════════════════════════════════════════════════════
    ROUTER — sezioni non ancora costruite mostrano uno stub coerente
    ══════════════════════════════════════════════════════════════════ */
-const STUBS={
-  atelier:{
-    title:'Atelier',
-    desc:'Il tuo laboratorio creativo è ancora in costruzione: qui potrai un giorno spendere i tuoi Aurei per personalizzare la Biblioteca. Arriverà nella prossima versione di Biblioteca Aeterna — torna a trovarci presto!'
-  }
-};
+const STUBS={};
 /* Pagine vere (non stub): id di navigazione → id della sezione nel DOM. */
 const REAL_PAGES={home:'page-home',pantheon:'page-pantheon',alexandria:'page-alexandria',profilo:'page-profilo',tabellarium:'page-tabellarium',scriptorium:'page-scriptorium',agora:'page-agora',about:'page-about'};
 function navigate(id){
@@ -2772,24 +2741,10 @@ let ephemerisState=null;
    alla pergamena rivelata, non ha senso reincuriosire su un esito già
    noto. */
 let ephemerisOpened=false;
-/* Stato locale, mutabile, del riordino nella Cronologia: parte come copia
-   di e.opere (già in un ordine mescolato-ma-deterministico deciso dal
-   backend) e viene rimescolato solo dai click sulle frecce su/giù. Va
-   svuotato ad ogni nuovo caricamento, altrimenti il riordino di ieri
-   resterebbe visibile sull'enigma di oggi. */
-let cronologiaState=[];
-
-const EPH_TIPO_LABEL={
-  citazione:"Indovina la citazione",vero_falso:"Vero o Falso",intruso:"Trova l'intruso",
-  abbinamento:"Personaggio e opera",periodo:"Indovina il periodo",cronologia:"Metti in ordine",
-};
-const EPH_TIPO_ICON={citazione:'📜',vero_falso:'⚖️',intruso:'🔍',abbinamento:'🎭',periodo:'⏳',cronologia:'📚'};
-
 async function loadEphemeris(){
   const el=document.getElementById('ephemerisBody');
   if(!el)return;
   ephemerisOpened=false;
-  cronologiaState=[];
   try{
     ephemerisState=await apiFetch('/api/ephemeris/oggi');
   }catch(err){
@@ -2799,85 +2754,10 @@ async function loadEphemeris(){
   }
   renderEphemeris();
 }
-
-/* Contenuto del gioco vero e proprio (stato 2, pergamena aperta): cambia
-   forma a seconda del tipo di enigma di oggi, ma resta sempre dentro la
-   stessa pergamena — la diversità è nell'interazione, non nell'oggetto
-   fisico che la contiene. */
-function contenutoGiocoEphemeris(e){
-  const lockedHTML=currentUser?'':`<p class="eph-locked">Vuoi rispondere e guadagnare Aurei? <a href="#" id="ephLoginLink">Accedi</a>.</p>`;
-
-  if(e.tipo==='citazione'){
-    return `
-      <p class="eph-quote">«${e.testo}»</p>
-      <p class="eph-question">${e.domanda}</p>
-      <div class="eph-options">${e.opzioni.map((o,i)=>`<button class="eph-option" data-i="${i}">${o}</button>`).join('')}</div>
-      ${lockedHTML}`;
-  }
-  if(e.tipo==='intruso'||e.tipo==='abbinamento'||e.tipo==='periodo'){
-    return `
-      <p class="eph-question" style="font-size:1rem;margin-bottom:20px">${e.domanda}</p>
-      <div class="eph-options">${e.opzioni.map((o,i)=>`<button class="eph-option" data-i="${i}">${o}</button>`).join('')}</div>
-      ${lockedHTML}`;
-  }
-  if(e.tipo==='vero_falso'){
-    return `
-      <p class="eph-quote" style="font-size:1.15rem">«${e.affermazione}»</p>
-      <div class="eph-tf-row">
-        <button class="eph-option eph-tf-btn" data-v="true">✓ Vero</button>
-        <button class="eph-option eph-tf-btn" data-v="false">✕ Falso</button>
-      </div>
-      ${lockedHTML}`;
-  }
-  if(e.tipo==='cronologia'){
-    if(!cronologiaState.length)cronologiaState=e.opere.slice();
-    const righeHTML=cronologiaState.map((o,i)=>`
-      <div class="eph-crono-item">
-        <span class="eph-crono-num">${i+1}</span>
-        <span class="eph-crono-testo">${escapeHtml(o.titolo)}${o.autore?' — '+escapeHtml(o.autore):''}</span>
-        <span class="eph-crono-arrows">
-          <button class="eph-crono-up" data-i="${i}"${i===0?' disabled':''} aria-label="Sposta su">↑</button>
-          <button class="eph-crono-down" data-i="${i}"${i===cronologiaState.length-1?' disabled':''} aria-label="Sposta giù">↓</button>
-        </span>
-      </div>`).join('');
-    const submitHTML=currentUser
-      ?`<button class="btn eph-scroll-btn" id="ephCronoSubmit" style="margin-top:20px">Conferma l\u2019ordine →</button>`
-      :lockedHTML;
-    return `
-      <p class="eph-question" style="margin-bottom:20px">${e.domanda}</p>
-      <div class="eph-crono-list">${righeHTML}</div>
-      ${submitHTML}`;
-  }
-  return '';
-}
-
-/* Contenuto rivelato (stato 3, dopo aver risposto): stessa idea, un ramo
-   per tipo, ma qui si mostra la risposta corretta invece dei controlli. */
-function contenutoRivelatoEphemeris(e){
-  if(e.tipo==='citazione'){
-    return `<p class="eph-reveal-quote">«${e.testo}»</p><p class="eph-reveal-answer">${e.domanda} — <b>${e.opzioni[e.corretta]}</b></p>`;
-  }
-  if(e.tipo==='intruso'||e.tipo==='abbinamento'||e.tipo==='periodo'){
-    return `<p class="eph-reveal-answer" style="font-size:.94rem">${e.domanda}<br>Risposta: <b>${e.opzioni[e.corretta]}</b></p>`;
-  }
-  if(e.tipo==='vero_falso'){
-    return `<p class="eph-reveal-quote">«${e.affermazione}»</p><p class="eph-reveal-answer">Risposta corretta: <b>${e.corretta?'Vero':'Falso'}</b></p>`;
-  }
-  if(e.tipo==='cronologia'){
-    const opere=e.opere||[];
-    const ordine=e.ordine_corretto||opere.map((_,i)=>i);
-    const listaHTML=ordine.map((idx,pos)=>`<li>${pos+1}. ${escapeHtml(opere[idx].titolo)}${opere[idx].autore?' — '+escapeHtml(opere[idx].autore):''}</li>`).join('');
-    return `<p class="eph-reveal-answer">${e.domanda}</p><ol class="eph-reveal-crono">${listaHTML}</ol>`;
-  }
-  return '';
-}
-
 function renderEphemeris(){
   const el=document.getElementById('ephemerisBody');
   const e=ephemerisState;
   if(!el||!e)return;
-  const label=EPH_TIPO_LABEL[e.tipo]||'Enigma del giorno';
-  const icon=EPH_TIPO_ICON[e.tipo]||'📜';
 
   // ── Stato 3: già risposto — pergamena srotolata con l'esito ──
   if(e.gia_risposto){
@@ -2888,8 +2768,8 @@ function renderEphemeris(){
         <div class="eph-scroll-roll"></div>
         <div class="eph-scroll-body">
           <div class="eph-verdict-icon ${e.corretto?'ok':'no'}">${e.corretto?'✓':'✕'}</div>
-          <p class="eph-scroll-eyebrow">${icon} ${label}</p>
-          ${contenutoRivelatoEphemeris(e)}
+          <p class="eph-reveal-quote">«${e.testo}»</p>
+          <p class="eph-reveal-answer">${e.domanda} — <b>${e.opzioni[e.corretta]}</b></p>
           <div class="eph-reward-row">
             <span class="eph-pill eph-pill-aurei">🪙 +${e.aurei_guadagnati} Aurei</span>
             ${streak?`<span class="eph-pill eph-pill-streak${milestone?' streak-milestone':''}"><span class="flame-ico">🔥</span> ${streak} ${streak===1?'Giorno':'Giorni'} di Sapienza</span>`:''}
@@ -2909,7 +2789,7 @@ function renderEphemeris(){
         <div class="eph-scroll-roll"></div>
         <div class="eph-scroll-body">
           <div class="eph-seal">📜</div>
-          <p class="eph-scroll-eyebrow">Pergamena del giorno · ${label}</p>
+          <p class="eph-scroll-eyebrow">Pergamena del giorno</p>
           <p class="eph-scroll-teaser">L'enigma di oggi ti attende</p>
           <button class="btn eph-scroll-btn" id="ephScrollOpen">Apri la pergamena →</button>
         </div>
@@ -2918,40 +2798,22 @@ function renderEphemeris(){
     return;
   }
 
-  // ── Stato 2: aperta — il gioco vero e proprio, diverso per tipo ──
+  // ── Stato 2: aperta — il quiz vero e proprio ──
+  const opzioniHTML=e.opzioni.map((opt,i)=>`<button class="eph-option" data-i="${i}">${opt}</button>`).join('');
+  const lockedHTML=currentUser?'':`<p class="eph-locked">Vuoi rispondere e guadagnare Aurei? <a href="#" id="ephLoginLink">Accedi</a>.</p>`;
   el.innerHTML=`
     <div class="eph-scroll">
       <div class="eph-scroll-roll"></div>
       <div class="eph-scroll-body">
-        <p class="eph-scroll-eyebrow">${icon} ${label}</p>
-        ${contenutoGiocoEphemeris(e)}
+        <p class="eph-quote">«${e.testo}»</p>
+        <p class="eph-question">${e.domanda}</p>
+        <div class="eph-options">${opzioniHTML}</div>
+        ${lockedHTML}
       </div>
       <div class="eph-scroll-roll"></div>
     </div>`;
   document.getElementById('ephLoginLink')?.addEventListener('click',ev=>{ev.preventDefault();openAuth('login');});
 }
-
-/* Invia una risposta al backend qualunque sia il suo formato (indice,
-   booleano o ordine) e applica l'esito comune a tutti i tipi: passa allo
-   stato "rivelato", aggiorna l'economia, mostra l'eventuale traguardo di
-   streak. Centralizzato qui perché questa parte NON dipende dal tipo. */
-async function inviaRispostaEphemeris(payload){
-  try{
-    const res=await apiFetch('/api/ephemeris/rispondi',{method:'POST',body:JSON.stringify(payload)});
-    ephemerisState={...ephemerisState,gia_risposto:true,
-      corretto:res.corretto,spiegazione:res.spiegazione,
-      aurei_guadagnati:res.aurei_guadagnati,traguardo_speciale:res.traguardo_speciale,
-      corretta:res.corretta,ordine_corretto:res.ordine_corretto,
-      opere:res.opere||ephemerisState.opere};
-    economiaCache=res.economia;
-    renderEconomia();
-    renderEphemeris();
-    if(res.traguardo_speciale)mostraToast('🔥 Serie di '+(economiaCache.streak_giorni||0)+' giorni! Costanza da vero Bibliotecario.');
-  }catch(err){
-    console.error('rispondiEphemeris',err);
-  }
-}
-
 document.getElementById('ephemerisBody').addEventListener('click',async ev=>{
   const openBtn=ev.target.closest('#ephScrollOpen');
   if(openBtn){
@@ -2959,42 +2821,21 @@ document.getElementById('ephemerisBody').addEventListener('click',async ev=>{
     renderEphemeris();
     return;
   }
-  if(!ephemerisState||ephemerisState.gia_risposto)return;
-
-  // Cronologia: le frecce riordinano solo localmente (nessuna chiamata di
-  // rete finché non si preme "Conferma l'ordine").
-  const upBtn=ev.target.closest('.eph-crono-up');
-  const downBtn=ev.target.closest('.eph-crono-down');
-  if(upBtn||downBtn){
-    const i=parseInt((upBtn||downBtn).dataset.i,10);
-    const j=upBtn?i-1:i+1;
-    if(j<0||j>=cronologiaState.length)return;
-    [cronologiaState[i],cronologiaState[j]]=[cronologiaState[j],cronologiaState[i]];
-    renderEphemeris();
-    return;
-  }
-  const cronoSubmit=ev.target.closest('#ephCronoSubmit');
-  if(cronoSubmit){
-    if(!currentUser){openAuth('login');return;}
-    await inviaRispostaEphemeris({ordine:cronologiaState.map(o=>o.idx)});
-    return;
-  }
-
-  // Vero/Falso
-  const tfBtn=ev.target.closest('.eph-tf-btn');
-  if(tfBtn){
-    if(!currentUser){openAuth('login');return;}
-    await inviaRispostaEphemeris({risposta:tfBtn.dataset.v==='true'});
-    return;
-  }
-
-  // Scelta multipla: citazione, intruso, abbinamento, periodo condividono
-  // la stessa interazione (un solo indice cliccato).
   const btn=ev.target.closest('.eph-option');
-  if(btn){
-    if(!currentUser){openAuth('login');return;}
-    const i=parseInt(btn.dataset.i,10);
-    await inviaRispostaEphemeris({opzione:i});
+  if(!btn||!ephemerisState||ephemerisState.gia_risposto)return;
+  if(!currentUser){openAuth('login');return;}
+  const i=parseInt(btn.dataset.i,10);
+  try{
+    const res=await apiFetch('/api/ephemeris/rispondi',{method:'POST',body:JSON.stringify({opzione:i})});
+    ephemerisState={...ephemerisState,gia_risposto:true,opzione_scelta:i,
+      corretto:res.corretto,corretta:res.corretta,spiegazione:res.spiegazione,
+      aurei_guadagnati:res.aurei_guadagnati,traguardo_speciale:res.traguardo_speciale};
+    economiaCache=res.economia;
+    renderEconomia();
+    renderEphemeris();
+    if(res.traguardo_speciale)mostraToast('🔥 Serie di '+(economiaCache.streak_giorni||0)+' giorni! Costanza da vero Bibliotecario.');
+  }catch(err){
+    console.error('rispondiEphemeris',err);
   }
 });
 
@@ -3101,6 +2942,444 @@ const BOOKS=[
   {id:'ventimila-leghe',t:'Ventimila leghe sotto i mari',a:'Jules Verne',y:1870},
   /* ── Russia (aggiunte) ── */
   {id:'eugenio-onegin',t:'Eugenio Onegin',a:'Aleksandr Puškin',y:1833},
+  /* ── Aggiunte: Passaporto Mondiale (paesi ed opere extra) ── */
+  /* ── Italia ── */
+  {id:'barone-rampante',t:'Il barone rampante',a:'Italo Calvino',y:1957},
+  {id:'nome-della-rosa',t:'Il nome della rosa',a:'Umberto Eco',y:1980},
+  {id:'storia',t:'La storia',a:'Elsa Morante',y:1974},
+  {id:'isola-di-arturo',t:"L'isola di Arturo",a:'Elsa Morante',y:1957},
+  {id:'canzoniere',t:'Canzoniere',a:'Francesco Petrarca',y:1374},
+  {id:'fu-mattia-pascal',t:'Il fu Mattia Pascal',a:'Luigi Pirandello',y:1904},
+  {id:'nessuno-e-centomila',t:'Uno, nessuno e centomila',a:'Luigi Pirandello',y:1926},
+  {id:'se-questo-e-un-uomo',t:'Se questo è un uomo',a:'Primo Levi',y:1947},
+  {id:'gattopardo',t:'Il Gattopardo',a:'Giuseppe Tomasi di Lampedusa',y:1958},
+  {id:'ultime-lettere-di-jacopo-ortis',t:'Ultime lettere di Jacopo Ortis',a:'Ugo Foscolo',y:1802},
+  {id:'malavoglia',t:'I Malavoglia',a:'Giovanni Verga',y:1881},
+  {id:'mastro-don-gesualdo',t:'Mastro-don Gesualdo',a:'Giovanni Verga',y:1889},
+  {id:'mandragola',t:'Mandragola',a:'Niccolò Machiavelli',y:1518},
+  {id:'gerusalemme-liberata',t:'La Gerusalemme Liberata',a:'Torquato Tasso',y:1581},
+  {id:'cuore',t:'Cuore',a:'Edmondo De Amicis',y:1886},
+  {id:'deserto-dei-tartari',t:'Il deserto dei tartari',a:'Dino Buzzati',y:1940},
+  {id:'coscienza-di-zeno',t:'La coscienza di Zeno',a:'Italo Svevo',y:1923},
+  {id:'piacere',t:'Il piacere',a:"Gabriele D'Annunzio",y:1889},
+  {id:'vergine-delle-rocce',t:'La vergine delle rocce',a:"Gabriele D'Annunzio",y:1895},
+  {id:'operette-morali',t:'Operette morali',a:'Giacomo Leopardi',y:1827},
+  {id:'myricae',t:'Myricae',a:'Giovanni Pascoli',y:1891},
+  {id:'confessioni-di-un-italiano',t:'Confessioni di un italiano',a:'Ippolito Nievo',y:1867},
+  {id:'malombra',t:'Malombra',a:'Antonio Fogazzaro',y:1881},
+  {id:'canne-al-vento',t:'Canne al vento',a:'Grazia Deledda',y:1913},
+  {id:'luna-e-i-falo',t:'La luna e i falò',a:'Cesare Pavese',y:1950},
+  {id:'dialoghi-con-leuco',t:'Dialoghi con Leucò',a:'Cesare Pavese',y:1947},
+  {id:'bella-estate',t:'La bella estate',a:'Cesare Pavese',y:1949},
+  {id:'indifferenti',t:'Gli indifferenti',a:'Alberto Moravia',y:1929},
+  {id:'disprezzo',t:'Il disprezzo',a:'Alberto Moravia',y:1954},
+  {id:'noia',t:'La noia',a:'Alberto Moravia',y:1960},
+  {id:'quer-pasticciaccio-brutto-de-via',t:'Quer pasticciaccio brutto de via Merulana',a:'Carlo Emilio Gadda',y:1957},
+  {id:'giorno-della-civetta',t:'Il giorno della civetta',a:'Leonardo Sciascia',y:1961},
+  {id:'a-ciascuno-il-suo',t:'A ciascuno il suo',a:'Leonardo Sciascia',y:1966},
+  {id:'lessico-famigliare',t:'Lessico famigliare',a:'Natalia Ginzburg',y:1963},
+  /* ── Francia ── */
+  {id:'gargantua-e-pantagruele',t:'Gargantua e Pantagruele',a:'François Rabelais',y:1532},
+  {id:'candido-o-l-ottimismo',t:"Candido o l'ottimismo",a:'Voltaire',y:1759},
+  {id:'uomo-che-ride',t:'L’uomo che ride',a:'Victor Hugo',y:1869},
+  {id:'educazione-sentimentale',t:"L'educazione sentimentale",a:'Gustave Flaubert',y:1869},
+  {id:'alla-ricerca-del-tempo-perduto',t:'Alla ricerca del tempo perduto',a:'Marcel Proust',y:1913},
+  {id:'straniero',t:'Lo straniero',a:'Albert Camus',y:1942},
+  {id:'peste',t:'La peste',a:'Albert Camus',y:1947},
+  {id:'mito-di-sisifo',t:'Il mito di Sisifo',a:'Albert Camus',y:1942},
+  {id:'piccolo-principe',t:'Il Piccolo Principe',a:'Antoine de Saint-Exupéry',y:1943},
+  {id:'eugenie-grandet',t:'Eugénie Grandet',a:'Honoré de Balzac',y:1833},
+  {id:'viaggio-al-termine-della-notte',t:'Viaggio al termine della notte',a:'Louis-Ferdinand Céline',y:1932},
+  {id:'suite-francese',t:'Suite francese',a:'Irène Némirovsky',y:1942},
+  {id:'nausea',t:'La nausea',a:'Jean-Paul Sartre',y:1938},
+  {id:'muro',t:'Il muro',a:'Jean-Paul Sartre',y:1939},
+  {id:'memorie-di-adriano',t:'Memorie di Adriano',a:'Marguerite Yourcenar',y:1951},
+  /* ── Spagna ── */
+  {id:'nozze-di-sangue',t:'Nozze di sangue',a:'Federico García Lorca',y:1932},
+  {id:'ombra-del-vento',t:"L'ombra del vento",a:'Carlos Ruiz Zafón',y:2001},
+  /* ── Regno Unito ── */
+  {id:'david-copperfield',t:'David Copperfield',a:'Charles Dickens',y:1850},
+  {id:'fattoria-degli-animali',t:'La fattoria degli animali',a:'George Orwell',y:1945},
+  {id:'signore-degli-anelli',t:'Il Signore degli Anelli',a:'J.R.R. Tolkien',y:1954},
+  {id:'gita-al-faro',t:'Gita al faro',a:'Virginia Woolf',y:1927},
+  {id:'mulino-sulla-floss',t:'Il mulino sulla Floss',a:'George Eliot',y:1860},
+  {id:'middlemarch',t:'Middlemarch',a:'George Eliot',y:1871},
+  {id:'ciclo-di-sherlock-holmes',t:'Il ciclo di Sherlock Holmes',a:'Arthur Conan Doyle',y:1887},
+  {id:'cuore-di-tenebra',t:'Cuore di tenebra',a:'Joseph Conrad',y:1899},
+  {id:'macchina-del-tempo',t:'La macchina del tempo',a:'H.G. Wells',y:1895},
+  {id:'guerra-dei-mondi',t:'La guerra dei mondi',a:'H.G. Wells',y:1897},
+  {id:'isola-del-dottor-moreau',t:"L'isola del dottor Moreau",a:'H.G. Wells',y:1896},
+  {id:'signore-delle-mosche',t:'Il signore delle mosche',a:'William Golding',y:1954},
+  /* ── Germania ── */
+  {id:'metamorfosi',t:'La metamorfosi',a:'Franz Kafka',y:1915},
+  {id:'montagna-magica',t:'La montagna magica',a:'Thomas Mann',y:1924},
+  {id:'siddharta',t:'Siddharta',a:'Hermann Hesse',y:1922},
+  {id:'lupo-della-steppa',t:'Il lupo della steppa',a:'Hermann Hesse',y:1927},
+  {id:'tamburo-di-latta',t:'Il tamburo di latta',a:'Günter Grass',y:1959},
+  /* ── Russia ── */
+  {id:'sosia',t:'Il sosia',a:'Fëdor Dostoevskij',y:1846},
+  {id:'memorie-del-sottosuolo',t:'Memorie del sottosuolo',a:'Fëdor Dostoevskij',y:1864},
+  {id:'notti-bianche',t:'Le notti bianche',a:'Fëdor Dostoevskij',y:1848},
+  {id:'morte-di-ivan-il-ic',t:"La morte di Ivan Il'ic",a:'Lev Tolstoj',y:1886},
+  {id:'racconti',t:'Racconti',a:'Anton Čechov',y:1886},
+  {id:'maestro-e-margherita',t:'Il maestro e Margherita',a:'Michail Bulgakov',y:1967},
+  {id:'guardia-bianca',t:'Guardia bianca',a:'Michail Bulgakov',y:1925},
+  {id:'lolita',t:'Lolita',a:'Vladimir Nabokov',y:1955},
+  {id:'oblomov',t:'Oblomov',a:'Ivan Goncarov',y:1859},
+  /* ── Stati Uniti ── */
+  {id:'beloved',t:'Beloved',a:'Toni Morrison',y:1987},
+  {id:'vecchio-e-il-mare',t:'Il vecchio e il mare',a:'Ernest Hemingway',y:1952},
+  {id:'grande-gatsby',t:'Il grande Gatsby',a:'Francis Scott Fitzgerald',y:1925},
+  {id:'giovane-holden',t:'Il giovane Holden',a:'J.D. Salinger',y:1951},
+  {id:'buio-oltre-la-siepe',t:'Il buio oltre la siepe',a:'Harper Lee',y:1960},
+  {id:'sulla-strada',t:'Sulla strada',a:'Jack Kerouack',y:1957},
+  {id:'campana-di-vetro',t:'La campana di vetro',a:'Sylvia Plath',y:1963},
+  {id:'strada',t:'La strada',a:'Cormac McCarthy',y:2006},
+  {id:'via-col-vento',t:'Via col vento',a:'Margaret Mitchell',y:1936},
+  {id:'furore',t:'Furore',a:'John Steinbeck',y:1939},
+  {id:'mattatoio-n-5',t:'Mattatoio n.5',a:'Kurt Vonnegut',y:1969},
+  /* ── Brasile ── */
+  {id:'gabriela-garofano-e-cannella',t:'Gabriela, garofano e cannella',a:'Jorge Amado',y:1958},
+  {id:'ora-della-stella',t:"L'ora della stella",a:'Clarice Lispector',y:1977},
+  /* ── Argentina ── */
+  {id:'rayuela',t:'Rayuela',a:'Julio Cortázar',y:1963},
+  /* ── Giappone ── */
+  {id:'norwegian-wood',t:'Norwegian Wood',a:'Haruki Murakami',y:1987},
+  {id:'kafka-sulla-spiaggia',t:'Kafka sulla spiaggia',a:'Haruki Murakami',y:2002},
+  {id:'uccello-che-girava-le-viti',t:"L'uccello che girava le viti del mondo",a:'Haruki Murakami',y:1994},
+  {id:'ragazza-dello-sputnik',t:'La ragazza dello Sputnik',a:'Haruki Murakami',y:1999},
+  {id:'non-lasciarmi',t:'Non lasciarmi',a:'Kazuo Ishiguro',y:2005},
+  {id:'inconsolabile',t:"L'inconsolabile",a:'Kazuo Ishiguro',y:1995},
+  {id:'padiglione-d-oro',t:"Il padiglione d'oro",a:'Yukio Mishima',y:1956},
+  /* ── Cina ── */
+  {id:'diario-di-un-pazzo',t:'Diario di un pazzo',a:'Lu Xun',y:1918},
+  {id:'vivere',t:'Vivere!',a:'Yu Hua',y:1993},
+  /* ── Egitto ── */
+  {id:'cairo-nuovo',t:'Il Cairo nuovo',a:'Naguib Mahfouz',y:1945},
+  /* ── Grecia ── */
+  {id:'zorba-il-greco',t:'Zorba il greco',a:'Nikos Kazantzakis',y:1946},
+  {id:'iliade',t:"L'Iliade",a:'Omero',y:-750},
+  {id:'repubblica',t:'La Repubblica',a:'Platone',y:-380},
+  {id:'simposio',t:'Il Simposio',a:'Platone',y:-385},
+  {id:'etica-nicomachea',t:'Etica Nicomachea',a:'Aristotele',y:-340},
+  {id:'poetica',t:'Poetica',a:'Aristotele',y:-335},
+  {id:'logica-organon',t:'Logica (Organon)',a:'Aristotele',y:-350},
+  {id:'metafisica',t:'Metafisica',a:'Aristotele',y:-340},
+  /* ── India ── */
+  {id:'dio-delle-piccole-cose',t:'Il dio delle piccole cose',a:'Arundhati Roy',y:1997},
+  /* ── Portogallo ── */
+  {id:'libro-dell-inquietudine',t:"Il libro dell'inquietudine",a:'Fernando Pessoa',y:1982},
+  {id:'cecita',t:'Cecità',a:'José Saramago',y:1995},
+  {id:'saggio-sulla-lucidita',t:'Saggio sulla lucidità',a:'José Saramago',y:2004},
+  {id:'intermittenze-della-morte',t:'Le intermittenze della morte',a:'José Saramago',y:2005},
+  /* ── Irlanda ── */
+  {id:'poesie',t:'Poesie',a:'W.B. Yeats',y:1893},
+  {id:'ulisse',t:'Ulisse',a:'James Joyce',y:1922},
+  {id:'aspettando-godot',t:'Aspettando Godot',a:'Samuel Beckett',y:1952},
+  /* ── Polonia ── */
+  {id:'pan-tadeusz',t:'Pan Tadeusz',a:'Adam Mickiewicz',y:1834},
+  {id:'poesie-szymborska',t:'Poesie',a:'Wisława Szymborska',y:1957},
+  {id:'solaris',t:'Solaris',a:'Stanisław Lem',y:1961},
+  {id:'vagabondi',t:'I vagabondi',a:'Olga Tokarczuk',y:2007},
+  /* ── Norvegia ── */
+  {id:'fame',t:'Fame',a:'Knut Hamsun',y:1890},
+  {id:'kristin-figlia-di-lavrans',t:'Kristin figlia di Lavrans',a:'Sigrid Undset',y:1920},
+  /* ── Ungheria ── */
+  {id:'braci',t:'Le braci',a:'Sándor Márai',y:1942},
+  {id:'essere-senza-destino',t:'Essere senza destino',a:'Imre Kertész',y:1975},
+  {id:'porta',t:'La porta',a:'Magda Szabó',y:1987},
+  /* ── Turchia ── */
+  {id:'poesie-d-amore',t:"Poesie d'amore",a:'Nazim Hikmet',y:1947},
+  {id:'poesie-emre',t:'Poesie',a:'Yunus Emre',y:1300},
+  {id:'memed-il-falco',t:'Memed il falco',a:'Yaşar Kemal',y:1955},
+  {id:'mio-nome-e-rosso',t:'Il mio nome è Rosso',a:'Orhan Pamuk',y:1998},
+  /* ── Messico ── */
+  {id:'pedro-paramo',t:'Pedro Páramo',a:'Juan Rulfo',y:1955},
+  {id:'labirinto-della-solitudine',t:'Il labirinto della solitudine',a:'Octavio Paz',y:1950},
+  {id:'morte-di-artemio-cruz',t:'La morte di Artemio Cruz',a:'Carlos Fuentes',y:1962},
+  /* ── Cile ── */
+  {id:'venti-poesie-d-amore-e',t:'Venti poesie d’amore e una canzone disperata',a:'Pablo Neruda',y:1924},
+  {id:'vecchio-che-leggeva-romanzi-d',t:"Il vecchio che leggeva romanzi d'amore",a:'Luis Sepùlveda',y:1989},
+  {id:'storia-di-una-gabbianella-e',t:'Storia di una gabbianella e del gatto che le insegnò a volare',a:'Luis Sepùlveda',y:1996},
+  {id:'patagonia-express',t:'Patagonia Express',a:'Luis Sepùlveda',y:1995},
+  {id:'desolazione',t:'Desolazione',a:'Gabriela Mistral',y:1922},
+  {id:'casa-degli-spiriti',t:'La casa degli spiriti',a:'Isabel Allende',y:1982},
+  /* ── Iran ── */
+  {id:'shahnameh',t:'Shahnameh',a:'Ferdowsi',y:1010},
+  {id:'divan',t:'Divan',a:'Hafez',y:1368},
+  {id:'mathnawi',t:'Mathnawi',a:'Jalal al-Din Rumi',y:1273},
+  {id:'civetta-cieca',t:'La civetta cieca',a:'Sadegh Hedayat',y:1937},
+  /* ── Corea del Sud ── */
+  {id:'sogno-delle-nove-nuvole',t:'Il sogno delle nove nuvole',a:'Kim Man-jung',y:1687},
+  {id:'nostro-eroe-decaduto',t:'Il nostro eroe decaduto',a:'Yi Mun-yol',y:1987},
+  {id:'vegetariana',t:'La vegetariana',a:'Han Kang',y:2007},
+  /* ── Austria ── */
+  {id:'povero-suonatore',t:'Il povero suonatore',a:'Franz Grillparzer',y:1848},
+  {id:'novella-degli-scacchi',t:'Novella degli scacchi',a:'Stefan Zweig',y:1942},
+  {id:'lettera-di-una-sconosciuta',t:'Lettera di una sconosciuta',a:'Stefan Zweig',y:1922},
+  {id:'uomo-senza-qualita',t:'L’uomo senza qualità',a:'Robert Musil',y:1930},
+  {id:'estinzione',t:'Estinzione',a:'Thomas Bernhard',y:1986},
+  /* ── Romania ── */
+  {id:'poesie-eminescu',t:'Poesie',a:'Mihai Eminescu',y:1883},
+  {id:'ion',t:'Ion',a:'Liviu Rebreanu',y:1920},
+  {id:'abbacinante',t:'Abbacinante',a:'Mircea Cărtărescu',y:1996},
+  /* ── Serbia ── */
+  {id:'vita-e-avventure',t:'Vita e avventure',a:'Dositej Obradović',y:1783},
+  {id:'ponte-sulla-drina',t:'Il ponte sulla Drina',a:'Ivo Andrić',y:1945},
+  {id:'migrazioni',t:'Migrazioni',a:'Miloš Crnjanski',y:1929},
+  /* ── Danimarca ── */
+  {id:'jeppe-sul-monte',t:'Jeppe sul monte',a:'Ludvig Holberg',y:1722},
+  {id:'mia-africa',t:'La mia Africa',a:'Karen Blixen',y:1937},
+  /* ── Afghanistan ── */
+  {id:'poesie-khattak',t:'Poesie',a:'Khushal Khan Khattak',y:1650},
+  {id:'diwan',t:'Diwan',a:'Rahman Baba',y:1650},
+  {id:'pietra-di-pazienza',t:'Pietra di pazienza',a:'Atiq Rahimi',y:2008},
+  /* ── Libano ── */
+  {id:'profeta',t:'Il profeta',a:'Gibran Khalil Gibran',y:1923},
+  {id:'libro-di-mirdad',t:'Il libro di Mirdad',a:'Mikhail Naimy',y:1948},
+  {id:'crociate-viste-dagli-arabi',t:'Le crociate viste dagli arabi',a:'Amin Maalouf',y:1983},
+  /* ── Siria ── */
+  {id:'diwan-al-mutanabbi',t:'Diwan',a:'Al-Mutanabbi',y:955},
+  {id:'poesie-qabbani',t:'Poesie',a:'Nizar Qabbani',y:1956},
+  {id:'tigri-nel-decimo-giorno',t:'Le tigri nel decimo giorno',a:'Zakaria Tamer',y:1978},
+  /* ── Israele ── */
+  {id:'solo-ieri',t:'Solo ieri',a:'Shmuel Yosef Agnon',y:1945},
+  {id:'storia-di-amore-e-di',t:'Una storia di amore e di tenebra',a:'Amos Oz',y:2002},
+  {id:'vedi-alla-voce-amore',t:'Vedi alla voce: amore',a:'David Grossman',y:1986},
+  /* ── Iraq ── */
+  {id:'libro-degli-animali',t:'Il libro degli animali',a:'Al-Jahiz',y:850},
+  {id:'canti-della-pioggia',t:'Canti della pioggia',a:'Badr Shakir al-Sayyab',y:1960},
+  {id:'ultimo-melograno',t:'L’ultimo melograno',a:'Sinan Antoon',y:2010},
+  /* ── Arabia Saudita ── */
+  {id:'set-appartamenti',t:'Set appartamenti',a:'Ghazi Algosaibi',y:1994},
+  {id:'getta-scintille-come-il-fuoco',t:'Getta scintille come il fuoco',a:'Abdo Khal',y:2009},
+  {id:'collo-della-colomba',t:'Il collo della colomba',a:'Raja Alem',y:2010},
+  /* ── Uzbekistan ── */
+  {id:'khamsa',t:'Khamsa',a:'Alisher Navoi',y:1485},
+  {id:'giorni-passati',t:'Giorni passati',a:'Abdulla Qodiriy',y:1925},
+  {id:'poeta-e-bin-laden',t:'Il poeta e Bin-Laden',a:'Hamid Ismailov',y:2005},
+  /* ── Vietnam ── */
+  {id:'racconto-di-kieu',t:'Il racconto di Kiều',a:'Nguyễn Du',y:1820},
+  {id:'chi-pheo',t:'Chí Phèo',a:'Nam Cao',y:1941},
+  {id:'dolore-della-guerra',t:'Il dolore della guerra',a:'Bảo Ninh',y:1990},
+  /* ── Indonesia ── */
+  {id:'mondo-degli-uomini',t:'Il mondo degli uomini',a:'Pramoedya Ananta Toer',y:1980},
+  {id:'poesie-anwar',t:'Poesie',a:'Chairil Anwar',y:1949},
+  {id:'saman',t:'Saman',a:'Ayu Utami',y:1998},
+  /* ── Malesia ── */
+  {id:'hikayat-abdullah',t:'Hikayat Abdullah',a:'Munshi Abdullah',y:1849},
+  {id:'salina',t:'Salina',a:'A. Samad Said',y:1961},
+  {id:'mappa-del-mondo-invisibile',t:'La mappa del mondo invisibile',a:'Tash Aw',y:2009},
+  /* ── Filippine ── */
+  {id:'noli-me-tangere',t:'Noli me tangere',a:'José Rizal',y:1887},
+  {id:'donna-che-aveva-due-ombelichi',t:'La donna che aveva due ombelichi',a:'Nick Joaquin',y:1961},
+  {id:'po-on',t:'Po-on',a:'F. Sionil José',y:1984},
+  /* ── Sudafrica ── */
+  {id:'figlia-di-burger',t:'La figlia di Burger',a:'Nadine Gordimer',y:1979},
+  {id:'vergogna',t:'Vergogna',a:'J.M. Coetzee',y:1999},
+  /* ── Kenya ── */
+  {id:'chicco-di-grano',t:'Un chicco di grano',a:'Ngũgĩ wa Thiong’o',y:1967},
+  {id:'terra-senza-tuono',t:'La terra senza tuono',a:'Grace Ogot',y:1968},
+  {id:'giorno-scrivero-di-questo-posto',t:'Un giorno scriverò di questo posto',a:'Binyavanga Wainaina',y:2011},
+  /* ── Algeria ── */
+  {id:'nedjma',t:'Nedjma',a:'Kateb Yacine',y:1956},
+  {id:'lontano-da-medina',t:'Lontano da Medina',a:'Assia Djebar',y:1991},
+  {id:'esploratori-delle-ossa',t:'Gli esploratori delle ossa',a:'Tahar Djaout',y:1984},
+  /* ── Senegal ── */
+  {id:'canti-d-ombra',t:'Canti d’ombra',a:'Léopold Sédar Senghor',y:1945},
+  {id:'vaglia',t:'Il vaglia',a:'Ousmane Sembène',y:1966},
+  {id:'cosi-lunga-lettera',t:'Una così lunga lettera',a:'Mariama Bâ',y:1979},
+  /* ── Etiopia ── */
+  {id:'oda-all-uomo-nero',t:'Oda all’uomo nero',a:'Tsegaye Gabre-Medhin',y:1966},
+  {id:'amore-fino-alla-tomba',t:'Amore fino alla tomba',a:'Haddis Alemayehu',y:1964},
+  {id:'re-ombra',t:'Il re ombra',a:'Maaza Mengiste',y:2019},
+  /* ── Perù ── */
+  {id:'commentari-reali-degli-inca',t:'Commentari reali degli Inca',a:'Inca Garcilaso de la Vega',y:1609},
+  {id:'fiumi-profondi',t:'I fiumi profondi',a:'José María Arguedas',y:1958},
+  {id:'citta-e-i-cani',t:'La città e i cani',a:'Mario Vargas Llosa',y:1963},
+  /* ── Cuba ── */
+  {id:'versi-semplici',t:'Versi semplici',a:'José Martí',y:1891},
+  {id:'regno-di-questo-mondo',t:'Il regno di questo mondo',a:'Alejo Carpentier',y:1949},
+  {id:'tre-tristi-tigri',t:'Tre tristi tigri',a:'Guillermo Cabrera Infante',y:1967},
+  /* ── Nigeria ── */
+  {id:'morte-e-il-cavaliere-del',t:'La morte e il cavaliere del re',a:'Wole Soyinka',y:1975},
+  {id:'meta-di-un-sole-giallo',t:'Metà di un sole giallo',a:'Chimamanda Ngozi Adichie',y:2006},
+  /* ── Tanzania ── */
+  {id:'kusadikika',t:'Kusadikika',a:'Shaaban Robert',y:1951},
+  {id:'rosa-mistika',t:'Rosa Mistika',a:'Euphrase Kezilahabi',y:1971},
+  {id:'paradiso',t:'Paradiso',a:'Abdulrazak Gurnah',y:1994},
+  /* ── Svezia ── */
+  {id:'signorina-julie',t:'La signorina Julie',a:'August Strindberg',y:1888},
+  {id:'saga-di-gosta-berling',t:'La saga di Gösta Berling',a:'Selma Lagerlöf',y:1891},
+  {id:'barabba',t:'Barabba',a:'Pär Lagerkvist',y:1950},
+  /* ── Finlandia ── */
+  {id:'kalevala',t:'Kalevala',a:'Elias Lönnrot',y:1835},
+  {id:'sette-fratelli',t:'I sette fratelli',a:'Aleksis Kivi',y:1870},
+  {id:'sinuhe-l-egiziano',t:'Sinuhe l’egiziano',a:'Mika Waltari',y:1945},
+  /* ── Paesi Bassi ── */
+  {id:'max-havelaar',t:'Max Havelaar',a:'Multatuli',y:1860},
+  {id:'attentato',t:'L’attentato',a:'Harry Mulisch',y:1982},
+  {id:'rituali',t:'Rituali',a:'Cees Nooteboom',y:1980},
+  /* ── Belgio ── */
+  {id:'pelleas-e-melisande',t:'Pelléas e Mélisande',a:'Maurice Maeterlinck',y:1892},
+  {id:'camera-azzurra',t:'La camera azzurra',a:'Georges Simenon',y:1964},
+  {id:'dolore-del-belgio',t:'Il dolore del Belgio',a:'Hugo Claus',y:1983},
+  /* ── Svizzera ── */
+  {id:'enrico-il-verde',t:'Enrico il Verde',a:'Gottfried Keller',y:1854},
+  {id:'homo-faber',t:'Homo Faber',a:'Max Frisch',y:1957},
+  {id:'visita-della-vecchia-signora',t:'La visita della vecchia signora',a:'Friedrich Dürrenmatt',y:1956},
+  /* ── Ucraina ── */
+  {id:'kobzar',t:'Kobzar',a:'Taras Ševčenko',y:1840},
+  {id:'canzone-della-foresta',t:'La canzone della foresta',a:'Lesja Ukrajinka',y:1911},
+  {id:'voroshilovgrad',t:'Voroshilovgrad',a:'Serhij Žadan',y:2010},
+  /* ── Bielorussia ── */
+  {id:'poesie-kupala',t:'Poesie',a:'Janka Kupala',y:1908},
+  {id:'nuova-terra',t:'Nuova terra',a:'Jakub Kolas',y:1923},
+  {id:'preghiera-per-cernobyl',t:'Preghiera per Černobyl’',a:'Svetlana Aleksievič',y:1997},
+  /* ── Croazia ── */
+  {id:'giuditta',t:'Giuditta',a:'Marko Marulić',y:1521},
+  {id:'ritorno-di-filip-latinovicz',t:'Il ritorno di Filip Latinovicz',a:'Miroslav Krleža',y:1932},
+  {id:'museo-della-resa-incondizionata',t:'Il museo della resa incondizionata',a:'Dubravka Ugrešić',y:1996},
+  /* ── Slovenia ── */
+  {id:'poesie-preseren',t:'Poesie',a:'France Prešeren',y:1847},
+  {id:'servo-jernej',t:'Il servo Jernej',a:'Ivan Cankar',y:1907},
+  {id:'ho-visto-lei-quella-notte',t:'Ho visto lei quella notte',a:'Drago Jančar',y:2010},
+  /* ── Bulgaria ── */
+  {id:'sotto-il-giogo',t:'Sotto il giogo',a:'Ivan Vazov',y:1888},
+  {id:'racconti-pelin',t:'Racconti',a:'Elin Pelin',y:1904},
+  {id:'cronorifugio',t:'Cronorifugio',a:'Georgi Gospodinov',y:2020},
+  /* ── Slovacchia ── */
+  {id:'figlia-di-slava',t:'La figlia di Sláva',a:'Ján Kollár',y:1824},
+  {id:'poesie-hviezdoslav',t:'Poesie',a:'Pavol Országh Hviezdoslav',y:1890},
+  {id:'gusto-del-potere',t:'Il gusto del potere',a:'Ladislav Mňačko',y:1967},
+  /* ── Lituania ── */
+  {id:'stagioni',t:'Le stagioni',a:'Kristijonas Donelaitis',y:1818},
+  {id:'racconti-kreve',t:'Racconti',a:'Vincas Krėvė',y:1909},
+  {id:'poesie-venclova',t:'Poesie',a:'Tomas Venclova',y:1972},
+  /* ── Lettonia ── */
+  {id:'fuoco-e-notte',t:'Fuoco e notte',a:'Rainis',y:1905},
+  {id:'nave-d-argento',t:'La nave d’argento',a:'Aspazija',y:1907},
+  {id:'latte-materno',t:'Latte materno',a:'Nora Ikstena',y:2015},
+  /* ── Estonia ── */
+  {id:'kalevipoeg',t:'Kalevipoeg',a:'Friedrich Reinhold Kreutzwald',y:1862},
+  {id:'verita-e-giustizia',t:'Verità e giustizia',a:'Anton Hansen Tammsaare',y:1926},
+  {id:'folle-dello-zar',t:'Il folle dello zar',a:'Jaan Kross',y:1978},
+  /* ── Georgia ── */
+  {id:'cavaliere-dalla-pelle-di-pantera',t:'Il cavaliere dalla pelle di pantera',a:'Šota Rustaveli',y:1200},
+  {id:'eremita',t:'L’eremita',a:'Ilia Chavchavadze',y:1883},
+  {id:'avelum',t:'Avelum',a:'Otar Chiladze',y:1995},
+  /* ── Armenia ── */
+  {id:'libro-delle-lamentazioni',t:'Libro delle lamentazioni',a:'Gregorio di Narek',y:1002},
+  {id:'poesie-tumanyan',t:'Poesie',a:'Hovhannes Tumanyan',y:1890},
+  {id:'mi-chiamo-aram',t:'Mi chiamo Aram',a:'William Saroyan',y:1940},
+  /* ── Marocco ── */
+  {id:'pane-nudo',t:'Il pane nudo',a:'Mohammed Choukri',y:1973},
+  {id:'razzismo-spiegato-a-mia-figlia',t:'Il razzismo spiegato a mia figlia',a:'Tahar Ben Jelloun',y:1997},
+  {id:'passato-semplice',t:'Il passato semplice',a:'Driss Chraïbi',y:1954},
+  /* ── Tunisia ── */
+  {id:'canti-della-vita',t:'Canti della vita',a:'Aboul-Qacem Echebbi',y:1955},
+  {id:'statua-di-sale',t:'La statua di sale',a:'Albert Memmi',y:1953},
+  {id:'occhio-del-giorno',t:'L’occhio del giorno',a:'Hélé Béji',y:1985},
+  /* ── Ghana ── */
+  {id:'belli-non-sono-ancora-nati',t:'I belli non sono ancora nati',a:'Ayi Kwei Armah',y:1968},
+  {id:'changes',t:'Changes',a:'Ama Ata Aidoo',y:1991},
+  {id:'poesie-awoonor',t:'Poesie',a:'Kofi Awoonor',y:1971},
+  /* ── Zimbabwe ── */
+  {id:'casa-della-fame',t:'La casa della fame',a:'Dambudzo Marechera',y:1978},
+  {id:'condizioni-nervose',t:'Condizioni nervose',a:'Tsitsi Dangarembga',y:1988},
+  {id:'bones',t:'Bones',a:'Chenjerai Hove',y:1988},
+  /* ── Venezuela ── */
+  {id:'dona-barbara',t:'Doña Bárbara',a:'Rómulo Gallegos',y:1929},
+  {id:'lance-colorate',t:'Le lance colorate',a:'Arturo Uslar Pietri',y:1931},
+  {id:'poesie-montejo',t:'Poesie',a:'Eugenio Montejo',y:1967},
+  /* ── Uruguay ── */
+  {id:'ariel',t:'Ariel',a:'José Enrique Rodó',y:1900},
+  {id:'cantiere',t:'Il cantiere',a:'Juan Carlos Onetti',y:1961},
+  {id:'tregua',t:'La tregua',a:'Mario Benedetti',y:1960},
+  /* ── Albania ── */
+  {id:'generale-dell-esercito-morto',t:'Il generale dell’esercito morto',a:'Ismail Kadare',y:1963},
+  {id:'commissario-memo',t:'Il commissario Memo',a:'Dritëro Agolli',y:1970},
+  {id:'successore',t:'Il successore',a:'Fatos Kongoli',y:2003},
+  /* ── Bosnia-Erzegovina ── */
+  {id:'derviscio-e-la-morte',t:'Il derviscio e la morte',a:'Meša Selimović',y:1966},
+  {id:'diario-di-sarajevo',t:'Diario di Sarajevo',a:'Dževad Karahasan',y:1993},
+  /* ── Azerbaigian ── */
+  {id:'layla-e-majnun',t:'Layla e Majnun',a:'Nizami Ganjavi',y:1188},
+  {id:'commedie-satiriche',t:'Commedie satiriche',a:'Mirza Fatali Akhundov',y:1855},
+  {id:'sesto-piano',t:'Il sesto piano',a:'Anar Rzayev',y:1979},
+  /* ── Nepal ── */
+  {id:'muna-madan',t:'Muna Madan',a:'Laxmi Prasad Devkota',y:1936},
+  {id:'casa-dei-pini',t:'La casa dei pini',a:'Parijat',y:1965},
+  {id:'sumnima',t:'Sumnima',a:'B.P. Koirala',y:1969},
+  /* ── Kazakistan ── */
+  {id:'parole-edificanti',t:'Parole edificanti',a:'Abai Qunanbaiuly',y:1918},
+  {id:'cammino-di-abai',t:'Il cammino di Abai',a:'Mukhtar Auezov',y:1942},
+  {id:'az-i-ia',t:'Az i Ia',a:'Olzhas Suleimenov',y:1975},
+  /* ── Tagikistan ── */
+  {id:'schiavi',t:'Gli schiavi',a:'Sadriddin Ayni',y:1934},
+  {id:'poesie-tursunzoda',t:'Poesie',a:'Mirzo Tursunzoda',y:1948},
+  {id:'poesie-sherali',t:'Poesie',a:'Loiq Sherali',y:1970},
+  /* ── Kirghizistan ── */
+  {id:'giorno-dura-piu-di-un',t:'Il giorno dura più di un secolo',a:'Chingiz Aitmatov',y:1980},
+  {id:'poesie-satylganov',t:'Poesie',a:'Toktogul Satylganov',y:1910},
+  {id:'segreto-della-montagna',t:'Il segreto della montagna',a:'Tölögön Kasymbekov',y:1958},
+  /* ── Turkmenistan ── */
+  {id:'poesie-pyragy',t:'Poesie',a:'Magtymguly Pyragy',y:1770},
+  {id:'decisivo-passo',t:'Decisivo passo',a:'Berdi Kerbabayev',y:1940},
+  {id:'racconti-saryhanov',t:'Racconti',a:'Nurmyrat Saryhanov',y:1935},
+  /* ── Sri Lanka ── */
+  {id:'villaggio-nel-giardino',t:'Il villaggio nel giardino',a:'Martin Wickramasinghe',y:1944},
+  {id:'paziente-inglese',t:'Il paziente inglese',a:'Michael Ondaatje',y:1992},
+  {id:'villaggio-nella-giungla',t:'Il villaggio nella giungla',a:'Leonard Woolf',y:1913},
+  /* ── Canada ── */
+  {id:'racconto-dell-ancella',t:'Il racconto dell’ancella',a:'Margaret Atwood',y:1985},
+  {id:'racconti-munro',t:'Racconti',a:'Alice Munro',y:1968},
+  {id:'libro-del-desiderio',t:'Il libro del desiderio',a:'Leonard Cohen',y:2006},
+  /* ── Ecuador ── */
+  {id:'huasipungo',t:'Huasipungo',a:'Jorge Icaza',y:1934},
+  {id:'juyungo',t:'Juyungo',a:'Adalberto Ortiz',y:1943},
+  {id:'entre-marx-y-una-mujer',t:'Entre Marx y una mujer desnuda',a:'Jorge Enrique Adoum',y:1976},
+  /* ── Bolivia ── */
+  {id:'razza-di-bronzo',t:'Razza di bronzo',a:'Alcides Arguedas',y:1919},
+  {id:'felipe-delgado',t:'Felipe Delgado',a:'Jaime Sáenz',y:1979},
+  {id:'rio-fugitivo',t:'Río fugitivo',a:'Edmundo Paz Soldán',y:1998},
+  /* ── Costa d’Avorio ── */
+  {id:'allah-non-e-obbligato',t:'Allah non è obbligato',a:'Ahmadou Kourouma',y:2000},
+  {id:'climbie',t:'Climbié',a:'Bernard Dadié',y:1956},
+  {id:'queen-pokou',t:'Queen Pokou',a:'Véronique Tadjo',y:2004},
+  /* ── Camerun ── */
+  {id:'povero-cristo-di-bomba',t:'Il povero Cristo di Bomba',a:'Mongo Beti',y:1956},
+  {id:'vita-di-boy',t:'Una vita di boy',a:'Ferdinand Oyono',y:1956},
+  {id:'interno-della-notte',t:'L’interno della notte',a:'Leonora Miano',y:2005},
+  /* ── Islanda ── */
+  {id:'edda-in-prosa',t:'Edda in prosa',a:'Snorri Sturluson',y:1220},
+  {id:'gente-indipendente',t:'Gente indipendente',a:'Halldór Laxness',y:1934},
+  {id:'ragazzo-che-non-e-mai',t:'Il ragazzo che non è mai esistito',a:'Sjón',y:2013},
+  /* ── Groenlandia ── */
+  {id:'groenlandese-sogna',t:'Un groenlandese sogna',a:'Mathias Storch',y:1914},
+  {id:'trecento-anni-dopo',t:'Trecento anni dopo',a:'Augo Lynge',y:1931},
+  {id:'homo-sapienne',t:'HOMO sapienne',a:'Niviaq Korneliussen',y:2014},
+  /* ── Nuova Zelanda ── */
+  {id:'racconti-mansfield',t:'Racconti',a:'Katherine Mansfield',y:1920},
+  {id:'angelo-alla-mia-tavola',t:'Un angelo alla mia tavola',a:'Janet Frame',y:1984},
+  {id:'balena-e-la-bambina',t:'La balena e la bambina',a:'Witi Ihimaera',y:1987},
+  /* ── Australia ── */
+  {id:'while-the-billy-boils',t:'While the Billy Boils',a:'Henry Lawson',y:1896},
+  {id:'voss',t:'Voss',a:'Patrick White',y:1957},
+  {id:'lista-di-schindler',t:'La lista di Schindler',a:'Thomas Keneally',y:1982},
+  {id:'cloudstreet',t:'Cloudstreet',a:'Tim Winton',y:1991},
+  /* ── Repubblica Democratica del Congo ── */
+  {id:'invenzione-dell-africa',t:'L’invenzione dell’Africa',a:'V.Y. Mudimbe',y:1988},
+  {id:'ngando',t:'Ngando',a:'Paul Lomami-Tshibamba',y:1948},
+  {id:'tram-83',t:'Tram 83',a:'Fiston Mwanza Mujila',y:2014},
+  /* ── Repubblica del Congo ── */
+  {id:'vita-e-mezza',t:'La vita e mezza',a:'Sony Labou Tansi',y:1979},
+  {id:'memorie-di-un-porcospino',t:'Memorie di un porcospino',a:'Alain Mabanckou',y:2006},
+  {id:'epitome',t:'Epitome',a:'Tchicaya U Tam’si',y:1962},
+  /* ── Cechia ── */
+  {id:'maggio',t:'Maggio',a:'Karel Hynek Mácha',y:1836},
+  {id:'buon-soldato-svejk',t:'Il buon soldato Švejk',a:'Jaroslav Hašek',y:1923},
+  {id:'insostenibile-leggerezza-dell-essere',t:'L’insostenibile leggerezza dell’essere',a:'Milan Kundera',y:1984},
 ];
 function fmtYear(y){return y<0?`${Math.abs(y)} a.C.`:y;}
 
@@ -4301,41 +4580,115 @@ const CONTINENTI=[
 const PAESI=[
   /* ── Europa ── */
   {id:'russia',continente:'europa',nome:'Russia',bandiera:'🇷🇺',
-   libri:['anna-karenina','crime-punishment','war-and-peace','brothers-karamazov','fathers-sons','dead-souls','eugenio-onegin']},
+   libri:['anna-karenina','crime-punishment','war-and-peace','brothers-karamazov','fathers-sons','dead-souls','eugenio-onegin','sosia','memorie-del-sottosuolo','notti-bianche','morte-di-ivan-il-ic','racconti','maestro-e-margherita','guardia-bianca','lolita','oblomov']},
   {id:'regno-unito',continente:'europa',nome:'Regno Unito',bandiera:'🇬🇧',
-   libri:['hamlet','macbeth','julius-caesar','midsummer','pride-prejudice','emma','sense-sensibility',
-          'wuthering-heights','christmas-carol','tale-two-cities','great-expectations','frankenstein',
-          'dracula','jekyll-hyde','dorian-gray','treasure-island','secret-garden','alice',
-          'gullivers-travels','robinson-crusoe','1984','brave-new-world','utopia','jane-eyre','libro-giungla']},
-  {id:'spagna',continente:'europa',nome:'Spagna',bandiera:'🇪🇸',libri:['don-quijote']},
+   libri:['hamlet','macbeth','julius-caesar','midsummer','pride-prejudice','emma','sense-sensibility','wuthering-heights','christmas-carol','tale-two-cities','great-expectations','frankenstein','dracula','jekyll-hyde','dorian-gray','treasure-island','secret-garden','alice','gullivers-travels','robinson-crusoe','1984','brave-new-world','utopia','jane-eyre','libro-giungla','david-copperfield','fattoria-degli-animali','signore-degli-anelli','gita-al-faro','mulino-sulla-floss','middlemarch','ciclo-di-sherlock-holmes','cuore-di-tenebra','macchina-del-tempo','guerra-dei-mondi','isola-del-dottor-moreau','signore-delle-mosche']},
+  {id:'spagna',continente:'europa',nome:'Spagna',bandiera:'🇪🇸',libri:['don-quijote','nozze-di-sangue','ombra-del-vento']},
   {id:'francia',continente:'europa',nome:'Francia',bandiera:'🇫🇷',
-   libri:['madame-bovary','around-world-80-days','tre-moschettieri','conte-montecristo','miserabili','ventimila-leghe']},
+   libri:['madame-bovary','around-world-80-days','tre-moschettieri','conte-montecristo','miserabili','ventimila-leghe','gargantua-e-pantagruele','candido-o-l-ottimismo','uomo-che-ride','educazione-sentimentale','alla-ricerca-del-tempo-perduto','straniero','peste','mito-di-sisifo','piccolo-principe','eugenie-grandet','viaggio-al-termine-della-notte','suite-francese','nausea','muro','memorie-di-adriano']},
   {id:'grecia',continente:'europa',nome:'Grecia',bandiera:'🇬🇷',
-   libri:['odyssey','oedipus-rex','antigone','medea','oresteia','prometheus-bound']},
+   libri:['odyssey','oedipus-rex','antigone','medea','oresteia','prometheus-bound','zorba-il-greco','iliade','repubblica','simposio','etica-nicomachea','poetica','logica-organon','metafisica']},
   {id:'italia',continente:'europa',nome:'Italia',bandiera:'🇮🇹',
-   libri:['divina-commedia','decameron','promessi-sposi','principe','orlando-furioso']},
+   libri:['divina-commedia','decameron','promessi-sposi','principe','orlando-furioso','barone-rampante','nome-della-rosa','storia','isola-di-arturo','canzoniere','fu-mattia-pascal','nessuno-e-centomila','se-questo-e-un-uomo','gattopardo','ultime-lettere-di-jacopo-ortis','malavoglia','mastro-don-gesualdo','mandragola','gerusalemme-liberata','cuore','deserto-dei-tartari','coscienza-di-zeno','piacere','vergine-delle-rocce','operette-morali','myricae','confessioni-di-un-italiano','malombra','canne-al-vento','luna-e-i-falo','dialoghi-con-leuco','bella-estate','indifferenti','disprezzo','noia','quer-pasticciaccio-brutto-de-via','giorno-della-civetta','a-ciascuno-il-suo','lessico-famigliare']},
   {id:'germania',continente:'europa',nome:'Germania',bandiera:'🇩🇪',
-   libri:['faust','werther','fiabe-grimm']},
-  {id:'portogallo',continente:'europa',nome:'Portogallo',bandiera:'🇵🇹',libri:['lusiadi']},
-  {id:'norvegia',continente:'europa',nome:'Norvegia',bandiera:'🇳🇴',libri:['casa-di-bambola']},
-  {id:'danimarca',continente:'europa',nome:'Danimarca',bandiera:'🇩🇰',libri:['fiabe-andersen']},
+   libri:['faust','werther','fiabe-grimm','metamorfosi','montagna-magica','siddharta','lupo-della-steppa','tamburo-di-latta']},
+  {id:'portogallo',continente:'europa',nome:'Portogallo',bandiera:'🇵🇹',libri:['lusiadi','libro-dell-inquietudine','cecita','saggio-sulla-lucidita','intermittenze-della-morte']},
+  {id:'norvegia',continente:'europa',nome:'Norvegia',bandiera:'🇳🇴',libri:['casa-di-bambola','fame','kristin-figlia-di-lavrans']},
+  {id:'danimarca',continente:'europa',nome:'Danimarca',bandiera:'🇩🇰',libri:['fiabe-andersen','jeppe-sul-monte','mia-africa']},
   /* ── Asia ── */
   {id:'cina',continente:'asia',nome:'Cina',bandiera:'🇨🇳',
-   libri:['art-of-war','viaggio-occidente','sogno-camera-rossa']},
-  {id:'giappone',continente:'asia',nome:'Giappone',bandiera:'🇯🇵',libri:['genji-monogatari','kokoro']},
-  {id:'india',continente:'asia',nome:'India',bandiera:'🇮🇳',libri:['gitanjali','panchatantra']},
+   libri:['art-of-war','viaggio-occidente','sogno-camera-rossa','diario-di-un-pazzo','vivere']},
+  {id:'giappone',continente:'asia',nome:'Giappone',bandiera:'🇯🇵',libri:['genji-monogatari','kokoro','norwegian-wood','kafka-sulla-spiaggia','uccello-che-girava-le-viti','ragazza-dello-sputnik','non-lasciarmi','inconsolabile','padiglione-d-oro']},
+  {id:'india',continente:'asia',nome:'India',bandiera:'🇮🇳',libri:['gitanjali','panchatantra','dio-delle-piccole-cose']},
   {id:'medio-oriente',continente:'asia',nome:'Medio Oriente',bandiera:'🌙',libri:['mille-una-notte','rubaiyat']},
   /* ── Americhe ── */
   {id:'usa',continente:'americhe',nome:'Stati Uniti',bandiera:'🇺🇸',
-   libri:['moby-dick','wizard-of-oz','huckleberry-finn','fahrenheit-451','tom-sawyer',
-          'lettera-scarlatta','piccole-donne','racconti-poe']},
-  {id:'argentina',continente:'americhe',nome:'Argentina',bandiera:'🇦🇷',libri:['finzioni']},
+   libri:['moby-dick','wizard-of-oz','huckleberry-finn','fahrenheit-451','tom-sawyer','lettera-scarlatta','piccole-donne','racconti-poe','beloved','vecchio-e-il-mare','grande-gatsby','giovane-holden','buio-oltre-la-siepe','sulla-strada','lolita','campana-di-vetro','strada','via-col-vento','furore','mattatoio-n-5']},
+  {id:'argentina',continente:'americhe',nome:'Argentina',bandiera:'🇦🇷',libri:['finzioni','rayuela']},
   {id:'colombia',continente:'americhe',nome:'Colombia',bandiera:'🇨🇴',libri:['cent-anni-solitudine']},
   /* ── Africa ── */
-  {id:'nigeria',continente:'africa',nome:'Nigeria',bandiera:'🇳🇬',libri:['crollo']},
-  {id:'sudafrica',continente:'africa',nome:'Sudafrica',bandiera:'🇿🇦',libri:['fattoria-africana']},
+  {id:'nigeria',continente:'africa',nome:'Nigeria',bandiera:'🇳🇬',libri:['crollo','morte-e-il-cavaliere-del','meta-di-un-sole-giallo']},
+  {id:'sudafrica',continente:'africa',nome:'Sudafrica',bandiera:'🇿🇦',libri:['fattoria-africana','figlia-di-burger','vergogna']},
   /* ── Oceania ── */
-  {id:'australia',continente:'oceania',nome:'Australia',bandiera:'🇦🇺',libri:['termine-naturale']},
+  {id:'australia',continente:'oceania',nome:'Australia',bandiera:'🇦🇺',libri:['termine-naturale','while-the-billy-boils','voss','lista-di-schindler','cloudstreet']},
+  /* ── Europa (aggiunte) ── */
+  {id:'irlanda',continente:'europa',nome:'Irlanda',bandiera:'🇮🇪',libri:['gullivers-travels','poesie','ulisse','aspettando-godot']},
+  {id:'polonia',continente:'europa',nome:'Polonia',bandiera:'🇵🇱',libri:['pan-tadeusz','poesie-szymborska','solaris','vagabondi']},
+  {id:'ungheria',continente:'europa',nome:'Ungheria',bandiera:'🇭🇺',libri:['braci','essere-senza-destino','porta']},
+  {id:'austria',continente:'europa',nome:'Austria',bandiera:'🇦🇹',libri:['povero-suonatore','novella-degli-scacchi','lettera-di-una-sconosciuta','uomo-senza-qualita','estinzione']},
+  {id:'romania',continente:'europa',nome:'Romania',bandiera:'🇷🇴',libri:['poesie-eminescu','ion','abbacinante']},
+  {id:'serbia',continente:'europa',nome:'Serbia',bandiera:'🇷🇸',libri:['vita-e-avventure','ponte-sulla-drina','migrazioni']},
+  {id:'svezia',continente:'europa',nome:'Svezia',bandiera:'🇸🇪',libri:['signorina-julie','saga-di-gosta-berling','barabba']},
+  {id:'finlandia',continente:'europa',nome:'Finlandia',bandiera:'🇫🇮',libri:['kalevala','sette-fratelli','sinuhe-l-egiziano']},
+  {id:'paesi-bassi',continente:'europa',nome:'Paesi Bassi',bandiera:'🇳🇱',libri:['max-havelaar','attentato','rituali']},
+  {id:'belgio',continente:'europa',nome:'Belgio',bandiera:'🇧🇪',libri:['pelleas-e-melisande','camera-azzurra','dolore-del-belgio']},
+  {id:'svizzera',continente:'europa',nome:'Svizzera',bandiera:'🇨🇭',libri:['enrico-il-verde','homo-faber','visita-della-vecchia-signora']},
+  {id:'ucraina',continente:'europa',nome:'Ucraina',bandiera:'🇺🇦',libri:['kobzar','canzone-della-foresta','voroshilovgrad']},
+  {id:'bielorussia',continente:'europa',nome:'Bielorussia',bandiera:'🇧🇾',libri:['poesie-kupala','nuova-terra','preghiera-per-cernobyl']},
+  {id:'croazia',continente:'europa',nome:'Croazia',bandiera:'🇭🇷',libri:['giuditta','ritorno-di-filip-latinovicz','museo-della-resa-incondizionata']},
+  {id:'slovenia',continente:'europa',nome:'Slovenia',bandiera:'🇸🇮',libri:['poesie-preseren','servo-jernej','ho-visto-lei-quella-notte']},
+  {id:'bulgaria',continente:'europa',nome:'Bulgaria',bandiera:'🇧🇬',libri:['sotto-il-giogo','racconti-pelin','cronorifugio']},
+  {id:'slovacchia',continente:'europa',nome:'Slovacchia',bandiera:'🇸🇰',libri:['figlia-di-slava','poesie-hviezdoslav','gusto-del-potere']},
+  {id:'lituania',continente:'europa',nome:'Lituania',bandiera:'🇱🇹',libri:['stagioni','racconti-kreve','poesie-venclova']},
+  {id:'lettonia',continente:'europa',nome:'Lettonia',bandiera:'🇱🇻',libri:['fuoco-e-notte','nave-d-argento','latte-materno']},
+  {id:'estonia',continente:'europa',nome:'Estonia',bandiera:'🇪🇪',libri:['kalevipoeg','verita-e-giustizia','folle-dello-zar']},
+  {id:'albania',continente:'europa',nome:'Albania',bandiera:'🇦🇱',libri:['generale-dell-esercito-morto','commissario-memo','successore']},
+  {id:'bosnia-erzegovina',continente:'europa',nome:'Bosnia-Erzegovina',bandiera:'🇧🇦',libri:['ponte-sulla-drina','derviscio-e-la-morte','diario-di-sarajevo']},
+  {id:'islanda',continente:'europa',nome:'Islanda',bandiera:'🇮🇸',libri:['edda-in-prosa','gente-indipendente','ragazzo-che-non-e-mai']},
+  {id:'cechia',continente:'europa',nome:'Cechia',bandiera:'🇨🇿',libri:['maggio','buon-soldato-svejk','insostenibile-leggerezza-dell-essere']},
+  /* ── Asia (aggiunte) ── */
+  {id:'turchia',continente:'asia',nome:'Turchia',bandiera:'🇹🇷',libri:['poesie-d-amore','poesie-emre','memed-il-falco','mio-nome-e-rosso']},
+  {id:'iran',continente:'asia',nome:'Iran',bandiera:'🇮🇷',libri:['shahnameh','divan','mathnawi','civetta-cieca']},
+  {id:'corea-del-sud',continente:'asia',nome:'Corea del Sud',bandiera:'🇰🇷',libri:['sogno-delle-nove-nuvole','nostro-eroe-decaduto','vegetariana']},
+  {id:'afghanistan',continente:'asia',nome:'Afghanistan',bandiera:'🇦🇫',libri:['poesie-khattak','diwan','pietra-di-pazienza']},
+  {id:'libano',continente:'asia',nome:'Libano',bandiera:'🇱🇧',libri:['profeta','libro-di-mirdad','crociate-viste-dagli-arabi']},
+  {id:'siria',continente:'asia',nome:'Siria',bandiera:'🇸🇾',libri:['diwan-al-mutanabbi','poesie-qabbani','tigri-nel-decimo-giorno']},
+  {id:'israele',continente:'asia',nome:'Israele',bandiera:'🇮🇱',libri:['solo-ieri','storia-di-amore-e-di','vedi-alla-voce-amore']},
+  {id:'iraq',continente:'asia',nome:'Iraq',bandiera:'🇮🇶',libri:['libro-degli-animali','canti-della-pioggia','ultimo-melograno']},
+  {id:'arabia-saudita',continente:'asia',nome:'Arabia Saudita',bandiera:'🇸🇦',libri:['set-appartamenti','getta-scintille-come-il-fuoco','collo-della-colomba']},
+  {id:'uzbekistan',continente:'asia',nome:'Uzbekistan',bandiera:'🇺🇿',libri:['khamsa','giorni-passati','poeta-e-bin-laden']},
+  {id:'vietnam',continente:'asia',nome:'Vietnam',bandiera:'🇻🇳',libri:['racconto-di-kieu','chi-pheo','dolore-della-guerra']},
+  {id:'indonesia',continente:'asia',nome:'Indonesia',bandiera:'🇮🇩',libri:['mondo-degli-uomini','poesie-anwar','saman']},
+  {id:'malesia',continente:'asia',nome:'Malesia',bandiera:'🇲🇾',libri:['hikayat-abdullah','salina','mappa-del-mondo-invisibile']},
+  {id:'filippine',continente:'asia',nome:'Filippine',bandiera:'🇵🇭',libri:['noli-me-tangere','donna-che-aveva-due-ombelichi','po-on']},
+  {id:'georgia',continente:'asia',nome:'Georgia',bandiera:'🇬🇪',libri:['cavaliere-dalla-pelle-di-pantera','eremita','avelum']},
+  {id:'armenia',continente:'asia',nome:'Armenia',bandiera:'🇦🇲',libri:['libro-delle-lamentazioni','poesie-tumanyan','mi-chiamo-aram']},
+  {id:'azerbaigian',continente:'asia',nome:'Azerbaigian',bandiera:'🇦🇿',libri:['layla-e-majnun','commedie-satiriche','sesto-piano']},
+  {id:'nepal',continente:'asia',nome:'Nepal',bandiera:'🇳🇵',libri:['muna-madan','casa-dei-pini','sumnima']},
+  {id:'kazakistan',continente:'asia',nome:'Kazakistan',bandiera:'🇰🇿',libri:['parole-edificanti','cammino-di-abai','az-i-ia']},
+  {id:'tagikistan',continente:'asia',nome:'Tagikistan',bandiera:'🇹🇯',libri:['schiavi','poesie-tursunzoda','poesie-sherali']},
+  {id:'kirghizistan',continente:'asia',nome:'Kirghizistan',bandiera:'🇰🇬',libri:['giorno-dura-piu-di-un','poesie-satylganov','segreto-della-montagna']},
+  {id:'turkmenistan',continente:'asia',nome:'Turkmenistan',bandiera:'🇹🇲',libri:['poesie-pyragy','decisivo-passo','racconti-saryhanov']},
+  {id:'sri-lanka',continente:'asia',nome:'Sri Lanka',bandiera:'🇱🇰',libri:['villaggio-nel-giardino','paziente-inglese','villaggio-nella-giungla']},
+  /* ── Americhe (aggiunte) ── */
+  {id:'brasile',continente:'americhe',nome:'Brasile',bandiera:'🇧🇷',libri:['gabriela-garofano-e-cannella','ora-della-stella']},
+  {id:'messico',continente:'americhe',nome:'Messico',bandiera:'🇲🇽',libri:['pedro-paramo','labirinto-della-solitudine','morte-di-artemio-cruz']},
+  {id:'cile',continente:'americhe',nome:'Cile',bandiera:'🇨🇱',libri:['venti-poesie-d-amore-e','vecchio-che-leggeva-romanzi-d','storia-di-una-gabbianella-e','patagonia-express','desolazione','casa-degli-spiriti']},
+  {id:'peru',continente:'americhe',nome:'Perù',bandiera:'🇵🇪',libri:['commentari-reali-degli-inca','fiumi-profondi','citta-e-i-cani']},
+  {id:'cuba',continente:'americhe',nome:'Cuba',bandiera:'🇨🇺',libri:['versi-semplici','regno-di-questo-mondo','tre-tristi-tigri']},
+  {id:'venezuela',continente:'americhe',nome:'Venezuela',bandiera:'🇻🇪',libri:['dona-barbara','lance-colorate','poesie-montejo']},
+  {id:'uruguay',continente:'americhe',nome:'Uruguay',bandiera:'🇺🇾',libri:['ariel','cantiere','tregua']},
+  {id:'canada',continente:'americhe',nome:'Canada',bandiera:'🇨🇦',libri:['racconto-dell-ancella','racconti-munro','libro-del-desiderio']},
+  {id:'ecuador',continente:'americhe',nome:'Ecuador',bandiera:'🇪🇨',libri:['huasipungo','juyungo','entre-marx-y-una-mujer']},
+  {id:'bolivia',continente:'americhe',nome:'Bolivia',bandiera:'🇧🇴',libri:['razza-di-bronzo','felipe-delgado','rio-fugitivo']},
+  {id:'groenlandia',continente:'americhe',nome:'Groenlandia',bandiera:'🇬🇱',libri:['groenlandese-sogna','trecento-anni-dopo','homo-sapienne']},
+  /* ── Africa (aggiunte) ── */
+  {id:'egitto',continente:'africa',nome:'Egitto',bandiera:'🇪🇬',libri:['cairo-nuovo']},
+  {id:'kenya',continente:'africa',nome:'Kenya',bandiera:'🇰🇪',libri:['chicco-di-grano','terra-senza-tuono','giorno-scrivero-di-questo-posto']},
+  {id:'algeria',continente:'africa',nome:'Algeria',bandiera:'🇩🇿',libri:['nedjma','lontano-da-medina','esploratori-delle-ossa']},
+  {id:'senegal',continente:'africa',nome:'Senegal',bandiera:'🇸🇳',libri:['canti-d-ombra','vaglia','cosi-lunga-lettera']},
+  {id:'etiopia',continente:'africa',nome:'Etiopia',bandiera:'🇪🇹',libri:['oda-all-uomo-nero','amore-fino-alla-tomba','re-ombra']},
+  {id:'tanzania',continente:'africa',nome:'Tanzania',bandiera:'🇹🇿',libri:['kusadikika','rosa-mistika','paradiso']},
+  {id:'marocco',continente:'africa',nome:'Marocco',bandiera:'🇲🇦',libri:['pane-nudo','razzismo-spiegato-a-mia-figlia','passato-semplice']},
+  {id:'tunisia',continente:'africa',nome:'Tunisia',bandiera:'🇹🇳',libri:['canti-della-vita','statua-di-sale','occhio-del-giorno']},
+  {id:'ghana',continente:'africa',nome:'Ghana',bandiera:'🇬🇭',libri:['belli-non-sono-ancora-nati','changes','poesie-awoonor']},
+  {id:'zimbabwe',continente:'africa',nome:'Zimbabwe',bandiera:'🇿🇼',libri:['casa-della-fame','condizioni-nervose','bones']},
+  {id:'costa-davorio',continente:'africa',nome:'Costa d’Avorio',bandiera:'🇨🇮',libri:['allah-non-e-obbligato','climbie','queen-pokou']},
+  {id:'camerun',continente:'africa',nome:'Camerun',bandiera:'🇨🇲',libri:['povero-cristo-di-bomba','vita-di-boy','interno-della-notte']},
+  {id:'repubblica-democratica-del-congo',continente:'africa',nome:'Repubblica Democratica del Congo',bandiera:'🇨🇩',libri:['invenzione-dell-africa','ngando','tram-83']},
+  {id:'repubblica-del-congo',continente:'africa',nome:'Repubblica del Congo',bandiera:'🇨🇬',libri:['vita-e-mezza','memorie-di-un-porcospino','epitome']},
+  /* ── Oceania (aggiunte) ── */
+  {id:'nuova-zelanda',continente:'oceania',nome:'Nuova Zelanda',bandiera:'🇳🇿',libri:['racconti-mansfield','angelo-alla-mia-tavola','balena-e-la-bambina']},
 ];
 
 // libroChiave deve essere un id presente in BOOKS. tono/icona sono la
@@ -5018,46 +5371,37 @@ const LS_TOUR_OSPITE='aeterna_tour_ospite_visto';
 const LS_TOUR_ACCOUNT='aeterna_tour_account_visto';
 
 const TOUR_OSPITE_STEPS=[
-  {id:'intro',page:'home',selector:'.hero-content',eyebrow:'Benvenuto',
+  {page:'home',selector:'.hero-content',eyebrow:'Benvenuto',
     title:'Biblioteca Aeterna',
     text:"Un santuario digitale per chi ama i grandi classici: traccia le tue letture, discuti con altri lettori e conquista un posto nel Pantheon. Facciamo un giro veloce insieme."},
-  {id:'menu-navigazione',page:'home',selector:'#mobileMenu',eyebrow:'Come muoverti',
-    title:'Il menu con tutte le sezioni',
-    text:'Tocca in qualsiasi momento l\u2019icona con le tre righe in alto per aprire l\u2019elenco completo delle pagine — Home, Alexandria, Tabellarium, Scriptorium, Atelier, Agorà, Pantheon, Profilo e Chi sono — e spostarti dove vuoi. Da computer trovi anche una barra con le sezioni principali in fondo allo schermo.',
-    onEnter:()=>{
-      mobileMenu.classList.add('open');
-      navHamburger.classList.add('open');
-      navHamburger.setAttribute('aria-expanded','true');
-    },
-    onExit:()=>{closeMobileMenu();}},
-  {id:'reading-card',page:'home',selector:'#readingHeroCard',eyebrow:'Home',
+  {page:'home',selector:'#readingHeroCard',eyebrow:'Home',
     title:'Il libro che stai leggendo',
     text:'Qui vedi sempre il volume "in lettura ora", con l\u2019avanzamento delle sessioni di lettura che registri di volta in volta.'},
-  {id:'features',page:'home',selector:'.features',eyebrow:'Home',
+  {page:'home',selector:'.features',eyebrow:'Home',
     title:'Le tre sezioni principali',
     text:'Tabellarium, Agorà e Scriptorium: il tuo passaporto letterario, il forum dei lettori e il tuo diario privato. Le vediamo una per una.'},
-  {id:'ephemeris',page:'home',selector:'.ephemeris-card',eyebrow:'Ogni giorno',
+  {page:'home',selector:'.ephemeris-card',eyebrow:'Ogni giorno',
     title:'Ephemeris',
     text:'Un enigma letterario diverso ogni giorno. Con un account, rispondere correttamente fa guadagnare Aurei e costruisce una serie di giorni consecutivi.'},
-  {id:'alexandria',page:'home',selector:'#navAlexandriaBtn',eyebrow:'Cerca',
+  {page:'home',selector:'#navAlexandriaBtn',eyebrow:'Cerca',
     title:'Alexandria',
     text:'Da qui cerchi qualsiasi titolo nel catalogo universale e lo aggiungi alla tua biblioteca personale, come letto, in lettura o desiderato.'},
-  {id:'passaporto',page:'tabellarium',selector:'.passport-tabs',eyebrow:'Tabellarium',
+  {page:'tabellarium',selector:'.passport-tabs',eyebrow:'Tabellarium',
     title:'Il Passaporto Letterario',
     text:'Ogni classico letto è un timbro su un paese diverso. Completa tutti i paesi di un continente per ottenere il timbro d\u2019oro.'},
-  {id:'epistolarium',page:'tabellarium',selector:'#tabellariumTabs',eyebrow:'Tabellarium',
+  {page:'tabellarium',selector:'#tabellariumTabs',eyebrow:'Tabellarium',
     title:'Epistolarium',
     text:'Leggendo certi classici chiave sblocchi le cartoline d\u2019epoca dei grandi autori: tocca qui per sfogliarle.'},
-  {id:'scriptorium',page:'scriptorium',selector:'#btnNewScriptorium',eyebrow:'Scriptorium',
+  {page:'scriptorium',selector:'#btnNewScriptorium',eyebrow:'Scriptorium',
     title:'Il tuo diario privato',
     text:'Citazioni preferite, recensioni e riflessioni di fine lettura: solo tu puoi vederle, nessun altro utente vi accede.'},
-  {id:'agora',page:'agora',selector:'#btnNewThread',eyebrow:'Agorà',
+  {page:'agora',selector:'#btnNewThread',eyebrow:'Agorà',
     title:'Confrontati con altri lettori',
     text:'Apri una discussione o rispondi a chi ne ha già aperta una. Da qui puoi anche pubblicare le tue recensioni per tutta la comunità.'},
-  {id:'pantheon-traguardi',page:'pantheon',selector:'#achGrid',eyebrow:'Pantheon',
+  {page:'pantheon',selector:'#achGrid',eyebrow:'Pantheon',
     title:'I tuoi traguardi',
     text:'Ogni stele si accende man mano che leggi, esplori e scrivi: un tempio che cresce insieme alla tua biblioteca personale.'},
-  {id:'pantheon-vetrina',page:'pantheon',selector:'#pantheonTabs',eyebrow:'Pantheon',
+  {page:'pantheon',selector:'#pantheonTabs',eyebrow:'Pantheon',
     title:'La Vetrina',
     text:'Qui trovi i distintivi legati ad Aurei, XP e streak: si sbloccano solo avendo un account.'},
   {id:'crea-account',page:'pantheon',selector:'#navProfileArea',eyebrow:'Ultimo passo',
@@ -5084,13 +5428,10 @@ const TOUR_ACCOUNT_STEPS=[
    (es. ci si registra subito, senza girare prima per l'app), il tour
    dell'account viene esteso con qualche tappa base — altrimenti quelle
    informazioni non verrebbero mostrate a chi salta dritto alla
-   registrazione. Selezionate per id (non per indice numerico): così
-   restano valide anche se in futuro TOUR_OSPITE_STEPS cambia ordine o
-   lunghezza. */
+   registrazione. */
 function buildAccountTourSteps(){
   if(localStorage.getItem(LS_TOUR_OSPITE))return TOUR_ACCOUNT_STEPS;
-  const idsBase=['intro','menu-navigazione','features','alexandria'];
-  const base=idsBase.map(id=>TOUR_OSPITE_STEPS.find(s=>s.id===id)).filter(Boolean);
+  const base=[TOUR_OSPITE_STEPS[0],TOUR_OSPITE_STEPS[2],TOUR_OSPITE_STEPS[4]];
   return[...base,...TOUR_ACCOUNT_STEPS];
 }
 
@@ -5167,10 +5508,6 @@ function handleTourKeydown(e){
   if(e.key==='Escape')skipTour();
 }
 function endTour(){
-  if(tourState){
-    const step=tourState.steps[tourState.index];
-    if(typeof step.onExit==='function')step.onExit();
-  }
   const root=document.getElementById('tourRoot');
   if(root)root.remove();
   document.removeEventListener('keydown',handleTourKeydown);
@@ -5186,8 +5523,6 @@ function skipTour(){
 }
 async function tourNext(){
   if(!tourState)return;
-  const leavingStep=tourState.steps[tourState.index];
-  if(typeof leavingStep.onExit==='function')leavingStep.onExit();
   if(tourState.index<tourState.steps.length-1){
     tourState.index++;
     await renderTourStep();
@@ -5197,8 +5532,6 @@ async function tourNext(){
 }
 async function tourBack(){
   if(!tourState||tourState.index===0)return;
-  const leavingStep=tourState.steps[tourState.index];
-  if(typeof leavingStep.onExit==='function')leavingStep.onExit();
   tourState.index--;
   await renderTourStep();
 }
@@ -5206,12 +5539,6 @@ async function tourBack(){
 async function renderTourStep(){
   const step=tourState.steps[tourState.index];
   if(step.page)navigate(step.page);
-  await new Promise(r=>requestAnimationFrame(r));
-  // onEnter (es. aprire il menu hamburger prima di evidenziarlo): va
-  // eseguito PRIMA di cercare il target, altrimenti l'elemento che lo
-  // step vuole mostrare (es. il menu aperto) non esisterebbe ancora nel
-  // DOM visibile quando ensureTourTarget lo cerca.
-  if(typeof step.onEnter==='function')step.onEnter();
   await new Promise(r=>requestAnimationFrame(r));
   const target=step.selector?await ensureTourTarget(step.selector):null;
   tourLastTarget=target;
