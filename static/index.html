@@ -5018,37 +5018,46 @@ const LS_TOUR_OSPITE='aeterna_tour_ospite_visto';
 const LS_TOUR_ACCOUNT='aeterna_tour_account_visto';
 
 const TOUR_OSPITE_STEPS=[
-  {page:'home',selector:'.hero-content',eyebrow:'Benvenuto',
+  {id:'intro',page:'home',selector:'.hero-content',eyebrow:'Benvenuto',
     title:'Biblioteca Aeterna',
     text:"Un santuario digitale per chi ama i grandi classici: traccia le tue letture, discuti con altri lettori e conquista un posto nel Pantheon. Facciamo un giro veloce insieme."},
-  {page:'home',selector:'#readingHeroCard',eyebrow:'Home',
+  {id:'menu-navigazione',page:'home',selector:'#mobileMenu',eyebrow:'Come muoverti',
+    title:'Il menu con tutte le sezioni',
+    text:'Tocca in qualsiasi momento l\u2019icona con le tre righe in alto per aprire l\u2019elenco completo delle pagine — Home, Alexandria, Tabellarium, Scriptorium, Atelier, Agorà, Pantheon, Profilo e Chi sono — e spostarti dove vuoi. Da computer trovi anche una barra con le sezioni principali in fondo allo schermo.',
+    onEnter:()=>{
+      mobileMenu.classList.add('open');
+      navHamburger.classList.add('open');
+      navHamburger.setAttribute('aria-expanded','true');
+    },
+    onExit:()=>{closeMobileMenu();}},
+  {id:'reading-card',page:'home',selector:'#readingHeroCard',eyebrow:'Home',
     title:'Il libro che stai leggendo',
     text:'Qui vedi sempre il volume "in lettura ora", con l\u2019avanzamento delle sessioni di lettura che registri di volta in volta.'},
-  {page:'home',selector:'.features',eyebrow:'Home',
+  {id:'features',page:'home',selector:'.features',eyebrow:'Home',
     title:'Le tre sezioni principali',
     text:'Tabellarium, Agorà e Scriptorium: il tuo passaporto letterario, il forum dei lettori e il tuo diario privato. Le vediamo una per una.'},
-  {page:'home',selector:'.ephemeris-card',eyebrow:'Ogni giorno',
+  {id:'ephemeris',page:'home',selector:'.ephemeris-card',eyebrow:'Ogni giorno',
     title:'Ephemeris',
     text:'Un enigma letterario diverso ogni giorno. Con un account, rispondere correttamente fa guadagnare Aurei e costruisce una serie di giorni consecutivi.'},
-  {page:'home',selector:'#navAlexandriaBtn',eyebrow:'Cerca',
+  {id:'alexandria',page:'home',selector:'#navAlexandriaBtn',eyebrow:'Cerca',
     title:'Alexandria',
     text:'Da qui cerchi qualsiasi titolo nel catalogo universale e lo aggiungi alla tua biblioteca personale, come letto, in lettura o desiderato.'},
-  {page:'tabellarium',selector:'.passport-tabs',eyebrow:'Tabellarium',
+  {id:'passaporto',page:'tabellarium',selector:'.passport-tabs',eyebrow:'Tabellarium',
     title:'Il Passaporto Letterario',
     text:'Ogni classico letto è un timbro su un paese diverso. Completa tutti i paesi di un continente per ottenere il timbro d\u2019oro.'},
-  {page:'tabellarium',selector:'#tabellariumTabs',eyebrow:'Tabellarium',
+  {id:'epistolarium',page:'tabellarium',selector:'#tabellariumTabs',eyebrow:'Tabellarium',
     title:'Epistolarium',
     text:'Leggendo certi classici chiave sblocchi le cartoline d\u2019epoca dei grandi autori: tocca qui per sfogliarle.'},
-  {page:'scriptorium',selector:'#btnNewScriptorium',eyebrow:'Scriptorium',
+  {id:'scriptorium',page:'scriptorium',selector:'#btnNewScriptorium',eyebrow:'Scriptorium',
     title:'Il tuo diario privato',
     text:'Citazioni preferite, recensioni e riflessioni di fine lettura: solo tu puoi vederle, nessun altro utente vi accede.'},
-  {page:'agora',selector:'#btnNewThread',eyebrow:'Agorà',
+  {id:'agora',page:'agora',selector:'#btnNewThread',eyebrow:'Agorà',
     title:'Confrontati con altri lettori',
     text:'Apri una discussione o rispondi a chi ne ha già aperta una. Da qui puoi anche pubblicare le tue recensioni per tutta la comunità.'},
-  {page:'pantheon',selector:'#achGrid',eyebrow:'Pantheon',
+  {id:'pantheon-traguardi',page:'pantheon',selector:'#achGrid',eyebrow:'Pantheon',
     title:'I tuoi traguardi',
     text:'Ogni stele si accende man mano che leggi, esplori e scrivi: un tempio che cresce insieme alla tua biblioteca personale.'},
-  {page:'pantheon',selector:'#pantheonTabs',eyebrow:'Pantheon',
+  {id:'pantheon-vetrina',page:'pantheon',selector:'#pantheonTabs',eyebrow:'Pantheon',
     title:'La Vetrina',
     text:'Qui trovi i distintivi legati ad Aurei, XP e streak: si sbloccano solo avendo un account.'},
   {id:'crea-account',page:'pantheon',selector:'#navProfileArea',eyebrow:'Ultimo passo',
@@ -5075,10 +5084,13 @@ const TOUR_ACCOUNT_STEPS=[
    (es. ci si registra subito, senza girare prima per l'app), il tour
    dell'account viene esteso con qualche tappa base — altrimenti quelle
    informazioni non verrebbero mostrate a chi salta dritto alla
-   registrazione. */
+   registrazione. Selezionate per id (non per indice numerico): così
+   restano valide anche se in futuro TOUR_OSPITE_STEPS cambia ordine o
+   lunghezza. */
 function buildAccountTourSteps(){
   if(localStorage.getItem(LS_TOUR_OSPITE))return TOUR_ACCOUNT_STEPS;
-  const base=[TOUR_OSPITE_STEPS[0],TOUR_OSPITE_STEPS[2],TOUR_OSPITE_STEPS[4]];
+  const idsBase=['intro','menu-navigazione','features','alexandria'];
+  const base=idsBase.map(id=>TOUR_OSPITE_STEPS.find(s=>s.id===id)).filter(Boolean);
   return[...base,...TOUR_ACCOUNT_STEPS];
 }
 
@@ -5155,6 +5167,10 @@ function handleTourKeydown(e){
   if(e.key==='Escape')skipTour();
 }
 function endTour(){
+  if(tourState){
+    const step=tourState.steps[tourState.index];
+    if(typeof step.onExit==='function')step.onExit();
+  }
   const root=document.getElementById('tourRoot');
   if(root)root.remove();
   document.removeEventListener('keydown',handleTourKeydown);
@@ -5170,6 +5186,8 @@ function skipTour(){
 }
 async function tourNext(){
   if(!tourState)return;
+  const leavingStep=tourState.steps[tourState.index];
+  if(typeof leavingStep.onExit==='function')leavingStep.onExit();
   if(tourState.index<tourState.steps.length-1){
     tourState.index++;
     await renderTourStep();
@@ -5179,6 +5197,8 @@ async function tourNext(){
 }
 async function tourBack(){
   if(!tourState||tourState.index===0)return;
+  const leavingStep=tourState.steps[tourState.index];
+  if(typeof leavingStep.onExit==='function')leavingStep.onExit();
   tourState.index--;
   await renderTourStep();
 }
@@ -5186,6 +5206,12 @@ async function tourBack(){
 async function renderTourStep(){
   const step=tourState.steps[tourState.index];
   if(step.page)navigate(step.page);
+  await new Promise(r=>requestAnimationFrame(r));
+  // onEnter (es. aprire il menu hamburger prima di evidenziarlo): va
+  // eseguito PRIMA di cercare il target, altrimenti l'elemento che lo
+  // step vuole mostrare (es. il menu aperto) non esisterebbe ancora nel
+  // DOM visibile quando ensureTourTarget lo cerca.
+  if(typeof step.onEnter==='function')step.onEnter();
   await new Promise(r=>requestAnimationFrame(r));
   const target=step.selector?await ensureTourTarget(step.selector):null;
   tourLastTarget=target;
