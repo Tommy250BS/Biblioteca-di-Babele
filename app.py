@@ -3,43 +3,6 @@
 Biblioteca Aeterna — backend Flask.
 DB: PostgreSQL (psycopg 3)
 Auth: bcrypt + cookie di sessione firmato (nessuna libreria esterna di auth)
-
-Questo file SOSTITUISCE il vecchio app.py di "RBBC PWA / La biblioteca di
-Babele". Non è una migrazione: il vecchio backend era quasi interamente
-scraping delle reti bibliotecarie lombarde (OPAC DiscoveryNG) via curl+regex,
-completamente estraneo alla nuova app — Biblioteca Aeterna cerca i libri
-direttamente su Open Library dal browser (vedi index.html, funzione
-searchAlexandria), quindi il backend non deve più fare da proxy di ricerca.
-
-Cosa NON c'è più rispetto al vecchio app.py, e perché:
-  - RETI / scraping OPAC / get_biblioteche / cerca_titolo → non pertinenti:
-    niente più "biblioteca fisica di riferimento", niente più reti bibliotecarie.
-  - tabelle "letti" + "salvati" separate → unificate in una sola tabella
-    "libreria" con uno stato ('in_lettura' | 'letto' | 'desiderio'), perché
-    così ragiona il nuovo frontend (vedi aeterna_libreria in index.html).
-  - tabella "diario_note" (Memoriae, diario personale libero) → non esiste
-    più una sezione "Memoriae" nella nuova app; al suo posto c'è "Agorà",
-    che però è un forum PUBBLICO condiviso tra utenti, non un diario privato:
-    richiede quindi tabelle nuove (discussioni/risposte), non un adattamento
-    di diario_note.
-  - tabella "badge" → i traguardi del Pantheon ora si calcolano interamente
-    lato client dai dati reali della libreria (vedi ACHIEVEMENTS in
-    index.html): nessuno stato "sbloccato" da persistere, quindi nessuna
-    tabella dedicata.
-
-Cosa è rimasto identico, di proposito, perché già testato e funzionante:
-  - lo scheletro get_db()/close_db()/init_db() con ALTER TABLE IF NOT EXISTS
-    per le migrazioni incrementali.
-  - login_richiesto come decorator, utente_corrente() via sessione.
-  - bcrypt per l'hash password, stesso schema di validazione.
-  - il flusso di reset password via email (stessa logica, testi aggiornati).
-
-IMPORTANTE — nessuna migrazione automatica dei dati: gli account e le
-letture del vecchio "La Biblioteca di Babele" NON vengono trasferiti qui.
-Gli schemi sono troppo diversi (biblioteca fisica + rete bibliotecaria da
-un lato, stato di lettura libero dall'altro) perché un mapping automatico
-abbia senso. Se serve conservare qualcosa del vecchio DB, va fatto a mano,
-caso per caso.
 """
 
 import os
