@@ -538,6 +538,24 @@ body.splash-lock{overflow:hidden}
 .eph-locked{color:#6b5636;font-style:italic;font-size:.86rem;margin-top:18px}
 .eph-locked a{color:#9c4a1f;font-weight:600;font-style:normal}
 
+/* ── Vero o Falso: due grandi pulsanti invece della griglia a 4 ── */
+.eph-tf-row{display:flex;gap:14px;justify-content:center;margin-top:4px;flex-wrap:wrap}
+.eph-tf-btn{flex:1;min-width:130px;max-width:170px;text-align:center;justify-content:center;font-weight:700}
+
+/* ── Cronologia: lista riordinabile con frecce su/giù (niente drag&drop
+   vero e proprio, per restare affidabile anche su mobile) ── */
+.eph-crono-list{display:flex;flex-direction:column;gap:8px;text-align:left;max-width:400px;margin:0 auto}
+.eph-crono-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border:1px solid rgba(44,32,19,.28);background:rgba(255,255,255,.4)}
+.eph-crono-num{font-family:var(--serif);font-weight:700;color:#9c4a1f;width:16px;flex-shrink:0;text-align:center}
+.eph-crono-testo{flex:1;font-size:.85rem;color:#3d1a18;line-height:1.3}
+.eph-crono-arrows{display:flex;gap:4px;flex-shrink:0}
+.eph-crono-arrows button{width:28px;height:28px;border:1px solid rgba(44,32,19,.3);background:rgba(255,255,255,.55);color:#3d1a18;font-size:.85rem;border-radius:2px;transition:background .15s}
+.eph-crono-arrows button:hover:not(:disabled){background:rgba(255,255,255,.85)}
+.eph-crono-arrows button:disabled{opacity:.3;cursor:default}
+.eph-reveal-crono{text-align:left;max-width:360px;margin:0 auto 6px;color:#3d1a18;font-size:.86rem;line-height:1.75;list-style:none;padding:0}
+.eph-reveal-crono li{border-bottom:1px dotted rgba(44,32,19,.25);padding:4px 0}
+.eph-reveal-crono li:last-child{border-bottom:none}
+
 /* ══════════════════════════════════════════════════════════════════
    COMMUNITY / TESTIMONIALS
    ══════════════════════════════════════════════════════════════════ */
@@ -2754,10 +2772,24 @@ let ephemerisState=null;
    alla pergamena rivelata, non ha senso reincuriosire su un esito già
    noto. */
 let ephemerisOpened=false;
+/* Stato locale, mutabile, del riordino nella Cronologia: parte come copia
+   di e.opere (già in un ordine mescolato-ma-deterministico deciso dal
+   backend) e viene rimescolato solo dai click sulle frecce su/giù. Va
+   svuotato ad ogni nuovo caricamento, altrimenti il riordino di ieri
+   resterebbe visibile sull'enigma di oggi. */
+let cronologiaState=[];
+
+const EPH_TIPO_LABEL={
+  citazione:"Indovina la citazione",vero_falso:"Vero o Falso",intruso:"Trova l'intruso",
+  abbinamento:"Personaggio e opera",periodo:"Indovina il periodo",cronologia:"Metti in ordine",
+};
+const EPH_TIPO_ICON={citazione:'📜',vero_falso:'⚖️',intruso:'🔍',abbinamento:'🎭',periodo:'⏳',cronologia:'📚'};
+
 async function loadEphemeris(){
   const el=document.getElementById('ephemerisBody');
   if(!el)return;
   ephemerisOpened=false;
+  cronologiaState=[];
   try{
     ephemerisState=await apiFetch('/api/ephemeris/oggi');
   }catch(err){
@@ -2767,10 +2799,85 @@ async function loadEphemeris(){
   }
   renderEphemeris();
 }
+
+/* Contenuto del gioco vero e proprio (stato 2, pergamena aperta): cambia
+   forma a seconda del tipo di enigma di oggi, ma resta sempre dentro la
+   stessa pergamena — la diversità è nell'interazione, non nell'oggetto
+   fisico che la contiene. */
+function contenutoGiocoEphemeris(e){
+  const lockedHTML=currentUser?'':`<p class="eph-locked">Vuoi rispondere e guadagnare Aurei? <a href="#" id="ephLoginLink">Accedi</a>.</p>`;
+
+  if(e.tipo==='citazione'){
+    return `
+      <p class="eph-quote">«${e.testo}»</p>
+      <p class="eph-question">${e.domanda}</p>
+      <div class="eph-options">${e.opzioni.map((o,i)=>`<button class="eph-option" data-i="${i}">${o}</button>`).join('')}</div>
+      ${lockedHTML}`;
+  }
+  if(e.tipo==='intruso'||e.tipo==='abbinamento'||e.tipo==='periodo'){
+    return `
+      <p class="eph-question" style="font-size:1rem;margin-bottom:20px">${e.domanda}</p>
+      <div class="eph-options">${e.opzioni.map((o,i)=>`<button class="eph-option" data-i="${i}">${o}</button>`).join('')}</div>
+      ${lockedHTML}`;
+  }
+  if(e.tipo==='vero_falso'){
+    return `
+      <p class="eph-quote" style="font-size:1.15rem">«${e.affermazione}»</p>
+      <div class="eph-tf-row">
+        <button class="eph-option eph-tf-btn" data-v="true">✓ Vero</button>
+        <button class="eph-option eph-tf-btn" data-v="false">✕ Falso</button>
+      </div>
+      ${lockedHTML}`;
+  }
+  if(e.tipo==='cronologia'){
+    if(!cronologiaState.length)cronologiaState=e.opere.slice();
+    const righeHTML=cronologiaState.map((o,i)=>`
+      <div class="eph-crono-item">
+        <span class="eph-crono-num">${i+1}</span>
+        <span class="eph-crono-testo">${escapeHtml(o.titolo)}${o.autore?' — '+escapeHtml(o.autore):''}</span>
+        <span class="eph-crono-arrows">
+          <button class="eph-crono-up" data-i="${i}"${i===0?' disabled':''} aria-label="Sposta su">↑</button>
+          <button class="eph-crono-down" data-i="${i}"${i===cronologiaState.length-1?' disabled':''} aria-label="Sposta giù">↓</button>
+        </span>
+      </div>`).join('');
+    const submitHTML=currentUser
+      ?`<button class="btn eph-scroll-btn" id="ephCronoSubmit" style="margin-top:20px">Conferma l\u2019ordine →</button>`
+      :lockedHTML;
+    return `
+      <p class="eph-question" style="margin-bottom:20px">${e.domanda}</p>
+      <div class="eph-crono-list">${righeHTML}</div>
+      ${submitHTML}`;
+  }
+  return '';
+}
+
+/* Contenuto rivelato (stato 3, dopo aver risposto): stessa idea, un ramo
+   per tipo, ma qui si mostra la risposta corretta invece dei controlli. */
+function contenutoRivelatoEphemeris(e){
+  if(e.tipo==='citazione'){
+    return `<p class="eph-reveal-quote">«${e.testo}»</p><p class="eph-reveal-answer">${e.domanda} — <b>${e.opzioni[e.corretta]}</b></p>`;
+  }
+  if(e.tipo==='intruso'||e.tipo==='abbinamento'||e.tipo==='periodo'){
+    return `<p class="eph-reveal-answer" style="font-size:.94rem">${e.domanda}<br>Risposta: <b>${e.opzioni[e.corretta]}</b></p>`;
+  }
+  if(e.tipo==='vero_falso'){
+    return `<p class="eph-reveal-quote">«${e.affermazione}»</p><p class="eph-reveal-answer">Risposta corretta: <b>${e.corretta?'Vero':'Falso'}</b></p>`;
+  }
+  if(e.tipo==='cronologia'){
+    const opere=e.opere||[];
+    const ordine=e.ordine_corretto||opere.map((_,i)=>i);
+    const listaHTML=ordine.map((idx,pos)=>`<li>${pos+1}. ${escapeHtml(opere[idx].titolo)}${opere[idx].autore?' — '+escapeHtml(opere[idx].autore):''}</li>`).join('');
+    return `<p class="eph-reveal-answer">${e.domanda}</p><ol class="eph-reveal-crono">${listaHTML}</ol>`;
+  }
+  return '';
+}
+
 function renderEphemeris(){
   const el=document.getElementById('ephemerisBody');
   const e=ephemerisState;
   if(!el||!e)return;
+  const label=EPH_TIPO_LABEL[e.tipo]||'Enigma del giorno';
+  const icon=EPH_TIPO_ICON[e.tipo]||'📜';
 
   // ── Stato 3: già risposto — pergamena srotolata con l'esito ──
   if(e.gia_risposto){
@@ -2781,8 +2888,8 @@ function renderEphemeris(){
         <div class="eph-scroll-roll"></div>
         <div class="eph-scroll-body">
           <div class="eph-verdict-icon ${e.corretto?'ok':'no'}">${e.corretto?'✓':'✕'}</div>
-          <p class="eph-reveal-quote">«${e.testo}»</p>
-          <p class="eph-reveal-answer">${e.domanda} — <b>${e.opzioni[e.corretta]}</b></p>
+          <p class="eph-scroll-eyebrow">${icon} ${label}</p>
+          ${contenutoRivelatoEphemeris(e)}
           <div class="eph-reward-row">
             <span class="eph-pill eph-pill-aurei">🪙 +${e.aurei_guadagnati} Aurei</span>
             ${streak?`<span class="eph-pill eph-pill-streak${milestone?' streak-milestone':''}"><span class="flame-ico">🔥</span> ${streak} ${streak===1?'Giorno':'Giorni'} di Sapienza</span>`:''}
@@ -2802,7 +2909,7 @@ function renderEphemeris(){
         <div class="eph-scroll-roll"></div>
         <div class="eph-scroll-body">
           <div class="eph-seal">📜</div>
-          <p class="eph-scroll-eyebrow">Pergamena del giorno</p>
+          <p class="eph-scroll-eyebrow">Pergamena del giorno · ${label}</p>
           <p class="eph-scroll-teaser">L'enigma di oggi ti attende</p>
           <button class="btn eph-scroll-btn" id="ephScrollOpen">Apri la pergamena →</button>
         </div>
@@ -2811,22 +2918,40 @@ function renderEphemeris(){
     return;
   }
 
-  // ── Stato 2: aperta — il quiz vero e proprio ──
-  const opzioniHTML=e.opzioni.map((opt,i)=>`<button class="eph-option" data-i="${i}">${opt}</button>`).join('');
-  const lockedHTML=currentUser?'':`<p class="eph-locked">Vuoi rispondere e guadagnare Aurei? <a href="#" id="ephLoginLink">Accedi</a>.</p>`;
+  // ── Stato 2: aperta — il gioco vero e proprio, diverso per tipo ──
   el.innerHTML=`
     <div class="eph-scroll">
       <div class="eph-scroll-roll"></div>
       <div class="eph-scroll-body">
-        <p class="eph-quote">«${e.testo}»</p>
-        <p class="eph-question">${e.domanda}</p>
-        <div class="eph-options">${opzioniHTML}</div>
-        ${lockedHTML}
+        <p class="eph-scroll-eyebrow">${icon} ${label}</p>
+        ${contenutoGiocoEphemeris(e)}
       </div>
       <div class="eph-scroll-roll"></div>
     </div>`;
   document.getElementById('ephLoginLink')?.addEventListener('click',ev=>{ev.preventDefault();openAuth('login');});
 }
+
+/* Invia una risposta al backend qualunque sia il suo formato (indice,
+   booleano o ordine) e applica l'esito comune a tutti i tipi: passa allo
+   stato "rivelato", aggiorna l'economia, mostra l'eventuale traguardo di
+   streak. Centralizzato qui perché questa parte NON dipende dal tipo. */
+async function inviaRispostaEphemeris(payload){
+  try{
+    const res=await apiFetch('/api/ephemeris/rispondi',{method:'POST',body:JSON.stringify(payload)});
+    ephemerisState={...ephemerisState,gia_risposto:true,
+      corretto:res.corretto,spiegazione:res.spiegazione,
+      aurei_guadagnati:res.aurei_guadagnati,traguardo_speciale:res.traguardo_speciale,
+      corretta:res.corretta,ordine_corretto:res.ordine_corretto,
+      opere:res.opere||ephemerisState.opere};
+    economiaCache=res.economia;
+    renderEconomia();
+    renderEphemeris();
+    if(res.traguardo_speciale)mostraToast('🔥 Serie di '+(economiaCache.streak_giorni||0)+' giorni! Costanza da vero Bibliotecario.');
+  }catch(err){
+    console.error('rispondiEphemeris',err);
+  }
+}
+
 document.getElementById('ephemerisBody').addEventListener('click',async ev=>{
   const openBtn=ev.target.closest('#ephScrollOpen');
   if(openBtn){
@@ -2834,21 +2959,42 @@ document.getElementById('ephemerisBody').addEventListener('click',async ev=>{
     renderEphemeris();
     return;
   }
-  const btn=ev.target.closest('.eph-option');
-  if(!btn||!ephemerisState||ephemerisState.gia_risposto)return;
-  if(!currentUser){openAuth('login');return;}
-  const i=parseInt(btn.dataset.i,10);
-  try{
-    const res=await apiFetch('/api/ephemeris/rispondi',{method:'POST',body:JSON.stringify({opzione:i})});
-    ephemerisState={...ephemerisState,gia_risposto:true,opzione_scelta:i,
-      corretto:res.corretto,corretta:res.corretta,spiegazione:res.spiegazione,
-      aurei_guadagnati:res.aurei_guadagnati,traguardo_speciale:res.traguardo_speciale};
-    economiaCache=res.economia;
-    renderEconomia();
+  if(!ephemerisState||ephemerisState.gia_risposto)return;
+
+  // Cronologia: le frecce riordinano solo localmente (nessuna chiamata di
+  // rete finché non si preme "Conferma l'ordine").
+  const upBtn=ev.target.closest('.eph-crono-up');
+  const downBtn=ev.target.closest('.eph-crono-down');
+  if(upBtn||downBtn){
+    const i=parseInt((upBtn||downBtn).dataset.i,10);
+    const j=upBtn?i-1:i+1;
+    if(j<0||j>=cronologiaState.length)return;
+    [cronologiaState[i],cronologiaState[j]]=[cronologiaState[j],cronologiaState[i]];
     renderEphemeris();
-    if(res.traguardo_speciale)mostraToast('🔥 Serie di '+(economiaCache.streak_giorni||0)+' giorni! Costanza da vero Bibliotecario.');
-  }catch(err){
-    console.error('rispondiEphemeris',err);
+    return;
+  }
+  const cronoSubmit=ev.target.closest('#ephCronoSubmit');
+  if(cronoSubmit){
+    if(!currentUser){openAuth('login');return;}
+    await inviaRispostaEphemeris({ordine:cronologiaState.map(o=>o.idx)});
+    return;
+  }
+
+  // Vero/Falso
+  const tfBtn=ev.target.closest('.eph-tf-btn');
+  if(tfBtn){
+    if(!currentUser){openAuth('login');return;}
+    await inviaRispostaEphemeris({risposta:tfBtn.dataset.v==='true'});
+    return;
+  }
+
+  // Scelta multipla: citazione, intruso, abbinamento, periodo condividono
+  // la stessa interazione (un solo indice cliccato).
+  const btn=ev.target.closest('.eph-option');
+  if(btn){
+    if(!currentUser){openAuth('login');return;}
+    const i=parseInt(btn.dataset.i,10);
+    await inviaRispostaEphemeris({opzione:i});
   }
 });
 
