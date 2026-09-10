@@ -44,6 +44,7 @@ caso per caso.
 
 import os
 import re
+import json
 import secrets
 from datetime import datetime, timedelta, timezone
 from functools import wraps
@@ -249,6 +250,16 @@ def init_db():
                     UNIQUE (utente_id, giorno)
                 );
             """)
+            # Diversificazione dei tipi di enigma: solo le "citazioni" e i tre
+            # nuovi tipi a scelta multipla (intruso/abbinamento/periodo) si
+            # esprimono con un singolo indice — opzione_scelta resta quindi
+            # valida per loro. Vero/Falso viene comunque salvato lì (1/0),
+            # ma la Cronologia richiede un intero ORDINE di più elementi, che
+            # non ci sta in una singola colonna INTEGER: da qui la colonna
+            # opzionale risposta_json (usata SOLO dalla cronologia) e il
+            # rilascio del NOT NULL originale su opzione_scelta.
+            cur.execute("ALTER TABLE ephemeris_risposte ALTER COLUMN opzione_scelta DROP NOT NULL;")
+            cur.execute("ALTER TABLE ephemeris_risposte ADD COLUMN IF NOT EXISTS risposta_json TEXT;")
 
             # Scriptorium: diario personale privato. A differenza di Agorà
             # (forum pubblico) qui ogni riga è visibile solo al suo autore,
@@ -714,7 +725,9 @@ def get_economia():
 # correggere quando si disegnerà per bene la ricompensa "Enigma Aureo".
 
 EPHEMERIS_BANCO = [
+    # ── Citazione: indovina l'opera/autore da un incipit o una frase ──
     {
+        "tipo": "citazione",
         "testo": "Tutte le famiglie felici si somigliano; ogni famiglia infelice è infelice a modo suo.",
         "domanda": "Da quale opera è tratto questo incipit?",
         "opzioni": ["Anna Karenina", "Guerra e pace", "Delitto e castigo", "I fratelli Karamazov"],
@@ -722,6 +735,7 @@ EPHEMERIS_BANCO = [
         "spiegazione": "È l'incipit di «Anna Karenina» di Lev Tolstoj (1877).",
     },
     {
+        "tipo": "citazione",
         "testo": "È una verità universalmente riconosciuta che uno scapolo in possesso di una vistosa fortuna debba essere in cerca di moglie.",
         "domanda": "Chi ha scritto queste parole?",
         "opzioni": ["Charlotte Brontë", "Jane Austen", "George Eliot", "Elizabeth Gaskell"],
@@ -729,6 +743,7 @@ EPHEMERIS_BANCO = [
         "spiegazione": "È l'incipit di «Orgoglio e pregiudizio» (1813) di Jane Austen.",
     },
     {
+        "tipo": "citazione",
         "testo": "Chiamatemi Ismaele.",
         "domanda": "Da quale romanzo è tratta questa celebre prima riga?",
         "opzioni": ["L'isola del tesoro", "Moby-Dick", "Robinson Crusoe", "Il vecchio e il mare"],
@@ -736,6 +751,7 @@ EPHEMERIS_BANCO = [
         "spiegazione": "È l'incipit di «Moby-Dick» (1851) di Herman Melville.",
     },
     {
+        "tipo": "citazione",
         "testo": "Il paradiso, per me, ha sempre avuto la forma di una biblioteca.",
         "domanda": "Chi ha scritto questa celebre citazione?",
         "opzioni": ["Umberto Eco", "Italo Calvino", "Jorge Luis Borges", "Gabriel García Márquez"],
@@ -743,6 +759,7 @@ EPHEMERIS_BANCO = [
         "spiegazione": "È una citazione di Jorge Luis Borges, tratta da «Elogio dell'ombra».",
     },
     {
+        "tipo": "citazione",
         "testo": "Molti anni dopo, davanti al plotone di esecuzione, il colonnello Aureliano Buendía si sarebbe ricordato di quel remoto pomeriggio in cui suo padre lo aveva condotto a conoscere il ghiaccio.",
         "domanda": "Da quale romanzo è tratto questo incipit?",
         "opzioni": ["L'amore ai tempi del colera", "Cent'anni di solitudine", "Cronaca di una morte annunciata", "Il generale nel suo labirinto"],
@@ -750,6 +767,7 @@ EPHEMERIS_BANCO = [
         "spiegazione": "È l'incipit di «Cent'anni di solitudine» (1967) di Gabriel García Márquez.",
     },
     {
+        "tipo": "citazione",
         "testo": "Era la migliore e insieme la peggiore delle epoche.",
         "domanda": "Da quale romanzo è tratto questo celebre incipit?",
         "opzioni": ["Grandi speranze", "Oliver Twist", "Racconto di due città", "David Copperfield"],
@@ -757,13 +775,233 @@ EPHEMERIS_BANCO = [
         "spiegazione": "È l'incipit (nella traduzione italiana) di «Racconto di due città» (1859) di Charles Dickens.",
     },
     {
+        "tipo": "citazione",
         "testo": "Qualcuno doveva aver calunniato Josef K., perché una mattina, senza che avesse fatto nulla di male, fu arrestato.",
         "domanda": "Da quale romanzo è tratto questo incipit?",
         "opzioni": ["La metamorfosi", "Il processo", "Il castello", "America"],
         "corretta": 1,
         "spiegazione": "È l'incipit de «Il processo» di Franz Kafka, pubblicato postumo nel 1925.",
     },
+
+    # ── Vero o Falso: un aneddoto letterario ──
+    {
+        "tipo": "vero_falso",
+        "affermazione": "Il «Faust» di Goethe fu scritto in meno di dieci anni.",
+        "corretta": False,
+        "spiegazione": "Falso: Goethe vi lavorò per quasi sessant'anni, dalla giovinezza fino a pochi mesi prima della morte; l'opera fu pubblicata per intero solo postuma.",
+    },
+    {
+        "tipo": "vero_falso",
+        "affermazione": "Miguel de Cervantes scrisse parte del «Don Chisciotte» mentre era in carcere.",
+        "corretta": True,
+        "spiegazione": "Vero: Cervantes fu incarcerato più volte per irregolarità contabili, e la tradizione vuole che l'idea del romanzo sia nata proprio in quel periodo.",
+    },
+    {
+        "tipo": "vero_falso",
+        "affermazione": "«Moby-Dick» fu un grande successo commerciale fin dalla sua pubblicazione nel 1851.",
+        "corretta": False,
+        "spiegazione": "Falso: alla sua uscita fu un insuccesso commerciale. La fama di Melville arrivò solo decenni dopo la sua morte.",
+    },
+    {
+        "tipo": "vero_falso",
+        "affermazione": "Jane Austen pubblicò i suoi romanzi in forma anonima.",
+        "corretta": True,
+        "spiegazione": "Vero: i suoi romanzi uscirono firmati solo \"By a Lady\"; il suo nome comparve su un'opera soltanto dopo la sua morte.",
+    },
+    {
+        "tipo": "vero_falso",
+        "affermazione": "Fëdor Dostoevskij scrisse «Delitto e castigo» a puntate per pagare i propri debiti di gioco.",
+        "corretta": True,
+        "spiegazione": "Vero: consegnava il romanzo a puntate a una rivista, sotto forte pressione economica dovuta ai debiti contratti al gioco.",
+    },
+    {
+        "tipo": "vero_falso",
+        "affermazione": "Il Globe Theatre di Londra, teatro di Shakespeare, non subì mai un incendio.",
+        "corretta": False,
+        "spiegazione": "Falso: bruciò completamente nel 1613 durante una recita, e fu ricostruito l'anno successivo.",
+    },
+
+    # ── Trova l'intruso: 4 titoli, uno di un autore diverso dagli altri tre ──
+    {
+        "tipo": "intruso",
+        "domanda": "Tre di questi romanzi sono di Fëdor Dostoevskij. Quale non lo è?",
+        "opzioni": ["Delitto e castigo", "I fratelli Karamazov", "Anna Karenina", "L'idiota"],
+        "corretta": 2,
+        "spiegazione": "«Anna Karenina» è di Lev Tolstoj, non di Dostoevskij.",
+    },
+    {
+        "tipo": "intruso",
+        "domanda": "Tre di queste opere sono di William Shakespeare. Quale non lo è?",
+        "opzioni": ["Amleto", "Macbeth", "Il malato immaginario", "Giulio Cesare"],
+        "corretta": 2,
+        "spiegazione": "«Il malato immaginario» è di Molière, non di Shakespeare.",
+    },
+    {
+        "tipo": "intruso",
+        "domanda": "Tre di questi romanzi sono di Charles Dickens. Quale non lo è?",
+        "opzioni": ["Grandi speranze", "Oliver Twist", "Il ritratto di Dorian Gray", "Racconto di due città"],
+        "corretta": 2,
+        "spiegazione": "«Il ritratto di Dorian Gray» è di Oscar Wilde, non di Dickens.",
+    },
+    {
+        "tipo": "intruso",
+        "domanda": "Tre di queste opere sono di Jane Austen. Quale non lo è?",
+        "opzioni": ["Orgoglio e pregiudizio", "Emma", "Cime tempestose", "Ragione e sentimento"],
+        "corretta": 2,
+        "spiegazione": "«Cime tempestose» è di Emily Brontë, non di Jane Austen.",
+    },
+    {
+        "tipo": "intruso",
+        "domanda": "Tre di questi romanzi sono di Gabriel García Márquez. Quale non lo è?",
+        "opzioni": ["Cent'anni di solitudine", "L'amore ai tempi del colera", "Finzioni", "Cronaca di una morte annunciata"],
+        "corretta": 2,
+        "spiegazione": "«Finzioni» è di Jorge Luis Borges, non di García Márquez.",
+    },
+
+    # ── Abbinamento personaggio → opera ──
+    {
+        "tipo": "abbinamento",
+        "domanda": "Raskolnikov è il protagonista di quale romanzo?",
+        "opzioni": ["Delitto e castigo", "Anna Karenina", "Il processo", "Guerra e pace"],
+        "corretta": 0,
+        "spiegazione": "Raskolnikov è il protagonista di «Delitto e castigo» di Fëdor Dostoevskij (1866).",
+    },
+    {
+        "tipo": "abbinamento",
+        "domanda": "Il capitano Achab dà la caccia a una balena bianca in quale romanzo?",
+        "opzioni": ["L'isola del tesoro", "Moby-Dick", "Il vecchio e il mare", "Ventimila leghe sotto i mari"],
+        "corretta": 1,
+        "spiegazione": "Il capitano Achab è il personaggio ossessionato dalla balena bianca in «Moby-Dick» di Herman Melville.",
+    },
+    {
+        "tipo": "abbinamento",
+        "domanda": "Elizabeth Bennet è la protagonista di quale romanzo?",
+        "opzioni": ["Emma", "Jane Eyre", "Orgoglio e pregiudizio", "Ragione e sentimento"],
+        "corretta": 2,
+        "spiegazione": "Elizabeth Bennet è la protagonista di «Orgoglio e pregiudizio» di Jane Austen (1813).",
+    },
+    {
+        "tipo": "abbinamento",
+        "domanda": "Josef K. viene arrestato senza motivo apparente in quale romanzo?",
+        "opzioni": ["Il castello", "La metamorfosi", "Il processo", "America"],
+        "corretta": 2,
+        "spiegazione": "Josef K. è il protagonista de «Il processo» di Franz Kafka.",
+    },
+    {
+        "tipo": "abbinamento",
+        "domanda": "Il colonnello Aureliano Buendía appartiene a quale romanzo?",
+        "opzioni": ["Cent'anni di solitudine", "L'amore ai tempi del colera", "Pedro Páramo", "La casa degli spiriti"],
+        "corretta": 0,
+        "spiegazione": "Il colonnello Aureliano Buendía è uno dei protagonisti di «Cent'anni di solitudine» di Gabriel García Márquez.",
+    },
+
+    # ── Indovina il periodo: fasce temporali, non l'anno esatto ──
+    {
+        "tipo": "periodo",
+        "domanda": "In quale fascia temporale fu pubblicato per la prima volta il «Don Chisciotte» di Cervantes?",
+        "opzioni": ["Prima del 1500", "1500 – 1650", "1650 – 1800", "Dopo il 1800"],
+        "corretta": 1,
+        "spiegazione": "Il «Don Chisciotte» fu pubblicato nel 1605 (prima parte), quindi nella fascia 1500–1650.",
+    },
+    {
+        "tipo": "periodo",
+        "domanda": "In quale fascia temporale fu pubblicato «Orgoglio e pregiudizio» di Jane Austen?",
+        "opzioni": ["Prima del 1700", "1700 – 1800", "1800 – 1850", "Dopo il 1850"],
+        "corretta": 2,
+        "spiegazione": "«Orgoglio e pregiudizio» fu pubblicato nel 1813, quindi nella fascia 1800–1850.",
+    },
+    {
+        "tipo": "periodo",
+        "domanda": "In quale fascia temporale fu composta la «Divina Commedia» di Dante?",
+        "opzioni": ["Prima del 1200", "1200 – 1350", "1350 – 1500", "Dopo il 1500"],
+        "corretta": 1,
+        "spiegazione": "Dante compose la «Divina Commedia» a partire circa dal 1304 fino al 1320, quindi nella fascia 1200–1350.",
+    },
+    {
+        "tipo": "periodo",
+        "domanda": "In quale fascia temporale fu pubblicato «1984» di George Orwell?",
+        "opzioni": ["Prima del 1900", "1900 – 1930", "1930 – 1960", "Dopo il 1960"],
+        "corretta": 2,
+        "spiegazione": "«1984» fu pubblicato nel 1949, quindi nella fascia 1930–1960.",
+    },
+    {
+        "tipo": "periodo",
+        "domanda": "In quale fascia temporale fu pubblicato «Cent'anni di solitudine» di García Márquez?",
+        "opzioni": ["Prima del 1900", "1900 – 1940", "1940 – 1970", "Dopo il 1970"],
+        "corretta": 2,
+        "spiegazione": "«Cent'anni di solitudine» fu pubblicato nel 1967, quindi nella fascia 1940–1970.",
+    },
+
+    # ── Cronologia: metti in ordine di pubblicazione ──
+    # `opere` contiene l'anno reale (mai mostrato al frontend prima della
+    # risposta): l'ordine corretto viene calcolato dal backend ordinandole
+    # per anno, non memorizzato a mano, per evitare errori di trascrizione.
+    {
+        "tipo": "cronologia",
+        "domanda": "Metti in ordine di pubblicazione, dal più antico al più recente:",
+        "opere": [
+            {"titolo": "Don Chisciotte della Mancia", "autore": "Miguel de Cervantes", "anno": 1605},
+            {"titolo": "Robinson Crusoe", "autore": "Daniel Defoe", "anno": 1719},
+            {"titolo": "Orgoglio e pregiudizio", "autore": "Jane Austen", "anno": 1813},
+            {"titolo": "Delitto e castigo", "autore": "Fëdor Dostoevskij", "anno": 1866},
+        ],
+        "spiegazione": "Ordine corretto: Don Chisciotte (1605), Robinson Crusoe (1719), Orgoglio e pregiudizio (1813), Delitto e castigo (1866).",
+    },
+    {
+        "tipo": "cronologia",
+        "domanda": "Metti in ordine di pubblicazione, dal più antico al più recente:",
+        "opere": [
+            {"titolo": "Amleto", "autore": "William Shakespeare", "anno": 1603},
+            {"titolo": "Faust", "autore": "Johann Wolfgang von Goethe", "anno": 1808},
+            {"titolo": "Moby-Dick", "autore": "Herman Melville", "anno": 1851},
+            {"titolo": "Il processo", "autore": "Franz Kafka", "anno": 1925},
+        ],
+        "spiegazione": "Ordine corretto: Amleto (1603), Faust (1808), Moby-Dick (1851), Il processo (1925).",
+    },
+    {
+        "tipo": "cronologia",
+        "domanda": "Metti in ordine di pubblicazione, dal più antico al più recente:",
+        "opere": [
+            {"titolo": "Divina Commedia", "autore": "Dante Alighieri", "anno": 1320},
+            {"titolo": "Decameron", "autore": "Giovanni Boccaccio", "anno": 1353},
+            {"titolo": "I promessi sposi", "autore": "Alessandro Manzoni", "anno": 1827},
+            {"titolo": "1984", "autore": "George Orwell", "anno": 1949},
+        ],
+        "spiegazione": "Ordine corretto: Divina Commedia (1320), Decameron (1353), I promessi sposi (1827), 1984 (1949).",
+    },
+    {
+        "tipo": "cronologia",
+        "domanda": "Metti in ordine di pubblicazione, dal più antico al più recente:",
+        "opere": [
+            {"titolo": "Frankenstein", "autore": "Mary Shelley", "anno": 1818},
+            {"titolo": "Anna Karenina", "autore": "Lev Tolstoj", "anno": 1877},
+            {"titolo": "Il ritratto di Dorian Gray", "autore": "Oscar Wilde", "anno": 1890},
+            {"titolo": "Cent'anni di solitudine", "autore": "Gabriel García Márquez", "anno": 1967},
+        ],
+        "spiegazione": "Ordine corretto: Frankenstein (1818), Anna Karenina (1877), Il ritratto di Dorian Gray (1890), Cent'anni di solitudine (1967).",
+    },
 ]
+
+def _ephemeris_ordine_corretto(entry):
+    """Indici delle opere di una domanda 'cronologia' ordinati per anno
+    crescente — calcolato al volo dall'anno reale invece di essere scritto
+    a mano nel banco, per non rischiare un ordine sbagliato per errore di
+    trascrizione."""
+    return sorted(range(len(entry["opere"])), key=lambda i: entry["opere"][i]["anno"])
+
+def _ephemeris_ordine_visualizzato(entry, seed):
+    """Ordine (mescolato ma deterministico per giorno) in cui presentare le
+    opere della cronologia: senza questo, l'utente vedrebbe sempre le
+    opere già nell'ordine corretto. Un piccolo generatore pseudo-casuale
+    seedato invece di `random`, per restare deterministico senza toccare
+    lo stato globale del modulo random."""
+    ordine = list(range(len(entry["opere"])))
+    rnd = seed
+    for i in range(len(ordine) - 1, 0, -1):
+        rnd = (rnd * 1103515245 + 12345) & 0x7fffffff
+        j = rnd % (i + 1)
+        ordine[i], ordine[j] = ordine[j], ordine[i]
+    return ordine
 
 def ephemeris_di_oggi(giorno):
     seed = giorno.year * 10000 + giorno.month * 100 + giorno.day
@@ -782,15 +1020,33 @@ def get_ephemeris_oggi():
     account non ha senso accreditare aurei/streak a nessuno, quindi il
     frontend mostra le opzioni come cliccabili solo se loggato. Se l'utente
     ha già risposto oggi, restituiamo anche l'esito, così il quiz non è
-    "rifacibile" ricaricando la pagina."""
+    "rifacibile" ricaricando la pagina.
+
+    La forma della risposta dipende dal "tipo" dell'enigma di oggi (vedi
+    EPHEMERIS_BANCO): ogni tipo espone solo i campi che gli servono, e MAI
+    la risposta corretta prima che l'utente abbia risposto."""
     oggi = _utcnow().date()
     domanda = ephemeris_di_oggi(oggi)
-    out = {
-        "testo": domanda["testo"],
-        "domanda": domanda["domanda"],
-        "opzioni": domanda["opzioni"],
-        "gia_risposto": False,
-    }
+    tipo = domanda["tipo"]
+    seed = oggi.year * 10000 + oggi.month * 100 + oggi.day
+    out = {"tipo": tipo, "gia_risposto": False}
+
+    if tipo == "citazione":
+        out.update({"testo": domanda["testo"], "domanda": domanda["domanda"], "opzioni": domanda["opzioni"]})
+    elif tipo == "vero_falso":
+        out.update({"affermazione": domanda["affermazione"]})
+    elif tipo in ("intruso", "abbinamento", "periodo"):
+        out.update({"domanda": domanda["domanda"], "opzioni": domanda["opzioni"]})
+    elif tipo == "cronologia":
+        ordine_vis = _ephemeris_ordine_visualizzato(domanda, seed)
+        out.update({
+            "domanda": domanda["domanda"],
+            "opere": [
+                {"titolo": domanda["opere"][i]["titolo"], "autore": domanda["opere"][i]["autore"], "idx": i}
+                for i in ordine_vis
+            ],
+        })
+
     u = utente_corrente()
     if not u:
         return jsonify(out)
@@ -802,12 +1058,20 @@ def get_ephemeris_oggi():
     if riga:
         out.update({
             "gia_risposto": True,
-            "opzione_scelta": riga["opzione_scelta"],
             "corretto": riga["corretto"],
-            "corretta": domanda["corretta"],
             "spiegazione": domanda["spiegazione"],
             "aurei_guadagnati": riga["aurei_guadagnati"],
         })
+        if tipo in ("citazione", "intruso", "abbinamento", "periodo"):
+            out.update({"opzione_scelta": riga["opzione_scelta"], "corretta": domanda["corretta"]})
+        elif tipo == "vero_falso":
+            out.update({"risposta_scelta": bool(riga["opzione_scelta"]), "corretta": domanda["corretta"]})
+        elif tipo == "cronologia":
+            out.update({
+                "ordine_scelto": json.loads(riga["risposta_json"]) if riga["risposta_json"] else None,
+                "ordine_corretto": _ephemeris_ordine_corretto(domanda),
+                "opere": [{"titolo": o["titolo"], "autore": o["autore"]} for o in domanda["opere"]],
+            })
     return jsonify(out)
 
 @app.route("/api/ephemeris/rispondi", methods=["POST"])
@@ -815,15 +1079,54 @@ def get_ephemeris_oggi():
 def rispondi_ephemeris():
     u = utente_corrente()
     d = request.get_json() or {}
-    try:
-        scelta = int(d.get("opzione"))
-    except (TypeError, ValueError):
-        return jsonify({"error": "Opzione non valida"}), 400
 
     oggi = _utcnow().date()
     domanda = ephemeris_di_oggi(oggi)
-    if scelta < 0 or scelta >= len(domanda["opzioni"]):
-        return jsonify({"error": "Opzione non valida"}), 400
+    tipo = domanda["tipo"]
+
+    # Validazione diversa per tipo: i quattro a scelta multipla condividono
+    # la stessa forma (un indice), Vero/Falso è un booleano, la Cronologia
+    # è una permutazione di indici (l'unica che richiede più di un valore).
+    opzione_da_salvare = None
+    risposta_json_da_salvare = None
+    dettagli_risposta = {}
+
+    if tipo in ("citazione", "intruso", "abbinamento", "periodo"):
+        try:
+            scelta = int(d.get("opzione"))
+        except (TypeError, ValueError):
+            return jsonify({"error": "Opzione non valida"}), 400
+        if scelta < 0 or scelta >= len(domanda["opzioni"]):
+            return jsonify({"error": "Opzione non valida"}), 400
+        corretto = (scelta == domanda["corretta"])
+        opzione_da_salvare = scelta
+        dettagli_risposta = {"corretta": domanda["corretta"]}
+
+    elif tipo == "vero_falso":
+        scelta = d.get("risposta")
+        if isinstance(scelta, str):
+            scelta = scelta.strip().lower() in ("true", "vero", "1")
+        elif isinstance(scelta, int) and not isinstance(scelta, bool):
+            scelta = bool(scelta)
+        if not isinstance(scelta, bool):
+            return jsonify({"error": "Risposta non valida"}), 400
+        corretto = (scelta == domanda["corretta"])
+        opzione_da_salvare = 1 if scelta else 0
+        dettagli_risposta = {"corretta": domanda["corretta"]}
+
+    elif tipo == "cronologia":
+        ordine = d.get("ordine")
+        n = len(domanda["opere"])
+        if not isinstance(ordine, list) or sorted(ordine) != list(range(n)):
+            return jsonify({"error": "Ordine non valido"}), 400
+        corretto = (ordine == _ephemeris_ordine_corretto(domanda))
+        risposta_json_da_salvare = json.dumps(ordine)
+        dettagli_risposta = {
+            "ordine_corretto": _ephemeris_ordine_corretto(domanda),
+            "opere": [{"titolo": o["titolo"], "autore": o["autore"]} for o in domanda["opere"]],
+        }
+    else:
+        return jsonify({"error": "Tipo di enigma sconosciuto"}), 400
 
     db = get_db()
     esiste = db.execute(
@@ -834,7 +1137,6 @@ def rispondi_ephemeris():
         return jsonify({"error": "Hai già risposto all'enigma di oggi."}), 409
 
     economia = get_o_crea_economia(db, u["id"])
-    corretto = (scelta == domanda["corretta"])
 
     ieri = oggi - timedelta(days=1)
     streak_precedente = economia["streak_giorni"] or 0
@@ -852,10 +1154,10 @@ def rispondi_ephemeris():
 
     db.execute(
         """
-        INSERT INTO ephemeris_risposte (utente_id, giorno, opzione_scelta, corretto, aurei_guadagnati)
-        VALUES (%s, %s, %s, %s, %s)
+        INSERT INTO ephemeris_risposte (utente_id, giorno, opzione_scelta, risposta_json, corretto, aurei_guadagnati)
+        VALUES (%s, %s, %s, %s, %s, %s)
         """,
-        (u["id"], oggi, scelta, corretto, aurei)
+        (u["id"], oggi, opzione_da_salvare, risposta_json_da_salvare, corretto, aurei)
     )
     db.commit()
 
@@ -863,7 +1165,7 @@ def rispondi_ephemeris():
 
     return jsonify({
         "corretto": corretto,
-        "corretta": domanda["corretta"],
+        **dettagli_risposta,
         "spiegazione": domanda["spiegazione"],
         "aurei_guadagnati": aurei,
         "traguardo_speciale": corretto and nuovo_streak % 7 == 0,
