@@ -965,17 +965,89 @@ body.splash-lock{overflow:hidden}
 .stamp-progress-mini i{position:absolute;left:0;top:0;bottom:0;background:#9c4a1f}
 .stamp-books{margin-top:20px;padding:20px;background:var(--bg-2);border:1px solid var(--line);cursor:default}
 
-/* ── griglia delle cartoline (Epistolarium) — cornice color carta ── */
-.postcard-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+/* ══════════════════════════════════════════════════════════════════
+   EPISTOLARIUM — raccoglitore in pelle da sfogliare. A differenza del
+   Passaporto (documento ufficiale, timbri, linguette per continente),
+   qui l'oggetto è un album di ricordi: copertina in pelle con laccio/
+   fibbia dorata, pagina interna color carta/kraft, ogni cartolina
+   infilata come una vera foto d'epoca con angolini fotografici agli
+   spigoli e una lieve inclinazione stabile per carta (stessa tecnica
+   di stampAngle già usata per steli e timbri) — non un motivo
+   ripetuto, ma fogli/foto lasciati cadere uno sull'altro nell'album.
+   Il click continua a fare esattamente ciò che faceva già: apre la
+   modale con la cartolina che si gira (vedi openPostcard), invariata.
+   ══════════════════════════════════════════════════════════════════ */
+.epistolarium-album{
+  position:relative;
+  background:
+    repeating-linear-gradient(90deg,transparent 0,transparent 38px,rgba(0,0,0,.12) 38px,rgba(0,0,0,.12) 40px),
+    linear-gradient(155deg,#3a2418,#1c1109 65%);
+  border:1px solid rgba(201,162,39,.28);border-radius:4px;
+  padding:40px 34px 44px;
+  box-shadow:0 20px 40px rgba(0,0,0,.5),inset 0 2px 3px rgba(255,255,255,.06),inset 0 -20px 30px rgba(0,0,0,.35);
+}
+.epistolarium-album::before{ /* cornice interna, come una cucitura a mano sul bordo della pelle */
+  content:'';position:absolute;inset:12px;border:1px dashed rgba(201,162,39,.22);border-radius:2px;pointer-events:none;
+}
+.epistolarium-strap{
+  position:absolute;top:-2px;left:50%;transform:translateX(-50%);width:64px;height:26px;z-index:2;
+  background:linear-gradient(155deg,#9c4a1f,#5a2a10);border:1px solid rgba(201,162,39,.4);border-top:none;
+  border-radius:0 0 7px 7px;box-shadow:0 4px 10px rgba(0,0,0,.4);
+}
+.epistolarium-strap::after{ /* fibbietta dorata del laccio */
+  content:'';position:absolute;left:50%;top:6px;transform:translateX(-50%);
+  width:9px;height:9px;border-radius:50%;border:1.5px solid rgba(226,193,92,.85);
+}
+.epistolarium-album-head{position:relative;z-index:1;text-align:center;margin-bottom:6px}
+.epistolarium-album-head .eyebrow{justify-content:center}
+.epistolarium-album-head .eyebrow::before{display:none}
+.epistolarium-album-head h3{font-family:var(--serif);font-style:italic;color:var(--gold-2);font-size:1.35rem;margin-top:6px}
+.epistolarium-album-head p{color:var(--ink-3);font-size:.85rem;max-width:480px;margin:10px auto 0;line-height:1.65}
+.epistolarium-page{
+  position:relative;z-index:1;margin-top:30px;padding:36px 26px 26px;border-radius:2px;
+  background:
+    radial-gradient(rgba(90,66,32,.05) 1px,transparent 1.3px),
+    linear-gradient(160deg,#e9dfc4,#d9cca4);
+  background-size:4px 4px,auto;
+  box-shadow:inset 0 0 44px rgba(60,45,20,.16),0 10px 26px rgba(0,0,0,.35);
+}
+@media(max-width:640px){.epistolarium-album{padding:32px 20px 34px}.epistolarium-page{padding:28px 16px 20px}}
+
+/* ── griglia delle cartoline: slot infilati nell'album ── */
+.postcard-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:34px 24px}
 @media(max-width:900px){.postcard-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.postcard-grid{grid-template-columns:1fr}}
-.postcard-card{background:none}
-.postcard-card.unlocked{cursor:pointer}
-.postcard-frame{background:#f4efe3;padding:9px;box-shadow:0 4px 14px rgba(0,0,0,.35);transition:box-shadow .2s,transform .2s}
-.postcard-card.unlocked:hover .postcard-frame{box-shadow:0 8px 22px rgba(0,0,0,.5);transform:translateY(-2px)}
-.postcard-thumb{aspect-ratio:3/2;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
-.postcard-thumb-ico{font-size:2.6rem;filter:drop-shadow(0 3px 8px rgba(0,0,0,.4))}
-.postcard-card.locked .postcard-thumb{filter:grayscale(1) brightness(.5)}
+.postcard-slot{
+  --r:0deg;position:relative;transform:rotate(var(--r));transition:transform .2s ease;padding:2px;
+}
+.postcard-slot:not(.locked){cursor:pointer}
+.postcard-slot:not(.locked):hover{transform:rotate(0deg) translateY(-3px)}
+.postcard-photo{
+  position:relative;aspect-ratio:3/2;overflow:hidden;background:#f4efe3;padding:8px;
+  box-shadow:0 6px 16px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;
+}
+.postcard-photo-ico{font-size:2.4rem;filter:drop-shadow(0 3px 8px rgba(0,0,0,.4))}
+.postcard-photo-stamp{position:absolute;top:9px;right:9px;font-size:1.1rem;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))}
+.postcard-slot.locked .postcard-photo{filter:grayscale(.5) brightness(.6)}
+.postcard-veil{ /* velina/carta oleata su chi non è stata ancora "scartata" */
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  background:
+    repeating-linear-gradient(45deg,rgba(244,239,227,.14) 0 6px,rgba(244,239,227,.04) 6px 12px),
+    rgba(18,14,9,.44);
+}
+.postcard-veil span{font-size:1.25rem;opacity:.8}
+.postcard-slot-caption{padding:12px 4px 0;text-align:center}
+.postcard-slot-caption h4{font-family:var(--serif);font-weight:400;font-size:1rem;color:#2c2013;margin-bottom:2px}
+.postcard-slot-caption p{font-size:.76rem;color:#6b5636;font-style:italic}
+.postcard-slot-hint{font-size:.74rem;color:#6b5636;line-height:1.5;text-align:center;padding:12px 6px 0}
+/* angolini fotografici, come in un vero album di famiglia */
+.postcard-corner{position:absolute;width:18px;height:18px;z-index:2;pointer-events:none}
+.postcard-corner.tl{top:0;left:0;clip-path:polygon(0 0,100% 0,0 100%);background:linear-gradient(135deg,#e2c15c,#9c7a24)}
+.postcard-corner.tr{top:0;right:0;clip-path:polygon(0 0,100% 0,100% 100%);background:linear-gradient(225deg,#e2c15c,#9c7a24)}
+.postcard-corner.bl{bottom:0;left:0;clip-path:polygon(0 0,0 100%,100% 100%);background:linear-gradient(45deg,#e2c15c,#9c7a24)}
+.postcard-corner.br{bottom:0;right:0;clip-path:polygon(100% 0,0 100%,100% 100%);background:linear-gradient(315deg,#e2c15c,#9c7a24)}
+.postcard-slot.locked .postcard-corner{background:linear-gradient(135deg,#8a7f68,#4a4436);opacity:.55}
+@media(prefers-reduced-motion:reduce){.postcard-slot,.postcard-slot:not(.locked):hover{transition:none;transform:rotate(var(--r))}}
 /* Tonalità delle scene: da assegnare a mano insieme a luogo/icona di ogni cartolina */
 .pc-tone-imperiale{background:radial-gradient(circle at 30% 25%,#5a2a2a,#150a08 78%)}
 .pc-tone-vittoriano{background:radial-gradient(circle at 30% 25%,#3a3226,#0e0b07 78%)}
@@ -985,14 +1057,6 @@ body.splash-lock{overflow:hidden}
 .pc-tone-ellenico{background:radial-gradient(circle at 30% 25%,#2c4a3e,#070f0c 78%)}
 .pc-tone-orientale{background:radial-gradient(circle at 30% 25%,#5a2432,#160709 78%)}
 .pc-tone-sahariano{background:radial-gradient(circle at 30% 25%,#5a3c1a,#150e05 78%)}
-.postcard-lock{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(6,5,4,.4)}
-.postcard-lock span{font-size:1.4rem;opacity:.75}
-.postcard-stamp-corner{position:absolute;top:8px;right:8px;font-size:1.2rem;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))}
-.postcard-caption{padding:14px 4px 0}
-.postcard-caption h3{font-family:var(--serif);font-size:1.04rem;color:var(--ink);margin-bottom:3px}
-.postcard-caption p{font-size:.78rem;color:var(--ink-3);font-style:italic}
-.postcard-hint{font-size:.78rem;color:var(--ink-3);line-height:1.5;padding:12px 4px 0}
-
 /* ── modale: la cartolina si gira ── */
 .modal.postcard-modal{max-width:760px;padding:32px 30px}
 .postcard-flip{aspect-ratio:3/2;min-height:300px;width:100%;box-sizing:border-box;position:relative;perspective:1400px;margin-top:6px}
@@ -4372,39 +4436,57 @@ document.getElementById('tabellariumContent').addEventListener('click',e=>{
   if(postcard)openPostcard(postcard.dataset.postcard);
 });
 
-/* ── Epistolarium: le cartoline si sbloccano leggendo il libroChiave ── */
+/* ── Epistolarium: le cartoline si sbloccano leggendo il libroChiave.
+   Reso come un raccoglitore in pelle da sfogliare: ogni cartolina è
+   infilata in uno slot dell'album, con angolini fotografici e una
+   lieve inclinazione stabile per carta (stampAngle, già usata altrove
+   per steli/timbri). Il click continua a chiamare openPostcard()
+   esattamente come prima — qui cambia solo il contenitore/la card
+   chiusa, non l'esperienza di apertura. ── */
 function renderEpistolarium(){
   const wrap=document.getElementById('tabellariumContent');
   if(!wrap)return;
   const lib=getLibrary();
-  wrap.innerHTML=`<div class="postcard-grid">${EPISTOLARIUM_CARDE.map(c=>{
-    const unlocked=lib[c.libroChiave]?.stato==='letto';
-    const libroTitolo=BOOKS.find(b=>b.id===c.libroChiave)?.t||c.libroChiave;
-    if(unlocked){
-      return `
-      <div class="postcard-card unlocked" data-postcard="${c.id}">
-        <div class="postcard-frame">
-          <div class="postcard-thumb pc-tone-${c.tono}">
-            <span class="postcard-thumb-ico">${c.icona}</span>
-          </div>
-          <span class="postcard-stamp-corner">${c.francobollo}</span>
-        </div>
-        <div class="postcard-caption">
-          <h3>${c.autore}</h3>
-          <p>${c.luogo}</p>
-        </div>
-      </div>`;
-    }
-    return `
-      <div class="postcard-card locked">
-        <div class="postcard-frame">
-          <div class="postcard-thumb pc-tone-${c.tono}">
-            <div class="postcard-lock"><span>🔒</span></div>
-          </div>
-        </div>
-        <p class="postcard-hint">Leggi «${libroTitolo}» per ricevere questa cartolina.</p>
-      </div>`;
-  }).join('')}</div>`;
+  const nSbloccate=EPISTOLARIUM_CARDE.filter(c=>lib[c.libroChiave]?.stato==='letto').length;
+  const cornersHTML='<span class="postcard-corner tl"></span><span class="postcard-corner tr"></span><span class="postcard-corner bl"></span><span class="postcard-corner br"></span>';
+  wrap.innerHTML=`
+    <div class="epistolarium-album">
+      <div class="epistolarium-strap"></div>
+      <div class="epistolarium-album-head">
+        <p class="eyebrow">Il tuo raccoglitore di corrispondenza</p>
+        <h3>Epistolarium</h3>
+        <p>Ogni classico chiave che leggi ti spedisce una cartolina d\u2019epoca dal suo autore. ${nSbloccate} / ${EPISTOLARIUM_CARDE.length} ricevute finora.</p>
+      </div>
+      <div class="epistolarium-page">
+        <div class="postcard-grid">${EPISTOLARIUM_CARDE.map(c=>{
+          const unlocked=lib[c.libroChiave]?.stato==='letto';
+          const libroTitolo=BOOKS.find(b=>b.id===c.libroChiave)?.t||c.libroChiave;
+          const rot=(stampAngle(c.id)/2).toFixed(2);
+          if(unlocked){
+            return `
+            <div class="postcard-slot" data-postcard="${c.id}" style="--r:${rot}deg">
+              ${cornersHTML}
+              <div class="postcard-photo pc-tone-${c.tono}">
+                <span class="postcard-photo-ico">${c.icona}</span>
+                <span class="postcard-photo-stamp">${c.francobollo}</span>
+              </div>
+              <div class="postcard-slot-caption">
+                <h4>${c.autore}</h4>
+                <p>${c.luogo}</p>
+              </div>
+            </div>`;
+          }
+          return `
+            <div class="postcard-slot locked" style="--r:${rot}deg">
+              ${cornersHTML}
+              <div class="postcard-photo pc-tone-${c.tono}">
+                <div class="postcard-veil"><span>🔒</span></div>
+              </div>
+              <p class="postcard-slot-hint">Leggi «${libroTitolo}» per ricevere questa cartolina.</p>
+            </div>`;
+        }).join('')}</div>
+      </div>
+    </div>`;
 }
 
 function iniziali(nome){
