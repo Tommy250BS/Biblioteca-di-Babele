@@ -3868,22 +3868,25 @@ async function searchAlexandria(q){
   const wrap=document.getElementById('alexResultsWrap');
   wrap.innerHTML=`<div class="alex-state">Ricerca in corso tra i grandi classici…</div>`;
   try{
-  const params=new URLSearchParams({
-  q,limit:'60',
-  fields:'key,title,alternative_title,author_name,first_publish_year,cover_i,language,edition_count'
-  });
-  ...
-  const qNorm=normalizzaTesto(q);
-  const puliti=(d.docs||[]).filter(doc=>!ALEX_ESCLUSI_REGEX.test(doc.title||''));
-  let candidati=puliti.filter(doc=>alexRilevanza(doc,qNorm));
-  let usaOrdineOriginale=false;
-  if(!candidati.length){
-  candidati=puliti; // fallback: nessun match sui titoli, fidati della rilevanza di Open Library
-  usaOrdineOriginale=true;
-  }
-  const perLingua=filtraPerLinguaPreferita(candidati);
-  const ordinati=usaOrdineOriginale?perLingua:perLingua.slice().sort((a,b)=>(b.edition_count||0)-(a.edition_count||0));
-  alexResults=alexDedupTitoli(ordinati).slice(0,24).map(normalizeDoc);
+    const params=new URLSearchParams({
+      q,limit:'60',
+      fields:'key,title,alternative_title,author_name,first_publish_year,cover_i,language,edition_count'
+    });
+    const r=await fetch(`https://openlibrary.org/search.json?${params}`,{signal:AbortSignal.timeout(8000)});
+    if(!r.ok)throw new Error('Errore di rete');
+    const d=await r.json();
+
+    const qNorm=normalizzaTesto(q);
+    const puliti=(d.docs||[]).filter(doc=>!ALEX_ESCLUSI_REGEX.test(doc.title||''));
+    let candidati=puliti.filter(doc=>alexRilevanza(doc,qNorm));
+    let usaOrdineOriginale=false;
+    if(!candidati.length){
+      candidati=puliti; // fallback: nessun match sui titoli, fidati della rilevanza di Open Library
+      usaOrdineOriginale=true;
+    }
+    const perLingua=filtraPerLinguaPreferita(candidati);
+    const ordinati=usaOrdineOriginale?perLingua:perLingua.slice().sort((a,b)=>(b.edition_count||0)-(a.edition_count||0));
+    alexResults=alexDedupTitoli(ordinati).slice(0,24).map(normalizeDoc);
   }catch(err){
     console.error('searchAlexandria',err);
     wrap.innerHTML=`<div class="alex-state">⚠ Non sono riuscito a raggiungere il catalogo. Riprova tra poco.</div>`;
