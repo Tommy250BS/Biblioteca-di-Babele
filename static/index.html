@@ -3792,164 +3792,246 @@ document.getElementById('vetrinaLoginLink')?.addEventListener('click',e=>{e.prev
 document.getElementById('btnLogoutPantheon').addEventListener('click',eseguiLogout);
 
 /* ══════════════════════════════════════════════════════════════════
-   ALEXANDRIA — ricerca vera sul catalogo di Open Library.
-   A differenza del catalogo curato di BOOKS (dove cerchiamo la copertina di un
-   libro che già conosciamo), qui la ricerca stessa restituisce già il
-   cover_i insieme a titolo/autore/anno: niente fetch aggiuntive.
+   ALEXANDRIA — Ricerca avanzata su Open Library + Google Books Fallback
    ══════════════════════════════════════════════════════════════════ */
-let alexResults=[];
-let alexLastQuery='';
+let alexResults = [];
+let alexLastQuery = '';
+const alexCache = new Map(); // Cache in memoria per ricerche istantanee
 
-function normalizeDoc(doc){
-  return{
-    id:'ol:'+(doc.key||doc.title),
-    t:doc.title||'Titolo sconosciuto',
-    a:(doc.author_name&&doc.author_name[0])||'Autore sconosciuto',
-    y:doc.first_publish_year||null,
-    cover:doc.cover_i?`https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg`:null,
+function normalizeDoc(doc) {
+  return {
+    id: 'ol:' + (doc.key || doc.title),
+    t: doc.title || 'Titolo sconosciuto',
+    a: (doc.author_name && doc.author_name[0]) || 'Autore sconosciuto',
+    y: doc.first_publish_year || null,
+    cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null,
   };
 }
 
-/* Quanto un documento della ricerca generale sembra "davvero" pertinente
-   alla query, e non solo agganciato per un match generico su
-   soggetto/testo integrale (capitava che comparissero saggi critici o
-   biografie SU un autore, non opere scritte DA lui). */
-function normalizzaTesto(s){
-  return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+// Normalizzazione base per pulire accenti e caratteri speciali
+function normalizzaTesto(s) {
+  return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
-// Esclude guide di studio/saggi critici (non l'opera stessa)
-const ALEX_ESCLUSI_REGEX=/\b(sparknotes|cliffsnotes|cliff notes|study guide|guida allo studio|guida alla lettura|riassunto|summary of|analysis of|analisi di|companion to|study companion|book notes|teacher.?s guide|lesson plan)\b/i;
+// Smart Parsing: Rimuove le preposizioni che ingannano i motori di ricerca ("di", "del", "by", ecc.)
+function pulisciQueryRicerca(q) {
+  return normalizzaTesto(q)
+    .replace(/\b(di|da|del|della|degli|dei|d|by)\b/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
-function alexPunteggio(doc, qNorm) {
+// Esclude guide di studio/saggi critici
+const ALEX_ESCLUSI_REGEX = /\b(sparknotes|cliffsnotes|cliff notes|study guide|guida allo studio|guida alla lettura|riassunto|summary of|analysis of|analisi di|companion to|study companion|book notes|teacher.?s guide|lesson plan)\b/i;
+
+// Algoritmo di Punteggio di Rilevanza
+function alexPunteggio(doc, qNorm, qPulita) {
   let score = 0;
   const titoli = [doc.title, ...(doc.alternative_title || [])].filter(Boolean).map(normalizzaTesto);
   const autore = normalizzaTesto((doc.author_name && doc.author_name[0]) || '');
 
-  // 1. Rilevanza del Titolo (il titolo contiene la query o viceversa)
-  const matchTitolo = titoli.some(t => t && (t === qNorm || t.includes(qNorm) || (qNorm.length > 3 && qNorm.includes(t))));
+  // 1. Rilevanza del Titolo (confronta sia la query originale che quella pulita)
+  const matchTitolo = titoli.some(t => t && (
+    t === qNorm || t === qPulita || 
+    t.includes(qNorm) || t.includes(qPulita) || 
+    (qNorm.length > 3 && qNorm.includes(t)) || 
+    (qPulita.length > 3 && qPulita.includes(t))
+  ));
   if (matchTitolo) score += 100;
 
-  // 2. Bonus Autore (se l'utente ha scritto "Processo di Kafka")
-  if (autore && qNorm.includes(autore)) score += 50;
+  // 2. Bonus Autore
+  if (autore && (qNorm.includes(autore) || qPulita.includes(autore))) score += 50;
 
-  // 3. Bonus Lingua (premiamo l'italiano, MA senza cancellare le altre versioni!)
+  // 3. Bonus Lingua Italiana (senza eliminare altre edizioni importanti)
   if (Array.isArray(doc.language) && doc.language.includes('ita')) score += 30;
 
-  // 4. Popolarità dell'opera (I grandi classici hanno migliaia di edizioni)
-  // Usiamo il logaritmo per evitare che un libro con 5000 edizioni schiacci tutti gli altri criteri
+  // 4. Popolarità dell'opera (scala logaritmica sul numero di edizioni)
   score += Math.log10((doc.edition_count || 1) + 1) * 15;
 
-  // 5. Bonus copertina
+  // 5. Bonus Copertina nativa
   if (doc.cover_i) score += 10;
 
   return score;
 }
 
-/* Rete di sicurezza contro i duplicati letterali (stesso titolo ricatalogato
-   più volte, anche nella stessa lingua): confronta i titoli normalizzati
-   (minuscolo, senza accenti/punteggiatura) e tiene solo la prima occorrenza
-   — di solito quella con più edizioni, se la lista è già ordinata così. */
-function alexDedupTitoli(docs){
-  const visti=new Set();
-  return docs.filter(d=>{
-    const norm=normalizzaTesto(d.title);
-    if(!norm||visti.has(norm))return!norm;
-    visti.add(norm);
+// Deduplicazione avanzata per Chiave Combinata (Autore + Titolo)
+function alexDedup(docs) {
+  const visti = new Set();
+  return docs.filter(d => {
+    const autore = normalizzaTesto((d.author_name && d.author_name[0]) || '');
+    const titolo = normalizzaTesto(d.title);
+    const chiave = `${autore}:${titolo}`;
+    
+    if (!titolo || visti.has(chiave)) return false;
+    visti.add(chiave);
     return true;
   });
 }
 
+// Interfaccia Scheletro durante il caricamento (UX Skeleton)
+function renderAlexSkeleton() {
+  const wrap = document.getElementById('alexResultsWrap');
+  if (!wrap) return;
+  const skeletons = Array(8).fill(0).map(() => `
+    <div class="book-card skeleton">
+      <div class="book-cover" style="height: 220px; background: rgba(255,255,255,0.05); border-radius: 6px;"></div>
+      <div class="book-meta" style="padding-top: 10px;">
+        <div style="height: 14px; background: rgba(255,255,255,0.08); margin-bottom: 8px; border-radius: 4px; width: 80%;"></div>
+        <div style="height: 12px; background: rgba(255,255,255,0.05); border-radius: 4px; width: 50%;"></div>
+      </div>
+    </div>
+  `).join('');
+  wrap.innerHTML = `<div class="book-grid">${skeletons}</div>`;
+}
+
+// Fallback Copertine tramite Google Books API per i libri sprovvisti di immagine
+async function recuperaCopertinaMancante(titolo, autore) {
+  try {
+    const q = encodeURIComponent(`${titolo} ${autore}`);
+    const r = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=1`, { signal: AbortSignal.timeout(4000) });
+    if (!r.ok) return null;
+    const data = await r.json();
+    return data.items?.[0]?.volumeInfo?.imageLinks?.thumbnail?.replace('http:', 'https:') || null;
+  } catch {
+    return null;
+  }
+}
+
+// Processo asincrono in background per recuperare copertine mancanti
+async function arricchisciCopertineMancanti() {
+  const daCercare = alexResults.map((b, idx) => ({ b, idx })).filter(item => !item.b.cover);
+  
+  for (const item of daCercare) {
+    const coverUrl = await recuperaCopertinaMancante(item.b.t, item.b.a);
+    if (coverUrl) {
+      item.b.cover = coverUrl;
+      const cardCoverEl = document.querySelector(`.book-card[data-idx="${item.idx}"] .book-cover`);
+      if (cardCoverEl && !cardCoverEl.querySelector('img')) {
+        const fallback = cardCoverEl.querySelector('.book-cover-fallback');
+        if (fallback) {
+          fallback.insertAdjacentHTML('afterend', `<img src="${coverUrl}" class="loaded" alt="Copertina di ${item.b.t}">`);
+        }
+      }
+    }
+  }
+}
+
+// Funzione principale di ricerca
 async function searchAlexandria(q) {
   q = q.trim();
   if (!q) return;
   alexLastQuery = q;
-  const wrap = document.getElementById('alexResultsWrap');
-  wrap.innerHTML = `<div class="alex-state">Ricerca in corso tra i grandi classici…</div>`;
   
+  const qNorm = normalizzaTesto(q);
+  const qPulita = pulisciQueryRicerca(q);
+
+  // 1. Controllo della Cache (Risposta Istantanea)
+  if (alexCache.has(qNorm)) {
+    alexResults = alexCache.get(qNorm);
+    renderAlexResults();
+    return;
+  }
+
+  renderAlexSkeleton();
+
   try {
     const params = new URLSearchParams({
-      q, limit: '60',
+      q: qPulita || q, 
+      limit: '60',
       fields: 'key,title,alternative_title,author_name,first_publish_year,cover_i,language,edition_count'
     });
+
     const r = await fetch(`https://openlibrary.org/search.json?${params}`, { signal: AbortSignal.timeout(8000) });
     if (!r.ok) throw new Error('Errore di rete');
     const d = await r.json();
 
-    const qNorm = normalizzaTesto(q);
-    
-    // 1. Pulizia di base (regex saggi/guide di studio)
+    // 2. Filtraggio saggi/note di studio
     const puliti = (d.docs || []).filter(doc => !ALEX_ESCLUSI_REGEX.test(doc.title || ''));
-    
-    // 2. Calcolo del punteggio per ciascun documento
+
+    // 3. Calcolo Punteggi
     puliti.forEach((doc, index) => {
-      // Sottraiamo index * 0.2 per rispettare lievemente l'ordine di rilevanza originale di Open Library a parità di score
-      doc._score = alexPunteggio(doc, qNorm) - (index * 0.2); 
+      doc._score = alexPunteggio(doc, qNorm, qPulita) - (index * 0.2);
     });
-    
-    // 3. Ordinamento per punteggio decrescente
+
+    // 4. Ordinamento per pertinenza
     puliti.sort((a, b) => b._score - a._score);
-    
-    // 4. Deduplicazione e limite
-    alexResults = alexDedupTitoli(puliti).slice(0, 24).map(normalizeDoc);
-    
+
+    // 5. Deduplicazione combinata e trasformazione finale
+    alexResults = alexDedup(puliti).slice(0, 24).map(normalizeDoc);
+
+    // Salva in cache
+    alexCache.set(qNorm, alexResults);
+
   } catch (err) {
     console.error('searchAlexandria', err);
-    wrap.innerHTML = `<div class="alex-state">⚠ Non sono riuscito a raggiungere il catalogo. Riprova tra poco.</div>`;
+    const wrap = document.getElementById('alexResultsWrap');
+    if (wrap) {
+      wrap.innerHTML = `<div class="alex-state">⚠ Non sono riuscito a raggiungere il catalogo. Riprova tra poco.</div>`;
+    }
     return;
   }
+
   renderAlexResults();
+
+  // 6. Arricchimento asincrono copertine in background (senza bloccare la UI)
+  arricchisciCopertineMancanti();
 }
 
-function renderAlexResults(){
-  const wrap=document.getElementById('alexResultsWrap');
-  if(!wrap||!alexLastQuery)return;
-  if(!alexResults.length){
-    wrap.innerHTML=`<div class="alex-state">Nessuna opera trovata per «${alexLastQuery}».</div>`;
+function renderAlexResults() {
+  const wrap = document.getElementById('alexResultsWrap');
+  if (!wrap || !alexLastQuery) return;
+
+  if (!alexResults.length) {
+    wrap.innerHTML = `<div class="alex-state">Nessuna opera trovata per «${alexLastQuery}».</div>`;
     return;
   }
-  const lib=getLibrary();
-  wrap.innerHTML=`
+
+  const lib = getLibrary();
+  wrap.innerHTML = `
     <div class="alex-results-head">
       <h2>Risultati per «${alexLastQuery}»</h2>
       <span>${alexResults.length} opere trovate</span>
     </div>
-    <div class="book-grid">${alexResults.map((b,i)=>{
-      const stato=lib[b.id]?.stato;
-      const act=(key,label,icon)=>`<button class="book-act${stato===key?' on':''}" data-act="${key}" data-idx="${i}">${icon} ${label}</button>`;
+    <div class="book-grid">${alexResults.map((b, i) => {
+      const stato = lib[b.id]?.stato;
+      const act = (key, label, icon) => `<button class="book-act${stato === key ? ' on' : ''}" data-act="${key}" data-idx="${i}">${icon} ${label}</button>`;
       return `
-      <div class="book-card">
+      <div class="book-card" data-idx="${i}">
         <div class="book-cover">
           <div class="book-cover-fallback">${b.t[0]}</div>
-          ${b.cover?`<img src="${b.cover}" class="loaded" alt="Copertina di ${b.t}">`:''}
-          <span class="book-status-dot${stato?' show':''}"></span>
+          ${b.cover ? `<img src="${b.cover}" class="loaded" alt="Copertina di ${b.t}">` : ''}
+          <span class="book-status-dot${stato ? ' show' : ''}"></span>
           <div class="book-actions">
-            ${act('in_lettura','In lettura','📖')}
-            ${act('letto','Letto','✓')}
-            ${act('desiderio','Desideri','♡')}
+            ${act('in_lettura', 'In lettura', '📖')}
+            ${act('letto', 'Letto', '✓')}
+            ${act('desiderio', 'Desideri', '♡')}
           </div>
         </div>
         <div class="book-meta">
           <div class="book-title">${b.t}</div>
           <div class="book-author">${b.a}</div>
-          <div class="book-year">${b.y?fmtYear(b.y):'—'}</div>
+          <div class="book-year">${b.y ? fmtYear(b.y) : '—'}</div>
         </div>
       </div>`;
     }).join('')}</div>`;
 }
-document.getElementById('alexResultsWrap').addEventListener('click',e=>{
-  const btn=e.target.closest('[data-act]');
-  if(!btn)return;
-  const book=alexResults[parseInt(btn.dataset.idx)];
-  if(book)setBookStatus(book,btn.dataset.act);
+
+// Event Listeners
+document.getElementById('alexResultsWrap').addEventListener('click', e => {
+  const btn = e.target.closest('[data-act]');
+  if (!btn) return;
+  const book = alexResults[parseInt(btn.dataset.idx)];
+  if (book) setBookStatus(book, btn.dataset.act);
 });
-document.getElementById('alexForm').addEventListener('submit',e=>{
+
+document.getElementById('alexForm').addEventListener('submit', e => {
   e.preventDefault();
   searchAlexandria(document.getElementById('alexInput').value);
 });
-document.querySelectorAll('.chip').forEach(chip=>{
-  chip.addEventListener('click',()=>{
-    document.getElementById('alexInput').value=chip.dataset.q;
+
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.getElementById('alexInput').value = chip.dataset.q;
     searchAlexandria(chip.dataset.q);
   });
 });
