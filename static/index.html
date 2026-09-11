@@ -3813,14 +3813,19 @@ function normalizeDoc(doc){
 /* Quanto un documento della ricerca generale sembra "davvero" pertinente
    alla query, e non solo agganciato per un match generico su
    soggetto/testo integrale (capitava che comparissero saggi critici o
-   biografie SU un autore, non opere scritte DA lui). La ricerca è solo per
-   titolo — niente più match sull'autore — quindi qui richiediamo che la
-   query compaia nel titolo dell'opera. */
-function alexRilevanza(doc,qLower){
-  const titolo=(doc.title||'').toLowerCase();
-  return{
-    inTitolo:titolo.includes(qLower),
-  };
+   biografie SU un autore, non opere scritte DA lui). */
+function normalizzaTesto(s){
+  return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+}
+
+// Esclude guide di studio/saggi critici (non l'opera stessa)
+const ALEX_ESCLUSI_REGEX=/\b(sparknotes|cliffsnotes|cliff notes|study guide|guida allo studio|guida alla lettura|riassunto|summary of|analysis of|analisi di|companion to|study companion|book notes|teacher.?s guide|lesson plan)\b/i;
+
+// Controlla la query contro titolo E titoli alternativi (dove OL registra
+// spesso le traduzioni), non solo il titolo canonico/originale.
+function alexRilevanza(doc,qNorm){
+  const titoli=[doc.title,...(doc.alternative_title||[])].filter(Boolean).map(normalizzaTesto);
+  return titoli.some(t=>t&&(t.includes(qNorm)||(qNorm.length>3&&qNorm.includes(t))));
 }
 
 /* Open Library cataloga spesso la STESSA opera più volte come record
@@ -3863,18 +3868,22 @@ async function searchAlexandria(q){
   const wrap=document.getElementById('alexResultsWrap');
   wrap.innerHTML=`<div class="alex-state">Ricerca in corso tra i grandi classici…</div>`;
   try{
-    const params=new URLSearchParams({
-      q,limit:'60',
-      fields:'key,title,author_name,first_publish_year,cover_i,language,edition_count'
-    });
-    const r=await fetch(`https://openlibrary.org/search.json?${params}`,{signal:AbortSignal.timeout(9000)});
-    if(!r.ok)throw new Error('http '+r.status);
-    const d=await r.json();
-    const qLower=q.toLowerCase();
-    const pertinenti=(d.docs||[]).filter(doc=>alexRilevanza(doc,qLower).inTitolo);
-    const perLingua=filtraPerLinguaPreferita(pertinenti);
-    const ordinati=perLingua.sort((a,b)=>(b.edition_count||0)-(a.edition_count||0));
-    alexResults=alexDedupTitoli(ordinati).slice(0,24).map(normalizeDoc);
+  const params=new URLSearchParams({
+  q,limit:'60',
+  fields:'key,title,alternative_title,author_name,first_publish_year,cover_i,language,edition_count'
+  });
+  ...
+  const qNorm=normalizzaTesto(q);
+  const puliti=(d.docs||[]).filter(doc=>!ALEX_ESCLUSI_REGEX.test(doc.title||''));
+  let candidati=puliti.filter(doc=>alexRilevanza(doc,qNorm));
+  let usaOrdineOriginale=false;
+  if(!candidati.length){
+  candidati=puliti; // fallback: nessun match sui titoli, fidati della rilevanza di Open Library
+  usaOrdineOriginale=true;
+  }
+  const perLingua=filtraPerLinguaPreferita(candidati);
+  const ordinati=usaOrdineOriginale?perLingua:perLingua.slice().sort((a,b)=>(b.edition_count||0)-(a.edition_count||0));
+  alexResults=alexDedupTitoli(ordinati).slice(0,24).map(normalizeDoc);
   }catch(err){
     console.error('searchAlexandria',err);
     wrap.innerHTML=`<div class="alex-state">⚠ Non sono riuscito a raggiungere il catalogo. Riprova tra poco.</div>`;
