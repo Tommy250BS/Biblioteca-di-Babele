@@ -3854,8 +3854,8 @@ function filtraPerLinguaPreferita(docs){
 function alexDedupTitoli(docs){
   const visti=new Set();
   return docs.filter(d=>{
-    const norm=(d.title||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
-    if(!norm||visti.has(norm))return!norm; // titoli vuoti (rari) non vengono scartati per questo
+    const norm=normalizzaTesto(d.title);
+    if(!norm||visti.has(norm))return!norm;
     visti.add(norm);
     return true;
   });
