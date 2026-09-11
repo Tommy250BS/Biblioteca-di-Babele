@@ -3821,30 +3821,29 @@ function normalizzaTesto(s){
 // Esclude guide di studio/saggi critici (non l'opera stessa)
 const ALEX_ESCLUSI_REGEX=/\b(sparknotes|cliffsnotes|cliff notes|study guide|guida allo studio|guida alla lettura|riassunto|summary of|analysis of|analisi di|companion to|study companion|book notes|teacher.?s guide|lesson plan)\b/i;
 
-// Controlla la query contro titolo E titoli alternativi (dove OL registra
-// spesso le traduzioni), non solo il titolo canonico/originale.
-function alexRilevanza(doc,qNorm){
-  const titoli=[doc.title,...(doc.alternative_title||[])].filter(Boolean).map(normalizzaTesto);
-  return titoli.some(t=>t&&(t.includes(qNorm)||(qNorm.length>3&&qNorm.includes(t))));
-}
+function alexPunteggio(doc, qNorm) {
+  let score = 0;
+  const titoli = [doc.title, ...(doc.alternative_title || [])].filter(Boolean).map(normalizzaTesto);
+  const autore = normalizzaTesto((doc.author_name && doc.author_name[0]) || '');
 
-/* Open Library cataloga spesso la STESSA opera più volte come record
-   separati — uno per l'edizione russa, uno per l'italiana, uno per
-   l'inglese, ecc. — invece di raggrupparli come edizioni di un'unica
-   opera (limite noto del catalogo, non un bug nostro). Qui scegliamo UNA
-   sola lingua per volta anziché ammetterne più di una insieme, altrimenti
-   la stessa opera resta comunque duplicata: prima si prova solo
-   l'italiano (l'app è in italiano), poi solo l'inglese come ripiego, e
-   solo se nessuna delle due esiste per quell'autore/query si passa alle
-   opere senza etichetta di lingua (classici antichi mal taggati) pur di
-   non restituire zero risultati. */
-function filtraPerLinguaPreferita(docs){
-  const italiani=docs.filter(d=>Array.isArray(d.language)&&d.language.includes('ita'));
-  if(italiani.length)return italiani;
-  const inglesi=docs.filter(d=>Array.isArray(d.language)&&d.language.includes('eng'));
-  if(inglesi.length)return inglesi;
-  const senzaLingua=docs.filter(d=>!Array.isArray(d.language)||!d.language.length);
-  return senzaLingua.length?senzaLingua:docs;
+  // 1. Rilevanza del Titolo (il titolo contiene la query o viceversa)
+  const matchTitolo = titoli.some(t => t && (t === qNorm || t.includes(qNorm) || (qNorm.length > 3 && qNorm.includes(t))));
+  if (matchTitolo) score += 100;
+
+  // 2. Bonus Autore (se l'utente ha scritto "Processo di Kafka")
+  if (autore && qNorm.includes(autore)) score += 50;
+
+  // 3. Bonus Lingua (premiamo l'italiano, MA senza cancellare le altre versioni!)
+  if (Array.isArray(doc.language) && doc.language.includes('ita')) score += 30;
+
+  // 4. Popolarità dell'opera (I grandi classici hanno migliaia di edizioni)
+  // Usiamo il logaritmo per evitare che un libro con 5000 edizioni schiacci tutti gli altri criteri
+  score += Math.log10((doc.edition_count || 1) + 1) * 15;
+
+  // 5. Bonus copertina
+  if (doc.cover_i) score += 10;
+
+  return score;
 }
 
 /* Rete di sicurezza contro i duplicati letterali (stesso titolo ricatalogato
@@ -3861,35 +3860,42 @@ function alexDedupTitoli(docs){
   });
 }
 
-async function searchAlexandria(q){
-  q=q.trim();
-  if(!q)return;
-  alexLastQuery=q;
-  const wrap=document.getElementById('alexResultsWrap');
-  wrap.innerHTML=`<div class="alex-state">Ricerca in corso tra i grandi classici…</div>`;
-  try{
-    const params=new URLSearchParams({
-      q,limit:'60',
-      fields:'key,title,alternative_title,author_name,first_publish_year,cover_i,language,edition_count'
+async function searchAlexandria(q) {
+  q = q.trim();
+  if (!q) return;
+  alexLastQuery = q;
+  const wrap = document.getElementById('alexResultsWrap');
+  wrap.innerHTML = `<div class="alex-state">Ricerca in corso tra i grandi classici…</div>`;
+  
+  try {
+    const params = new URLSearchParams({
+      q, limit: '60',
+      fields: 'key,title,alternative_title,author_name,first_publish_year,cover_i,language,edition_count'
     });
-    const r=await fetch(`https://openlibrary.org/search.json?${params}`,{signal:AbortSignal.timeout(8000)});
-    if(!r.ok)throw new Error('Errore di rete');
-    const d=await r.json();
+    const r = await fetch(`https://openlibrary.org/search.json?${params}`, { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) throw new Error('Errore di rete');
+    const d = await r.json();
 
-    const qNorm=normalizzaTesto(q);
-    const puliti=(d.docs||[]).filter(doc=>!ALEX_ESCLUSI_REGEX.test(doc.title||''));
-    let candidati=puliti.filter(doc=>alexRilevanza(doc,qNorm));
-    let usaOrdineOriginale=false;
-    if(!candidati.length){
-      candidati=puliti; // fallback: nessun match sui titoli, fidati della rilevanza di Open Library
-      usaOrdineOriginale=true;
-    }
-    const perLingua=filtraPerLinguaPreferita(candidati);
-    const ordinati=usaOrdineOriginale?perLingua:perLingua.slice().sort((a,b)=>(b.edition_count||0)-(a.edition_count||0));
-    alexResults=alexDedupTitoli(ordinati).slice(0,24).map(normalizeDoc);
-  }catch(err){
-    console.error('searchAlexandria',err);
-    wrap.innerHTML=`<div class="alex-state">⚠ Non sono riuscito a raggiungere il catalogo. Riprova tra poco.</div>`;
+    const qNorm = normalizzaTesto(q);
+    
+    // 1. Pulizia di base (regex saggi/guide di studio)
+    const puliti = (d.docs || []).filter(doc => !ALEX_ESCLUSI_REGEX.test(doc.title || ''));
+    
+    // 2. Calcolo del punteggio per ciascun documento
+    puliti.forEach((doc, index) => {
+      // Sottraiamo index * 0.2 per rispettare lievemente l'ordine di rilevanza originale di Open Library a parità di score
+      doc._score = alexPunteggio(doc, qNorm) - (index * 0.2); 
+    });
+    
+    // 3. Ordinamento per punteggio decrescente
+    puliti.sort((a, b) => b._score - a._score);
+    
+    // 4. Deduplicazione e limite
+    alexResults = alexDedupTitoli(puliti).slice(0, 24).map(normalizeDoc);
+    
+  } catch (err) {
+    console.error('searchAlexandria', err);
+    wrap.innerHTML = `<div class="alex-state">⚠ Non sono riuscito a raggiungere il catalogo. Riprova tra poco.</div>`;
     return;
   }
   renderAlexResults();
