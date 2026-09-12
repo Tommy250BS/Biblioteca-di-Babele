@@ -535,6 +535,21 @@ body.splash-lock{overflow:hidden}
 .eph-locked{color:#6b5636;font-style:italic;font-size:.86rem;margin-top:18px}
 .eph-locked a{color:#9c4a1f;font-weight:600;font-style:normal}
 
+/* ── Vero/Falso e Cronologia: le due forme di risposta che non sono a
+   scelta multipla semplice, quindi non riusano .eph-option. ── */
+.eph-vf-row{display:flex;gap:14px;justify-content:center;margin-top:6px}
+.eph-vf-btn{padding:14px 34px;border:1px solid rgba(44,32,19,.28);background:rgba(255,255,255,.4);color:#3d1a18;font-family:inherit;font-size:.92rem;font-weight:600;transition:border-color .15s,background .15s,color .15s}
+.eph-vf-btn:hover:not(:disabled){border-color:#9c4a1f;background:rgba(255,255,255,.65)}
+.eph-chrono-list{display:flex;flex-direction:column;gap:8px;text-align:left;max-width:420px;margin:0 auto}
+.eph-chrono-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid rgba(44,32,19,.28);background:rgba(255,255,255,.4);color:#3d1a18;text-align:left;font-size:.86rem;font-family:inherit;transition:border-color .15s,background .15s;width:100%}
+.eph-chrono-item:hover:not(:disabled){border-color:#9c4a1f;background:rgba(255,255,255,.65)}
+.eph-chrono-item.selected{border-color:#9c4a1f;background:rgba(156,74,31,.12)}
+.eph-chrono-badge{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(44,32,19,.16);color:#3d1a18;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700}
+.eph-chrono-item.selected .eph-chrono-badge{background:#9c4a1f;color:#fff}
+.eph-chrono-actions{display:flex;align-items:center;gap:14px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+.eph-chrono-reset{background:none;border:none;color:#6b5636;font-size:.82rem;text-decoration:underline;padding:10px 6px;font-family:inherit}
+.eph-chrono-reset:disabled{opacity:.4;text-decoration:none;cursor:default}
+
 /* ══════════════════════════════════════════════════════════════════
    COMMUNITY / TESTIMONIALS
    ══════════════════════════════════════════════════════════════════ */
@@ -2740,10 +2755,17 @@ let ephemerisState=null;
    alla pergamena rivelata, non ha senso reincuriosire su un esito già
    noto. */
 let ephemerisOpened=false;
+/* Ordine scelto dall'utente per l'enigma di tipo "cronologia": un array
+   di idx (indici originali, come restituiti in e.opere[].idx dal
+   backend) che cresce ad ogni click su un'opera non ancora scelta, e si
+   accorcia ricliccando un'opera già scelta. Resettato ad ogni nuovo
+   caricamento del giorno. */
+let cronologiaSelezione=[];
 async function loadEphemeris(){
   const el=document.getElementById('ephemerisBody');
   if(!el)return;
   ephemerisOpened=false;
+  cronologiaSelezione=[];
   try{
     ephemerisState=await apiFetch('/api/ephemeris/oggi');
   }catch(err){
@@ -2753,6 +2775,97 @@ async function loadEphemeris(){
   }
   renderEphemeris();
 }
+
+/* ── Corpo della pergamena RIVELATA (già risposto oggi): la forma varia
+   per tipo, dato che ogni tipo restituisce campi diversi dal backend
+   (vedi /api/ephemeris/oggi e /api/ephemeris/rispondi in app.py). Prima
+   di questa funzione il codice assumeva sempre un campo `e.testo`
+   (la citazione), presente SOLO per il tipo "citazione": per tutti gli
+   altri tipi risultava "undefined" a schermo. ── */
+function renderEphemerisRevealBody(e){
+  if(e.tipo==='citazione'){
+    return `
+      <p class="eph-reveal-quote">«${e.testo}»</p>
+      <p class="eph-reveal-answer">${e.domanda} — <b>${e.opzioni[e.corretta]}</b></p>`;
+  }
+  if(e.tipo==='intruso'||e.tipo==='abbinamento'||e.tipo==='periodo'){
+    return `<p class="eph-reveal-answer">${e.domanda} — <b>${e.opzioni[e.corretta]}</b></p>`;
+  }
+  if(e.tipo==='vero_falso'){
+    return `
+      <p class="eph-reveal-quote">«${e.affermazione}»</p>
+      <p class="eph-reveal-answer">Risposta corretta: <b>${e.corretta?'Vero':'Falso'}</b></p>`;
+  }
+  if(e.tipo==='cronologia'){
+    const corretto=e.ordine_corretto.map((idx,pos)=>`<li>${pos+1}. ${escapeHtml(e.opere[idx].titolo)} <span style="opacity:.65">— ${escapeHtml(e.opere[idx].autore)}</span></li>`).join('');
+    const scelto=(!e.corretto&&e.ordine_scelto)?`
+      <p class="eph-reveal-answer" style="margin-top:14px">La tua risposta:</p>
+      <ol style="margin:6px 0 0;padding-left:20px;font-size:.86rem;color:#6b5636;text-align:left">
+        ${e.ordine_scelto.map((idx,pos)=>`<li>${pos+1}. ${escapeHtml(e.opere[idx].titolo)}</li>`).join('')}
+      </ol>`:'';
+    return `
+      <p class="eph-reveal-answer">${e.domanda}</p>
+      <ol style="margin:6px 0 0;padding-left:20px;font-size:.9rem;color:#3d1a18;text-align:left;font-weight:600">${corretto}</ol>
+      ${scelto}`;
+  }
+  return '';
+}
+
+/* ── Corpo della pergamena APERTA (in gioco, non ancora risposto): la
+   forma di interazione varia per tipo — i quattro a scelta multipla
+   semplice condividono gli stessi bottoni .eph-option, Vero/Falso ha
+   due soli bottoni, Cronologia richiede di ordinare le opere cliccandole
+   in sequenza. ── */
+function renderEphemerisPlayBody(e){
+  const lockedHTML=currentUser?'':`<p class="eph-locked">Vuoi rispondere e guadagnare Aurei? <a href="#" id="ephLoginLink">Accedi</a>.</p>`;
+
+  if(e.tipo==='citazione'){
+    const opzioniHTML=e.opzioni.map((opt,i)=>`<button class="eph-option" data-i="${i}">${opt}</button>`).join('');
+    return `
+      <p class="eph-quote">«${e.testo}»</p>
+      <p class="eph-question">${e.domanda}</p>
+      <div class="eph-options">${opzioniHTML}</div>
+      ${lockedHTML}`;
+  }
+  if(e.tipo==='intruso'||e.tipo==='abbinamento'||e.tipo==='periodo'){
+    const opzioniHTML=e.opzioni.map((opt,i)=>`<button class="eph-option" data-i="${i}">${opt}</button>`).join('');
+    return `
+      <p class="eph-question" style="font-size:1rem;color:#3d1a18">${e.domanda}</p>
+      <div class="eph-options">${opzioniHTML}</div>
+      ${lockedHTML}`;
+  }
+  if(e.tipo==='vero_falso'){
+    return `
+      <p class="eph-quote">«${e.affermazione}»</p>
+      <div class="eph-vf-row">
+        <button class="eph-vf-btn" data-val="true">Vero</button>
+        <button class="eph-vf-btn" data-val="false">Falso</button>
+      </div>
+      ${lockedHTML}`;
+  }
+  if(e.tipo==='cronologia'){
+    const itemsHTML=e.opere.map(o=>{
+      const pos=cronologiaSelezione.indexOf(o.idx);
+      const selected=pos>-1;
+      return `
+        <button class="eph-chrono-item${selected?' selected':''}" data-idx="${o.idx}">
+          <span class="eph-chrono-badge">${selected?pos+1:''}</span>
+          <span>${escapeHtml(o.titolo)} <span style="opacity:.65">— ${escapeHtml(o.autore)}</span></span>
+        </button>`;
+    }).join('');
+    const tutteScelte=cronologiaSelezione.length===e.opere.length;
+    return `
+      <p class="eph-question">${e.domanda}</p>
+      <div class="eph-chrono-list">${itemsHTML}</div>
+      <div class="eph-chrono-actions">
+        <button class="eph-chrono-reset" id="ephChronoReset"${cronologiaSelezione.length?'':' disabled'}>Ricomincia</button>
+        <button class="btn eph-scroll-btn" id="ephChronoConfirm"${tutteScelte?'':' disabled'}>Conferma ordine →</button>
+      </div>
+      ${lockedHTML}`;
+  }
+  return '';
+}
+
 function renderEphemeris(){
   const el=document.getElementById('ephemerisBody');
   const e=ephemerisState;
@@ -2767,8 +2880,7 @@ function renderEphemeris(){
         <div class="eph-scroll-roll"></div>
         <div class="eph-scroll-body">
           <div class="eph-verdict-icon ${e.corretto?'ok':'no'}">${e.corretto?'✓':'✕'}</div>
-          <p class="eph-reveal-quote">«${e.testo}»</p>
-          <p class="eph-reveal-answer">${e.domanda} — <b>${e.opzioni[e.corretta]}</b></p>
+          ${renderEphemerisRevealBody(e)}
           <div class="eph-reward-row">
             <span class="eph-pill eph-pill-aurei">🪙 +${e.aurei_guadagnati} Aurei</span>
             ${streak?`<span class="eph-pill eph-pill-streak${milestone?' streak-milestone':''}"><span class="flame-ico">🔥</span> ${streak} ${streak===1?'Giorno':'Giorni'} di Sapienza</span>`:''}
@@ -2797,22 +2909,37 @@ function renderEphemeris(){
     return;
   }
 
-  // ── Stato 2: aperta — il quiz vero e proprio ──
-  const opzioniHTML=e.opzioni.map((opt,i)=>`<button class="eph-option" data-i="${i}">${opt}</button>`).join('');
-  const lockedHTML=currentUser?'':`<p class="eph-locked">Vuoi rispondere e guadagnare Aurei? <a href="#" id="ephLoginLink">Accedi</a>.</p>`;
+  // ── Stato 2: aperta — il quiz vero e proprio, forma diversa per tipo ──
   el.innerHTML=`
     <div class="eph-scroll">
       <div class="eph-scroll-roll"></div>
-      <div class="eph-scroll-body">
-        <p class="eph-quote">«${e.testo}»</p>
-        <p class="eph-question">${e.domanda}</p>
-        <div class="eph-options">${opzioniHTML}</div>
-        ${lockedHTML}
-      </div>
+      <div class="eph-scroll-body">${renderEphemerisPlayBody(e)}</div>
       <div class="eph-scroll-roll"></div>
     </div>`;
   document.getElementById('ephLoginLink')?.addEventListener('click',ev=>{ev.preventDefault();openAuth('login');});
 }
+
+/* Invia la risposta al backend con il body corretto per il tipo (vedi
+   POST /api/ephemeris/rispondi in app.py: {opzione}, {risposta} o
+   {ordine} a seconda del tipo) e aggiorna stato/UI/economia con
+   l'esito — comune a tutti i tipi, solo il payload cambia. */
+async function inviaRispostaEphemeris(body){
+  try{
+    const res=await apiFetch('/api/ephemeris/rispondi',{method:'POST',body:JSON.stringify(body)});
+    ephemerisState={...ephemerisState,gia_risposto:true,
+      corretto:res.corretto,corretta:res.corretta,spiegazione:res.spiegazione,
+      aurei_guadagnati:res.aurei_guadagnati,traguardo_speciale:res.traguardo_speciale,
+      ordine_corretto:res.ordine_corretto,ordine_scelto:body.ordine,
+      opere:res.opere||ephemerisState.opere};
+    economiaCache=res.economia;
+    renderEconomia();
+    renderEphemeris();
+    if(res.traguardo_speciale)mostraToast('🔥 Serie di '+(economiaCache.streak_giorni||0)+' giorni! Costanza da vero Bibliotecario.');
+  }catch(err){
+    console.error('rispondiEphemeris',err);
+  }
+}
+
 document.getElementById('ephemerisBody').addEventListener('click',async ev=>{
   const openBtn=ev.target.closest('#ephScrollOpen');
   if(openBtn){
@@ -2820,21 +2947,45 @@ document.getElementById('ephemerisBody').addEventListener('click',async ev=>{
     renderEphemeris();
     return;
   }
-  const btn=ev.target.closest('.eph-option');
-  if(!btn||!ephemerisState||ephemerisState.gia_risposto)return;
-  if(!currentUser){openAuth('login');return;}
-  const i=parseInt(btn.dataset.i,10);
-  try{
-    const res=await apiFetch('/api/ephemeris/rispondi',{method:'POST',body:JSON.stringify({opzione:i})});
-    ephemerisState={...ephemerisState,gia_risposto:true,opzione_scelta:i,
-      corretto:res.corretto,corretta:res.corretta,spiegazione:res.spiegazione,
-      aurei_guadagnati:res.aurei_guadagnati,traguardo_speciale:res.traguardo_speciale};
-    economiaCache=res.economia;
-    renderEconomia();
+  if(!ephemerisState||ephemerisState.gia_risposto)return;
+
+  // ── Scelta multipla semplice (citazione/intruso/abbinamento/periodo) ──
+  const opt=ev.target.closest('.eph-option');
+  if(opt){
+    if(!currentUser){openAuth('login');return;}
+    const i=parseInt(opt.dataset.i,10);
+    await inviaRispostaEphemeris({opzione:i});
+    return;
+  }
+
+  // ── Vero/Falso ──
+  const vf=ev.target.closest('.eph-vf-btn');
+  if(vf){
+    if(!currentUser){openAuth('login');return;}
+    await inviaRispostaEphemeris({risposta:vf.dataset.val==='true'});
+    return;
+  }
+
+  // ── Cronologia: clic su un'opera per aggiungerla/toglierla dall'ordine ──
+  const item=ev.target.closest('.eph-chrono-item');
+  if(item){
+    if(!currentUser){openAuth('login');return;}
+    const idx=parseInt(item.dataset.idx,10);
+    const pos=cronologiaSelezione.indexOf(idx);
+    if(pos>-1)cronologiaSelezione.splice(pos,1); // ricliccarla la toglie dall'ordine
+    else cronologiaSelezione.push(idx);
     renderEphemeris();
-    if(res.traguardo_speciale)mostraToast('🔥 Serie di '+(economiaCache.streak_giorni||0)+' giorni! Costanza da vero Bibliotecario.');
-  }catch(err){
-    console.error('rispondiEphemeris',err);
+    return;
+  }
+  if(ev.target.closest('#ephChronoReset')){
+    cronologiaSelezione=[];
+    renderEphemeris();
+    return;
+  }
+  if(ev.target.closest('#ephChronoConfirm')){
+    if(!currentUser){openAuth('login');return;}
+    if(cronologiaSelezione.length!==ephemerisState.opere.length)return;
+    await inviaRispostaEphemeris({ordine:cronologiaSelezione.slice()});
   }
 });
 
@@ -3792,246 +3943,155 @@ document.getElementById('vetrinaLoginLink')?.addEventListener('click',e=>{e.prev
 document.getElementById('btnLogoutPantheon').addEventListener('click',eseguiLogout);
 
 /* ══════════════════════════════════════════════════════════════════
-   ALEXANDRIA — Ricerca avanzata su Open Library + Google Books Fallback
+   ALEXANDRIA — ricerca vera sul catalogo di Open Library.
+   A differenza del catalogo curato di BOOKS (dove cerchiamo la copertina di un
+   libro che già conosciamo), qui la ricerca stessa restituisce già il
+   cover_i insieme a titolo/autore/anno: niente fetch aggiuntive.
    ══════════════════════════════════════════════════════════════════ */
-let alexResults = [];
-let alexLastQuery = '';
-const alexCache = new Map(); // Cache in memoria per ricerche istantanee
+let alexResults=[];
+let alexLastQuery='';
 
-function normalizeDoc(doc) {
-  return {
-    id: 'ol:' + (doc.key || doc.title),
-    t: doc.title || 'Titolo sconosciuto',
-    a: (doc.author_name && doc.author_name[0]) || 'Autore sconosciuto',
-    y: doc.first_publish_year || null,
-    cover: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null,
+function normalizeDoc(doc){
+  return{
+    id:'ol:'+(doc.key||doc.title),
+    t:doc.title||'Titolo sconosciuto',
+    a:(doc.author_name&&doc.author_name[0])||'Autore sconosciuto',
+    y:doc.first_publish_year||null,
+    cover:doc.cover_i?`https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg`:null,
   };
 }
 
-// Normalizzazione base per pulire accenti e caratteri speciali
-function normalizzaTesto(s) {
-  return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+/* Quanto un documento della ricerca generale sembra "davvero" pertinente
+   alla query, e non solo agganciato per un match generico su
+   soggetto/testo integrale (capitava che comparissero saggi critici o
+   biografie SU un autore, non opere scritte DA lui). */
+function normalizzaTesto(s){
+  return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
 }
 
-// Smart Parsing: Rimuove le preposizioni che ingannano i motori di ricerca ("di", "del", "by", ecc.)
-function pulisciQueryRicerca(q) {
-  return normalizzaTesto(q)
-    .replace(/\b(di|da|del|della|degli|dei|d|by)\b/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+// Esclude guide di studio/saggi critici (non l'opera stessa)
+const ALEX_ESCLUSI_REGEX=/\b(sparknotes|cliffsnotes|cliff notes|study guide|guida allo studio|guida alla lettura|riassunto|summary of|analysis of|analisi di|companion to|study companion|book notes|teacher.?s guide|lesson plan)\b/i;
+
+// Controlla la query contro titolo E titoli alternativi (dove OL registra
+// spesso le traduzioni), non solo il titolo canonico/originale.
+function alexRilevanza(doc,qNorm){
+  const titoli=[doc.title,...(doc.alternative_title||[])].filter(Boolean).map(normalizzaTesto);
+  return titoli.some(t=>t&&(t.includes(qNorm)||(qNorm.length>3&&qNorm.includes(t))));
 }
 
-// Esclude guide di studio/saggi critici
-const ALEX_ESCLUSI_REGEX = /\b(sparknotes|cliffsnotes|cliff notes|study guide|guida allo studio|guida alla lettura|riassunto|summary of|analysis of|analisi di|companion to|study companion|book notes|teacher.?s guide|lesson plan)\b/i;
-
-// Algoritmo di Punteggio di Rilevanza
-function alexPunteggio(doc, qNorm, qPulita) {
-  let score = 0;
-  const titoli = [doc.title, ...(doc.alternative_title || [])].filter(Boolean).map(normalizzaTesto);
-  const autore = normalizzaTesto((doc.author_name && doc.author_name[0]) || '');
-
-  // 1. Rilevanza del Titolo (confronta sia la query originale che quella pulita)
-  const matchTitolo = titoli.some(t => t && (
-    t === qNorm || t === qPulita || 
-    t.includes(qNorm) || t.includes(qPulita) || 
-    (qNorm.length > 3 && qNorm.includes(t)) || 
-    (qPulita.length > 3 && qPulita.includes(t))
-  ));
-  if (matchTitolo) score += 100;
-
-  // 2. Bonus Autore
-  if (autore && (qNorm.includes(autore) || qPulita.includes(autore))) score += 50;
-
-  // 3. Bonus Lingua Italiana (senza eliminare altre edizioni importanti)
-  if (Array.isArray(doc.language) && doc.language.includes('ita')) score += 30;
-
-  // 4. Popolarità dell'opera (scala logaritmica sul numero di edizioni)
-  score += Math.log10((doc.edition_count || 1) + 1) * 15;
-
-  // 5. Bonus Copertina nativa
-  if (doc.cover_i) score += 10;
-
-  return score;
+/* Open Library cataloga spesso la STESSA opera più volte come record
+   separati — uno per l'edizione russa, uno per l'italiana, uno per
+   l'inglese, ecc. — invece di raggrupparli come edizioni di un'unica
+   opera (limite noto del catalogo, non un bug nostro). Qui scegliamo UNA
+   sola lingua per volta anziché ammetterne più di una insieme, altrimenti
+   la stessa opera resta comunque duplicata: prima si prova solo
+   l'italiano (l'app è in italiano), poi solo l'inglese come ripiego, e
+   solo se nessuna delle due esiste per quell'autore/query si passa alle
+   opere senza etichetta di lingua (classici antichi mal taggati) pur di
+   non restituire zero risultati. */
+function filtraPerLinguaPreferita(docs){
+  const italiani=docs.filter(d=>Array.isArray(d.language)&&d.language.includes('ita'));
+  if(italiani.length)return italiani;
+  const inglesi=docs.filter(d=>Array.isArray(d.language)&&d.language.includes('eng'));
+  if(inglesi.length)return inglesi;
+  const senzaLingua=docs.filter(d=>!Array.isArray(d.language)||!d.language.length);
+  return senzaLingua.length?senzaLingua:docs;
 }
 
-// Deduplicazione avanzata per Chiave Combinata (Autore + Titolo)
-function alexDedup(docs) {
-  const visti = new Set();
-  return docs.filter(d => {
-    const autore = normalizzaTesto((d.author_name && d.author_name[0]) || '');
-    const titolo = normalizzaTesto(d.title);
-    const chiave = `${autore}:${titolo}`;
-    
-    if (!titolo || visti.has(chiave)) return false;
-    visti.add(chiave);
+/* Rete di sicurezza contro i duplicati letterali (stesso titolo ricatalogato
+   più volte, anche nella stessa lingua): confronta i titoli normalizzati
+   (minuscolo, senza accenti/punteggiatura) e tiene solo la prima occorrenza
+   — di solito quella con più edizioni, se la lista è già ordinata così. */
+function alexDedupTitoli(docs){
+  const visti=new Set();
+  return docs.filter(d=>{
+    const norm=normalizzaTesto(d.title);
+    if(!norm||visti.has(norm))return!norm;
+    visti.add(norm);
     return true;
   });
 }
 
-// Interfaccia Scheletro durante il caricamento (UX Skeleton)
-function renderAlexSkeleton() {
-  const wrap = document.getElementById('alexResultsWrap');
-  if (!wrap) return;
-  const skeletons = Array(8).fill(0).map(() => `
-    <div class="book-card skeleton">
-      <div class="book-cover" style="height: 220px; background: rgba(255,255,255,0.05); border-radius: 6px;"></div>
-      <div class="book-meta" style="padding-top: 10px;">
-        <div style="height: 14px; background: rgba(255,255,255,0.08); margin-bottom: 8px; border-radius: 4px; width: 80%;"></div>
-        <div style="height: 12px; background: rgba(255,255,255,0.05); border-radius: 4px; width: 50%;"></div>
-      </div>
-    </div>
-  `).join('');
-  wrap.innerHTML = `<div class="book-grid">${skeletons}</div>`;
-}
+async function searchAlexandria(q){
+  q=q.trim();
+  if(!q)return;
+  alexLastQuery=q;
+  const wrap=document.getElementById('alexResultsWrap');
+  wrap.innerHTML=`<div class="alex-state">Ricerca in corso tra i grandi classici…</div>`;
+  try{
+  const params=new URLSearchParams({
+  q,limit:'60',
+  fields:'key,title,alternative_title,author_name,first_publish_year,cover_i,language,edition_count'
+  });
 
-// Fallback Copertine tramite Google Books API per i libri sprovvisti di immagine
-async function recuperaCopertinaMancante(titolo, autore) {
-  try {
-    const q = encodeURIComponent(`${titolo} ${autore}`);
-    const r = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=1`, { signal: AbortSignal.timeout(4000) });
-    if (!r.ok) return null;
-    const data = await r.json();
-    return data.items?.[0]?.volumeInfo?.imageLinks?.thumbnail?.replace('http:', 'https:') || null;
-  } catch {
-    return null;
+  const qNorm=normalizzaTesto(q);
+  const puliti=(d.docs||[]).filter(doc=>!ALEX_ESCLUSI_REGEX.test(doc.title||''));
+  let candidati=puliti.filter(doc=>alexRilevanza(doc,qNorm));
+  let usaOrdineOriginale=false;
+  if(!candidati.length){
+  candidati=puliti; // fallback: nessun match sui titoli, fidati della rilevanza di Open Library
+  usaOrdineOriginale=true;
   }
-}
-
-// Processo asincrono in background per recuperare copertine mancanti
-async function arricchisciCopertineMancanti() {
-  const daCercare = alexResults.map((b, idx) => ({ b, idx })).filter(item => !item.b.cover);
-  
-  for (const item of daCercare) {
-    const coverUrl = await recuperaCopertinaMancante(item.b.t, item.b.a);
-    if (coverUrl) {
-      item.b.cover = coverUrl;
-      const cardCoverEl = document.querySelector(`.book-card[data-idx="${item.idx}"] .book-cover`);
-      if (cardCoverEl && !cardCoverEl.querySelector('img')) {
-        const fallback = cardCoverEl.querySelector('.book-cover-fallback');
-        if (fallback) {
-          fallback.insertAdjacentHTML('afterend', `<img src="${coverUrl}" class="loaded" alt="Copertina di ${item.b.t}">`);
-        }
-      }
-    }
-  }
-}
-
-// Funzione principale di ricerca
-async function searchAlexandria(q) {
-  q = q.trim();
-  if (!q) return;
-  alexLastQuery = q;
-  
-  const qNorm = normalizzaTesto(q);
-  const qPulita = pulisciQueryRicerca(q);
-
-  // 1. Controllo della Cache (Risposta Istantanea)
-  if (alexCache.has(qNorm)) {
-    alexResults = alexCache.get(qNorm);
-    renderAlexResults();
+  const perLingua=filtraPerLinguaPreferita(candidati);
+  const ordinati=usaOrdineOriginale?perLingua:perLingua.slice().sort((a,b)=>(b.edition_count||0)-(a.edition_count||0));
+  alexResults=alexDedupTitoli(ordinati).slice(0,24).map(normalizeDoc);
+  }catch(err){
+    console.error('searchAlexandria',err);
+    wrap.innerHTML=`<div class="alex-state">⚠ Non sono riuscito a raggiungere il catalogo. Riprova tra poco.</div>`;
     return;
   }
-
-  renderAlexSkeleton();
-
-  try {
-    const params = new URLSearchParams({
-      q: qPulita || q, 
-      limit: '60',
-      fields: 'key,title,alternative_title,author_name,first_publish_year,cover_i,language,edition_count'
-    });
-
-    const r = await fetch(`https://openlibrary.org/search.json?${params}`, { signal: AbortSignal.timeout(8000) });
-    if (!r.ok) throw new Error('Errore di rete');
-    const d = await r.json();
-
-    // 2. Filtraggio saggi/note di studio
-    const puliti = (d.docs || []).filter(doc => !ALEX_ESCLUSI_REGEX.test(doc.title || ''));
-
-    // 3. Calcolo Punteggi
-    puliti.forEach((doc, index) => {
-      doc._score = alexPunteggio(doc, qNorm, qPulita) - (index * 0.2);
-    });
-
-    // 4. Ordinamento per pertinenza
-    puliti.sort((a, b) => b._score - a._score);
-
-    // 5. Deduplicazione combinata e trasformazione finale
-    alexResults = alexDedup(puliti).slice(0, 24).map(normalizeDoc);
-
-    // Salva in cache
-    alexCache.set(qNorm, alexResults);
-
-  } catch (err) {
-    console.error('searchAlexandria', err);
-    const wrap = document.getElementById('alexResultsWrap');
-    if (wrap) {
-      wrap.innerHTML = `<div class="alex-state">⚠ Non sono riuscito a raggiungere il catalogo. Riprova tra poco.</div>`;
-    }
-    return;
-  }
-
   renderAlexResults();
-
-  // 6. Arricchimento asincrono copertine in background (senza bloccare la UI)
-  arricchisciCopertineMancanti();
 }
 
-function renderAlexResults() {
-  const wrap = document.getElementById('alexResultsWrap');
-  if (!wrap || !alexLastQuery) return;
-
-  if (!alexResults.length) {
-    wrap.innerHTML = `<div class="alex-state">Nessuna opera trovata per «${alexLastQuery}».</div>`;
+function renderAlexResults(){
+  const wrap=document.getElementById('alexResultsWrap');
+  if(!wrap||!alexLastQuery)return;
+  if(!alexResults.length){
+    wrap.innerHTML=`<div class="alex-state">Nessuna opera trovata per «${alexLastQuery}».</div>`;
     return;
   }
-
-  const lib = getLibrary();
-  wrap.innerHTML = `
+  const lib=getLibrary();
+  wrap.innerHTML=`
     <div class="alex-results-head">
       <h2>Risultati per «${alexLastQuery}»</h2>
       <span>${alexResults.length} opere trovate</span>
     </div>
-    <div class="book-grid">${alexResults.map((b, i) => {
-      const stato = lib[b.id]?.stato;
-      const act = (key, label, icon) => `<button class="book-act${stato === key ? ' on' : ''}" data-act="${key}" data-idx="${i}">${icon} ${label}</button>`;
+    <div class="book-grid">${alexResults.map((b,i)=>{
+      const stato=lib[b.id]?.stato;
+      const act=(key,label,icon)=>`<button class="book-act${stato===key?' on':''}" data-act="${key}" data-idx="${i}">${icon} ${label}</button>`;
       return `
-      <div class="book-card" data-idx="${i}">
+      <div class="book-card">
         <div class="book-cover">
           <div class="book-cover-fallback">${b.t[0]}</div>
-          ${b.cover ? `<img src="${b.cover}" class="loaded" alt="Copertina di ${b.t}">` : ''}
-          <span class="book-status-dot${stato ? ' show' : ''}"></span>
+          ${b.cover?`<img src="${b.cover}" class="loaded" alt="Copertina di ${b.t}">`:''}
+          <span class="book-status-dot${stato?' show':''}"></span>
           <div class="book-actions">
-            ${act('in_lettura', 'In lettura', '📖')}
-            ${act('letto', 'Letto', '✓')}
-            ${act('desiderio', 'Desideri', '♡')}
+            ${act('in_lettura','In lettura','📖')}
+            ${act('letto','Letto','✓')}
+            ${act('desiderio','Desideri','♡')}
           </div>
         </div>
         <div class="book-meta">
           <div class="book-title">${b.t}</div>
           <div class="book-author">${b.a}</div>
-          <div class="book-year">${b.y ? fmtYear(b.y) : '—'}</div>
+          <div class="book-year">${b.y?fmtYear(b.y):'—'}</div>
         </div>
       </div>`;
     }).join('')}</div>`;
 }
-
-// Event Listeners
-document.getElementById('alexResultsWrap').addEventListener('click', e => {
-  const btn = e.target.closest('[data-act]');
-  if (!btn) return;
-  const book = alexResults[parseInt(btn.dataset.idx)];
-  if (book) setBookStatus(book, btn.dataset.act);
+document.getElementById('alexResultsWrap').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-act]');
+  if(!btn)return;
+  const book=alexResults[parseInt(btn.dataset.idx)];
+  if(book)setBookStatus(book,btn.dataset.act);
 });
-
-document.getElementById('alexForm').addEventListener('submit', e => {
+document.getElementById('alexForm').addEventListener('submit',e=>{
   e.preventDefault();
   searchAlexandria(document.getElementById('alexInput').value);
 });
-
-document.querySelectorAll('.chip').forEach(chip => {
-  chip.addEventListener('click', () => {
-    document.getElementById('alexInput').value = chip.dataset.q;
+document.querySelectorAll('.chip').forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    document.getElementById('alexInput').value=chip.dataset.q;
     searchAlexandria(chip.dataset.q);
   });
 });
