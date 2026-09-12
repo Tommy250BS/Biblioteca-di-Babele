@@ -966,9 +966,28 @@ def _ephemeris_ordine_visualizzato(entry, seed):
         ordine[i], ordine[j] = ordine[j], ordine[i]
     return ordine
 
+# Rotazione dei tipi: un tipo diverso ogni giorno, ciclando su questo
+# elenco fisso invece di scorrere EPHEMERIS_BANCO in ordine — quest'ultimo
+# resta raggruppato per tipo solo per leggibilità del banco, non è più
+# usato per decidere la sequenza (prima faceva restare lo stesso tipo per
+# più giorni di fila, finché il seed non usciva dal blocco). La domanda
+# specifica dentro il tipo del giorno è pescata con un hash pseudo-casuale
+# del seed, non con un indice sequenziale: altrimenti, tornando quel tipo
+# ogni 6 giorni, si vedrebbe sempre la stessa progressione prevedibile
+# (prima la domanda 1 del tipo, poi la 2, ecc.).
+EPHEMERIS_TIPI = ["citazione", "vero_falso", "intruso", "abbinamento", "periodo", "cronologia"]
+
+def _ephemeris_hash(n):
+    """Stesso stile di PRNG lineare già usato in _ephemeris_ordine_visualizzato,
+    qui con costanti diverse: deterministico per lo stesso input, ma non in
+    sequenza visibile al crescere di n di 1 in 1."""
+    return (n * 2654435761 + 12345) & 0xffffffff
+
 def ephemeris_di_oggi(giorno):
     seed = giorno.year * 10000 + giorno.month * 100 + giorno.day
-    return EPHEMERIS_BANCO[seed % len(EPHEMERIS_BANCO)]
+    tipo = EPHEMERIS_TIPI[seed % len(EPHEMERIS_TIPI)]
+    candidati = [e for e in EPHEMERIS_BANCO if e["tipo"] == tipo]
+    return candidati[_ephemeris_hash(seed) % len(candidati)]
 
 def _moltiplicatore_streak(streak):
     if streak >= 7:
