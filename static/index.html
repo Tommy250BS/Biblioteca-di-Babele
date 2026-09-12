@@ -2702,12 +2702,20 @@ document.getElementById('resetSubmit').addEventListener('click',async()=>{
    CITAZIONE DEL GIORNO — stessa ruotata-per-giorno dell'app originale
    ══════════════════════════════════════════════════════════════════ */
 const QUOTES=[
-  {t:'Il paradiso, per me, ha sempre avuto la forma di una biblioteca.',a:'Jorge Luis Borges',o:'Elogio dell\u2019ombra'},
-  {t:'Non c\u2019è amico più fedele di un libro.',a:'Ernest Hemingway',o:''},
-  {t:'I libri sono specchi: si vede solo ciò che si ha già dentro.',a:'Carlos Ruiz Zafón',o:'L\u2019ombra del vento'},
-  {t:'Un libro deve essere un\u2019ascia per il mare ghiacciato che è dentro di noi.',a:'Franz Kafka',o:''},
-  {t:'Chi legge vive mille vite. Chi non legge ne vive una sola.',a:'George R.R. Martin',o:''},
-  {t:'Una stanza senza libri è come un corpo senza anima.',a:'Marco Tullio Cicerone',o:''},
+    {t:'Non c\u2019è amico più fedele di un libro.',a:'Ernest Hemingway',o:''},  {t:'I libri sono specchi: si vede solo ciò che si ha già dentro.',a:'Carlos Ruiz Zafón',o:'L\u2019ombra del vento'},  
+    {t:'Un libro deve essere un\u2019ascia per il mare ghiacciato che è dentro di noi.',a:'Franz Kafka',o:''},  {t:'Chi legge vive mille vite. Chi non legge ne vive una sola.',a:'George R.R. Martin',o:''},  
+    {t:'Una stanza senza libri è come un corpo senza anima.',a:'Marco Tullio Cicerone',o:''},  {t:'Un classico è un libro che non ha mai finito di dire quel che ha da dire.',a:'Italo Calvino',o:'Perché leggere i classici'},  
+    {t:'Non c\u2019è vascello che come un libro possa portarci in terre lontane.',a:'Emily Dickinson',o:''},  {t:'Un libro è un sogno che tieni in mano.',a:'Neil Gaiman',o:''},  {t:'Non serve bruciare i libri per distruggere una cultura: basta smettere di leggerli.',a:'Ray Bradbury',o:''},  
+    {t:'Imparare a leggere è accendere un fuoco: ogni sillaba pronunciata è una scintilla.',a:'Victor Hugo',o:''},  {t:'Un uomo che non legge buoni libri non ha alcun vantaggio sull\u2019uomo che non sa leggere.',a:'Mark Twain',o:''},  
+    {t:'Alcuni libri vanno assaggiati, altri inghiottiti, pochi masticati e digeriti.',a:'Francis Bacon',o:''},  {t:'Ci sono crimini peggiori del bruciare i libri. Uno di questi è non leggerli.',a:'Iosif Brodskij',o:''},  
+    {t:'Leggere i buoni libri è come conversare con le persone più oneste dei secoli passati.',a:'René Descartes',o:''},  {t:'I libri sono una forma di magia portatile.',a:'Stephen King',o:''},  
+    {t:'Non c\u2019è libro morale o immorale. I libri sono scritti bene o scritti male.',a:'Oscar Wilde',o:'Il ritratto di Dorian Gray'},  {t:'Sono orgoglioso non di ciò che ho scritto, ma di ciò che ho letto.',a:'Jorge Luis Borges',o:''},  
+    {t:'Chi non legge, a settant\u2019anni avrà vissuto una sola vita: la propria.',a:'Umberto Eco',o:''},  {t:'Al di fuori di un cane, il libro è il miglior amico dell\u2019uomo. Dentro un cane è troppo buio per leggere.',a:'Groucho Marx',o:''},  
+    {t:'Leggere bene, cioè leggere veri libri in uno spirito vero, è un nobile esercizio.',a:'Henry David Thoreau',o:''},  {t:'Amo i libri per l\u2019amore della lettura in sé.',a:'Michel de Montaigne',o:''},  
+    {t:'Un libro dovrebbe insegnarci a divertirci o a sopportare la vita.',a:'Samuel Johnson',o:''},  {t:'Alcuni libri sono ingiustamente dimenticati; nessuno è ingiustamente ricordato.',a:'Wystan Hugh Auden',o:''},  
+    {t:'Un libro è fatto di poche once di carta, inchiostro e colla, eppure milioni di persone possono viverne l\u2019esperienza.',a:'Carl Sagan',o:''},  {t:'Leggere dovrebbe essere un piacere, non un dovere.',a:'William Somerset Maugham',o:''},  
+    {t:'Leggiamo per sapere di non essere soli.',a:'Clive Staples Lewis',o:''},  {t:'Se c\u2019è un libro che vuoi leggere e non è ancora stato scritto, devi essere tu a scriverlo.',a:'Toni Morrison',o:''},  
+    {t:'La persona che non trova piacere in un buon libro dev\u2019essere insopportabilmente stupida.',a:'Jane Austen',o:'L\u2019abbazia di Northanger'},];
 ];
 function renderQuote(){
   const d=new Date();
